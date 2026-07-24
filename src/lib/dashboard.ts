@@ -27,6 +27,7 @@ export type CropCycleRow = {
   chosen_crop: string;
   seeding_date: string;
   expected_yield: string | null;
+  created_at?: string | null;
 };
 
 export type FarmWithCrop = FarmRow & { crop: CropCycleRow | null };

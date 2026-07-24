@@ -75,7 +75,7 @@ export default function SchemesBoard({
     setBookmarks((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
-      localStorage.setItem("af_scheme_bookmarks", JSON.stringify([...next]));
+      localStorage.setItem("af_scheme_bookmarks", JSON.stringify(Array.from(next)));
       return next;
     });
   }

@@ -148,8 +148,8 @@ function Drone() {
 
       {arms.map(([x, z], i) => (
         <group key={i} position={[x, 0, z]}>
-          <mesh castShadow>
-            <cylinderGeometry args={[0.014, 0.014, 0.36, 6]} rotation={[0, 0, Math.PI / 2]} />
+          <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.014, 0.014, 0.36, 6]} />
             <meshStandardMaterial color="#12181a" metalness={0.6} roughness={0.4} />
           </mesh>
           <mesh
@@ -288,7 +288,7 @@ export default function FarmDiorama() {
           <Scene />
         </PresentationControls>
 
-        <EffectComposer disableNormalPass>
+        <EffectComposer enableNormalPass={false}>
           <Bloom
             intensity={0.9}
             luminanceThreshold={0.55}

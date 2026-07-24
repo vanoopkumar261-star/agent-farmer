@@ -111,7 +111,7 @@ const IMPACT_STATS = [
 ];
 
 /* ── helpers ── */
-function Reveal({ children, delay = 0, y = 22, className = "" }: { children: React.ReactNode; delay?: number; y?: number; className?: string }) {
+function Reveal({ children, delay = 0, y = 22, className = "", style }: { children: React.ReactNode; delay?: number; y?: number; className?: string; style?: React.CSSProperties }) {
   return (
     <motion.div
       initial={{ opacity: 0, y }}
@@ -119,15 +119,16 @@ function Reveal({ children, delay = 0, y = 22, className = "" }: { children: Rea
       viewport={{ once: true, margin: "-12%" }}
       transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>
   );
 }
 
-function Mono({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Mono({ children, className = "", style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
-    <span className={`font-mono text-[11px] uppercase leading-relaxed tracking-[0.18em] ${className}`}>
+    <span className={`font-mono text-[11px] uppercase leading-relaxed tracking-[0.18em] ${className}`} style={style}>
       {children}
     </span>
   );
