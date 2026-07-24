@@ -1,0 +1,131 @@
+"use client";
+
+import {
+  LayoutDashboard,
+  Sprout,
+  ShoppingCart,
+  MapPin,
+  MessageSquare,
+  FileText,
+  Landmark,
+  Settings,
+  Microscope,
+  Plus,
+  User,
+  Leaf,
+} from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useT } from "@/components/i18n/LanguageProvider";
+
+const navGroups: { titleKey: string; items: { icon: any; labelKey: string; href: string }[] }[] = [
+  {
+    titleKey: "nav.overview",
+    items: [
+      { icon: LayoutDashboard, labelKey: "nav.dashboard", href: "/dashboard" },
+      { icon: Sprout, labelKey: "nav.crops", href: "/dashboard/crops" },
+      { icon: MessageSquare, labelKey: "nav.assistant", href: "/dashboard/assistant" },
+    ],
+  },
+  {
+    titleKey: "nav.intelligence",
+    items: [
+      { icon: Microscope, labelKey: "nav.disease", href: "/dashboard/disease" },
+      { icon: ShoppingCart, labelKey: "nav.market", href: "/dashboard/market" },
+      { icon: MapPin, labelKey: "nav.storeLocator", href: "/dashboard/store-locator" },
+    ],
+  },
+  {
+    titleKey: "nav.manage",
+    items: [
+      { icon: FileText, labelKey: "nav.expenses", href: "/dashboard/expenses" },
+      { icon: Landmark, labelKey: "nav.schemes", href: "/dashboard/schemes" },
+      { icon: Settings, labelKey: "nav.settings", href: "/dashboard/settings" },
+    ],
+  },
+];
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { t } = useT();
+
+  return (
+    <aside className="hidden lg:flex w-[264px] shrink-0 min-h-screen bg-af-card border-r border-af-border flex-col justify-between py-7 px-4 sticky top-0">
+      <div className="flex flex-col gap-8">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 px-2">
+          <div className="w-9 h-9 rounded-xl bg-af-primary flex items-center justify-center shadow-af-sm">
+            <Leaf className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <span className="font-sans font-extrabold text-[15px] text-af-ink tracking-tight leading-none block">
+              Agent Farmer
+            </span>
+            <span className="font-mono text-[9px] tracking-[0.18em] text-af-primary/70 uppercase">
+              AI Farm OS
+            </span>
+          </div>
+        </div>
+
+        {/* Navigation groups */}
+        <nav className="flex flex-col gap-6">
+          {navGroups.map((group) => (
+            <div key={group.titleKey} className="flex flex-col gap-1">
+              <div className="px-3 mb-1 font-mono text-[9px] font-bold tracking-[0.2em] uppercase text-af-muted">
+                {t(group.titleKey)}
+              </div>
+              {group.items.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <button
+                    key={item.href}
+                    onClick={() => router.push(item.href)}
+                    className={`group w-full flex items-center gap-3 pl-3 pr-3 py-2.5 rounded-[12px] text-sm font-semibold transition-all duration-150 text-left relative
+                      ${
+                        isActive
+                          ? "bg-af-sage text-af-secondary"
+                          : "text-af-ink-2 hover:bg-af-bg hover:text-af-ink"
+                      }`}
+                  >
+                    {isActive && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-af-primary" />
+                    )}
+                    <item.icon
+                      className={`w-[18px] h-[18px] shrink-0 ${
+                        isActive ? "text-af-primary" : "text-af-muted group-hover:text-af-ink-2"
+                      }`}
+                    />
+                    {t(item.labelKey)}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+      </div>
+
+      {/* Bottom */}
+      <div className="flex flex-col gap-4">
+        <button
+          onClick={() => router.push("/onboarding")}
+          className="w-full flex items-center justify-center gap-2 bg-af-primary hover:bg-af-primary-deep text-white py-2.5 rounded-[12px] text-sm font-bold transition-all duration-150 active:scale-[0.98] shadow-af-sm"
+        >
+          <Plus className="w-4 h-4" />
+          {t("nav.newFarm")}
+        </button>
+
+        <div className="h-px bg-af-border w-full" />
+
+        <div className="flex items-center gap-3 px-1 py-1">
+          <div className="w-9 h-9 rounded-full bg-af-sage flex items-center justify-center shrink-0">
+            <User className="w-4 h-4 text-af-secondary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-semibold text-af-ink truncate">{t("nav.farmerProfile")}</p>
+            <p className="font-mono text-[9px] text-af-muted tracking-wide truncate">Agent Farmer</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}

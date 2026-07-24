@@ -1,0 +1,164 @@
+/* Jaivik Sathi — cinematic hero page styles (self-contained dark theme) */
+/* Fonts (Geist + Garamond) are loaded via <link> tags in layout.tsx, not
+   @import here — @import makes the Next.js dev compiler fetch the remote
+   stylesheets at build time, which is flaky and can 404 the route. */
+
+/* Body/base font scope for this page only.
+   Forest-green editorial palette (alethia.earth-inspired). */
+.jaivik-hero {
+  font-family: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #f5f4f2;
+  background: #0f1f10;
+}
+
+/* Heading font */
+.font-garamond {
+  font-family: "Garamond", "Times New Roman", serif;
+}
+
+/* Compositor-driven hero entrance (immune to WebGL main-thread starvation) */
+@keyframes jsFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.js-fade-up {
+  opacity: 0;
+  animation: jsFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes jsFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.js-fade-in {
+  opacity: 0;
+  animation: jsFadeIn 0.8s ease both;
+}
+@keyframes jsFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-1.1deg);
+  }
+}
+.js-float {
+  animation: jsFloat 7s ease-in-out infinite;
+}
+@keyframes jsBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+.js-bounce {
+  animation: jsBounce 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js-fade-up,
+  .js-fade-in {
+    opacity: 1;
+    animation: none;
+  }
+  .js-bounce,
+  .js-float {
+    animation: none;
+  }
+}
+
+/* Liquid glass CTA button */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.15) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.15) 80%,
+    rgba(255, 255, 255, 0.45) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.liquid-glass:hover {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15);
+}
+
+.liquid-glass:active {
+  transform: scale(0.98);
+}
+
+/* Smooth in-page scrolling only while this page is mounted */
+html:has(.jaivik-hero) {
+  scroll-behavior: smooth;
+}
+
+/* Offset so fixed nav doesn't cover a section when jumped to */
+.js-anchor {
+  scroll-margin-top: 90px;
+}
+
+/* Soft emerald radial glow accent behind sections */
+.js-glow {
+  background: radial-gradient(
+    55% 55% at 50% 0%,
+    rgba(16, 185, 129, 0.1),
+    transparent 70%
+  );
+}
+
+/* Hairline gradient divider */
+.js-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.12),
+    transparent
+  );
+}
+
+/* Mobile menu glass dropdown */
+.mobile-menu-glass {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}

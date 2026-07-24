@@ -2,32 +2,185 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+/* ── Lenis smooth scroll (recommended base styles) ── */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+/* ── Agent Farmer OS — textures & gradients for the light modern re-theme ── */
+
+/* Airy base wash: soft emerald + blue radial glows over the light canvas. */
+.of-canvas {
+  background-color: #f4f7f5;
+  background-image:
+    radial-gradient(60% 55% at 12% 8%, rgba(16, 185, 129, 0.10), transparent 60%),
+    radial-gradient(50% 50% at 92% 4%, rgba(59, 130, 246, 0.08), transparent 55%),
+    radial-gradient(45% 45% at 78% 96%, rgba(6, 78, 59, 0.07), transparent 60%);
+}
+
+/* Fine dot-grid texture (use as an overlay layer). */
+.of-dotgrid {
+  background-image: radial-gradient(rgba(6, 78, 59, 0.10) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Topographic contour lines — faint elevation-map overlay for organic depth.
+   Three overlapping concentric-ring sets at different centres read as soft
+   contour lines rather than perfect circles. Meant as a low-opacity overlay. */
+.of-topo {
+  background-image:
+    repeating-radial-gradient(circle at 15% 18%, transparent 0 44px, rgba(6, 78, 59, 0.06) 44px 45px, transparent 45px 46px),
+    repeating-radial-gradient(circle at 85% 72%, transparent 0 58px, rgba(11, 122, 91, 0.05) 58px 59px, transparent 59px 60px),
+    repeating-radial-gradient(circle at 60% 40%, transparent 0 76px, rgba(59, 130, 246, 0.035) 76px 77px, transparent 77px 78px);
+}
+
+/* Subtle grain to keep large flat areas from feeling plasticky. */
+.of-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* Emerald → forest brand gradient (buttons, dark bands). */
+.of-grad-emerald {
+  background-image: linear-gradient(135deg, #10b981 0%, #0b7a5b 55%, #064e3b 100%);
+}
+
+/* Gradient text for hero keywords. */
+.of-grad-text {
+  background-image: linear-gradient(120deg, #10b981 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glassy gradient hairline border (wrap a card, put the fill inside). */
+.of-ring {
+  background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.55), rgba(59, 130, 246, 0.35) 45%, rgba(255, 255, 255, 0.6));
+}
+
+/* Disable default chrome autocomplete yellow highlighting in input boxes */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #eff4ff inset !important;
+  -webkit-text-fill-color: #0b1c30 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Terra-Tech Select Styling
+   Note: The opened dropdown menu UI is OS/browser-controlled and not fully themeable.
+*/
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* custom chevron */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%230b1c30' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+
+  /* prevent text overlap with the icon */
+  padding-right: 2.75rem !important;
+}
+
+select:focus {
+  outline: none;
+}
+
+/* Cursor-follow spotlight — a soft emerald highlight that tracks the mouse.
+   Position vars (--mx/--my) are set by the SpotlightLayer controller. */
+.af-spotlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    240px circle at var(--mx, 50%) var(--my, 0%),
+    rgba(16, 185, 129, 0.09),
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.af-spotlight:hover::after {
+  opacity: 1;
+}
+
+/* ── Architecture page — node-graph reveal animations ──
+   Transforms for the 3D dolly are written imperatively (rAF) for smoothness;
+   only the per-layer reveal (node pop + connector draw) lives here in CSS. */
+@keyframes arch-pop {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes arch-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+.arch-plane.is-active .arch-node {
+  animation: arch-pop 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.arch-edge {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.arch-plane.is-active .arch-edge {
+  animation: arch-draw 0.9s ease both;
+}
+
+/* Focus-lock: when a layer is centered in the dolly, its cards glow so it's
+   obvious they're now clickable. The glow lives on a dedicated child element
+   so it never fights the node's entrance (arch-pop) animation. */
+.arch-lock-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  box-shadow: 0 0 0 1px rgba(57, 255, 176, 0.55), 0 0 26px 2px rgba(57, 255, 176, 0.22);
+}
+.arch-plane.is-locked .arch-lock-glow {
+  opacity: 1;
+  animation: arch-lock-pulse 1.9s ease-in-out infinite;
+}
+@keyframes arch-lock-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Respect users who prefer reduced motion — kill all ambient movement. */
+@media (prefers-reduced-motion: reduce) {
+  .af-spotlight::after {
+    display: none;
   }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .arch-plane.is-active .arch-node,
+  .arch-plane.is-active .arch-edge,
+  .arch-plane.is-locked .arch-lock-glow {
+    animation: none !important;
+  }
+  .animate-af-drift,
+  .animate-af-drift-2,
+  .animate-af-sheen,
+  .animate-af-float,
+  .animate-af-ticker,
+  .animate-af-shimmer {
+    animation: none !important;
   }
 }

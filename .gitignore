@@ -34,3 +34,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ML training artifacts
+/ml/.venv/
+/ml/data/
+/ml/models/
+/ml/*.zip
+
+# internal concept documents (kept off the repo)
+*.docx
