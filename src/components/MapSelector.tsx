@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { Search, MapPin } from "lucide-react";
 
@@ -81,17 +81,32 @@ export default function MapSelector({ value, onChange }: Props) {
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<string | undefined>(value?.address);
+  /**
+   * True once the farmer has chosen a location themselves, by searching or by
+   * tapping the map. Device geolocation must never overwrite a deliberate
+   * choice — see the effect below.
+   */
+  const userPicked = useRef(false);
 
   useEffect(() => {
-    // Attempt device location once
+    // Attempt device location once, as a convenience starting point.
     if (value) return;
     if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       async (p) => {
+        // The `if (value) return` above is evaluated at mount, but this
+        // callback can land up to 8s later — long enough for the farmer to have
+        // searched for their district already. Without this guard the GPS fix
+        // silently overwrote their choice with wherever the device happens to
+        // be, so a farmer setting up a Jharkhand plot from Rajasthan had the
+        // address quietly replaced.
+        if (userPicked.current) return;
+
         const lat = p.coords.latitude;
         const lng = p.coords.longitude;
         const address = await reverseGeocode(lat, lng);
+        if (userPicked.current) return; // they may have picked during geocoding
         const next = { lat, lng, address };
         setPos(next);
         setHint(address);
@@ -106,6 +121,7 @@ export default function MapSelector({ value, onChange }: Props) {
   }, []);
 
   const pick = async (lat: number, lng: number) => {
+    userPicked.current = true;
     setBusy(true);
     const address = await reverseGeocode(lat, lng);
     const next = { lat, lng, address };
@@ -116,6 +132,7 @@ export default function MapSelector({ value, onChange }: Props) {
   };
 
   const handleSearch = async () => {
+    userPicked.current = true;
     setBusy(true);
     const result = await geocode(query);
     if (result) {
