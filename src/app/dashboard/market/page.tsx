@@ -9,10 +9,8 @@ import { ShoppingCart, Wifi, WifiOff } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function MarketPage() {
-  // This page arrived with a hardcoded mockFarmer (Meghalaya / Wheat / Paddy)
-  // because it was written against a snapshot that had no auth. Reading the
-  // session instead is what makes it show each farmer their own state and crops
-  // — otherwise every account sees the same Meghalaya prices.
+  // Reads the session rather than the mockFarmer this page shipped with, so
+  // each farmer sees their own state and crops instead of Meghalaya.
   const { farmer, farms } = await getDashboardData();
 
   const apiKey = process.env.DATA_GOV_API_KEY ?? null;
@@ -20,11 +18,9 @@ export default async function MarketPage() {
 
   const crops = await getMarket(state, apiKey);
 
-  // Derived from what actually came back, not from whether a key and a state
-  // merely exist. getMarket falls back to generated series whenever the API
-  // fails — and the shared data.gov.in sample key returns HTTP 429 often — so
-  // the old `Boolean(apiKey && state)` cheerfully labelled demo numbers
-  // "Live · <state> · Agmarknet". Every real record sets isReal.
+  // Derived from what actually returned. getMarket falls back to generated
+  // series on any API failure, so keying the badge off apiKey && state alone
+  // labelled demo numbers "Live · <state> · Agmarknet".
   const isRealData = crops.some((c) => c.isReal);
 
   const farmerCropNames = Array.from(
@@ -70,7 +66,7 @@ export default async function MarketPage() {
             <ShoppingCart className="w-5 h-5" />
           </span>
           <div>
-            <h1 className="text-heading font-semibold text-af-ink">
+            <h1 className="text-[26px] font-extrabold tracking-tight text-af-ink">
               <T k="title.market" />
             </h1>
             <p className="mt-0.5 text-sm text-af-ink-2">
@@ -80,9 +76,9 @@ export default async function MarketPage() {
         </div>
 
         <div
-          className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[11px] font-semibold ${
+          className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[11px] font-bold ${
             isRealData
-              ? "bg-af-primary/10 border-af-primary/20 text-af-primary-deep"
+              ? "bg-af-primary/8 border-af-primary/20 text-af-primary-deep"
               : "bg-af-bg border-af-border text-af-muted"
           }`}
         >
@@ -105,7 +101,7 @@ export default async function MarketPage() {
       </div>
 
       {isRealData && state && (
-        <div className="mb-4 flex items-center gap-2 rounded-[14px] bg-af-primary/5 border border-af-primary/15 px-4 py-2.5">
+        <div className="mb-4 flex items-center gap-2 rounded-[14px] bg-af-primary/6 border border-af-primary/15 px-4 py-2.5">
           <span className="text-[13px] text-af-primary-deep font-semibold">
             📍 Showing mandi prices for <strong>{state}</strong> from AGMARKNET (data.gov.in)
           </span>

@@ -15,7 +15,7 @@ type Advice = { headline: string; recommendations: Rec[] };
 
 const actionCfg = {
   "Sell now": { icon: ArrowUpRight, tint: "bg-af-primary/10 text-af-primary-deep" },
-  Hold:       { icon: PauseCircle,  tint: "bg-af-amber/10 text-af-amber-ink" },
+  Hold:       { icon: PauseCircle,  tint: "bg-af-amber/12 text-[#9a7100]" },
   Wait:       { icon: Clock,        tint: "bg-af-ai/10 text-af-ai" },
 };
 
@@ -89,7 +89,7 @@ export default function MarketAdvice({
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1.5">
             <Sparkles className="w-3.5 h-3.5 text-af-primary" />
-            <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-white/90">
+            <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-white/90">
               AI Selling Advisor
             </span>
           </div>
@@ -98,7 +98,7 @@ export default function MarketAdvice({
           {farmerUnavailableCrops.length > 0 && (
             <div className="inline-flex items-center gap-1.5 rounded-full bg-af-amber/20 border border-af-amber/30 px-3 py-1.5">
               <PackageX className="w-3 h-3 text-af-amber" />
-              <span className="text-[10px] font-semibold text-af-amber">
+              <span className="text-[10px] font-bold text-af-amber">
                 {farmerUnavailableCrops.join(", ")} not at mandis today
               </span>
             </div>
@@ -158,9 +158,9 @@ export default function MarketAdvice({
                     className="rounded-[14px] bg-white/[0.08] border border-white/10 px-3.5 py-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-white">{r.crop}</span>
+                      <span className="text-sm font-bold text-white">{r.crop}</span>
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${cfg.tint}`}
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${cfg.tint}`}
                       >
                         <Icon className="w-3 h-3" /> {r.action}
                       </span>
