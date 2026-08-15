@@ -18,7 +18,7 @@ export default function Tabs({
           <button
             key={t.id}
             onClick={() => onChange(t.id)}
-            className={`px-3.5 py-1.5 rounded-[9px] text-[13px] font-bold transition-all ${
+            className={`px-3.5 py-1.5 rounded-[9px] text-meta font-semibold transition-all ${
               isActive
                 ? "bg-af-card text-af-ink shadow-af-sm"
                 : "text-af-muted hover:text-af-ink-2"

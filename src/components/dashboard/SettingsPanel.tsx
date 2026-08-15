@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES } from "@/lib/i18n/config";
 import Card from "@/components/ui/Card";
+import { DEFAULT_COST_PREFS, costPrefsFrom, type CostPrefs } from "@/lib/mandi-costs";
 import {
   User,
   Globe,
@@ -18,7 +19,20 @@ import {
   Bug,
   TrendingUp,
   Sparkles,
+  LogOut,
+  Truck,
 } from "lucide-react";
+
+type NotifPrefs = { weather: boolean; disease: boolean; market: boolean; ai: boolean };
+
+/** The mandi charges no dataset can supply — the farmer's own numbers. */
+const COST_FIELDS: { key: keyof CostPrefs; label: string; unit: string; hint: string }[] = [
+  { key: "transportPerQuintalKm", label: "Transport", unit: "₹/qtl/km", hint: "Tractor or hired truck, per km" },
+  { key: "hamaliPerQuintal", label: "Loading & unloading", unit: "₹/qtl", hint: "Hamali / palledari" },
+  { key: "bardanaPerQuintal", label: "Gunny bags", unit: "₹/qtl", hint: "0 if you reuse your own" },
+  { key: "weighingPerQuintal", label: "Weighing", unit: "₹/qtl", hint: "Tolai charge at the yard" },
+  { key: "qualityCutPercent", label: "Moisture / quality cut", unit: "%", hint: "Typical deduction on your produce" },
+];
 
 type Profile = {
   id: string;
@@ -26,7 +40,10 @@ type Profile = {
   phone: string;
   email: string | null;
   house_address: string | null;
+  preferences?: Record<string, any> | null;
 };
+
+const DEFAULT_NOTIF: NotifPrefs = { weather: true, disease: true, market: false, ai: true };
 
 export default function SettingsPanel({ profile }: { profile: Profile }) {
   const router = useRouter();
@@ -36,8 +53,60 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
   const [email, setEmail] = useState(profile.email ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
 
-  const [notif, setNotif] = useState({ weather: true, disease: true, market: false, ai: true });
+  const [notif, setNotif] = useState<NotifPrefs>({
+    ...DEFAULT_NOTIF,
+    ...(profile.preferences?.notifications ?? {}),
+  });
+
+  const [costs, setCosts] = useState<CostPrefs>(costPrefsFrom(profile.preferences));
+  const [costsSaved, setCostsSaved] = useState(false);
+
+  // Resolve the login username (internal email is <handle>@agentfarmer.local).
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const em = data.user?.email;
+      if (em) setUsername(em.replace(/@agentfarmer\.local$/, ""));
+    });
+  }, []);
+
+  // Persist a notification toggle immediately into farmer_profiles.preferences.
+  async function toggleNotif(key: keyof NotifPrefs) {
+    const next = { ...notif, [key]: !notif[key] };
+    setNotif(next);
+    try {
+      await supabase
+        .from("farmer_profiles")
+        .update({ preferences: { ...(profile.preferences ?? {}), notifications: next } })
+        .eq("id", profile.id);
+    } catch {
+      /* preferences column may not exist yet — keep the local toggle */
+    }
+  }
+
+  // Persist the mandi cost assumptions used by the Market page breakdown.
+  async function saveCosts() {
+    try {
+      await supabase
+        .from("farmer_profiles")
+        .update({ preferences: { ...(profile.preferences ?? {}), mandiCosts: costs } })
+        .eq("id", profile.id);
+      setCostsSaved(true);
+      router.refresh();
+      setTimeout(() => setCostsSaved(false), 2500);
+    } catch {
+      /* preferences column may not exist yet — keep the local values */
+    }
+  }
+
+  async function signOut() {
+    setSigningOut(true);
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   async function save() {
     setSaving(true);
@@ -69,12 +138,12 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
           </div>
           <div className="flex items-start gap-2 rounded-[12px] bg-af-bg border border-af-border px-4 py-3">
             <MapPin className="w-4 h-4 text-af-primary mt-0.5 shrink-0" />
-            <div className="text-[13px] text-af-ink-2">{profile.house_address ?? "No location set"}</div>
+            <div className="text-meta text-af-ink-2">{profile.house_address ?? "No location set"}</div>
           </div>
           <button
             onClick={save}
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-bold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : null}
             {saved ? t("common.saved") : t("common.save")}
@@ -110,24 +179,90 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
         <SectionTitle icon={<Bell className="w-4 h-4" />} title="Notifications" subtitle="What you'll be alerted about" />
         <div className="mt-5 space-y-1">
           <Toggle icon={<CloudSun className="w-4 h-4 text-af-ai" />} label="Weather alerts" desc="Rain, heat & storm warnings"
-            on={notif.weather} onToggle={() => setNotif((n) => ({ ...n, weather: !n.weather }))} />
+            on={notif.weather} onToggle={() => toggleNotif("weather")} />
           <Toggle icon={<Bug className="w-4 h-4 text-af-amber" />} label="Disease alerts" desc="Scan reminders & outbreaks"
-            on={notif.disease} onToggle={() => setNotif((n) => ({ ...n, disease: !n.disease }))} />
+            on={notif.disease} onToggle={() => toggleNotif("disease")} />
           <Toggle icon={<TrendingUp className="w-4 h-4 text-af-primary-deep" />} label="Market prices" desc="Selling-window signals"
-            on={notif.market} onToggle={() => setNotif((n) => ({ ...n, market: !n.market }))} />
-          <Toggle icon={<Sparkles className="w-4 h-4 text-af-ai" />} label="AI insights" desc="Daily summary & tips"
-            on={notif.ai} onToggle={() => setNotif((n) => ({ ...n, ai: !n.ai }))} />
+            on={notif.market} onToggle={() => toggleNotif("market")} />
+          <Toggle icon={<Sparkles className="w-4 h-4 text-af-ai" />} label="Daily summary" desc="Farm briefing & tips"
+            on={notif.ai} onToggle={() => toggleNotif("ai")} />
         </div>
       </Card>
 
-      {/* Security */}
+      {/* Mandi selling costs */}
       <Card className="p-6">
-        <SectionTitle icon={<Shield className="w-4 h-4" />} title="Security" subtitle="Account & data" />
+        <SectionTitle
+          icon={<Truck className="w-4 h-4" />}
+          title="Mandi selling costs"
+          subtitle="Used to work out your net price per mandi"
+        />
+        <p className="mt-3 text-[12px] text-af-ink-2">
+          Market fees and commission come from your state&apos;s APMC rules. These charges don&apos;t exist in
+          any dataset — enter what you actually pay and the Market page breakdown becomes your numbers,
+          not our estimates.
+        </p>
+        <div className="mt-4 space-y-2.5">
+          {COST_FIELDS.map((f) => (
+            <div key={f.key} className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="text-meta font-semibold text-af-ink">{f.label}</div>
+                <div className="text-[11px] text-af-muted">{f.hint}</div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <input
+                  type="number"
+                  min={0}
+                  step="0.5"
+                  value={costs[f.key]}
+                  onChange={(e) =>
+                    setCosts({ ...costs, [f.key]: Math.max(0, Number(e.target.value) || 0) })
+                  }
+                  className="w-20 rounded-[10px] bg-af-bg border border-af-border px-2.5 py-2 text-sm font-mono text-af-ink text-right outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
+                />
+                <span className="font-mono text-[10px] text-af-muted w-14">{f.unit}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            onClick={saveCosts}
+            className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm"
+          >
+            {costsSaved ? <Check className="w-4 h-4" /> : null}
+            {costsSaved ? t("common.saved") : t("common.save")}
+          </button>
+          <button
+            onClick={() => setCosts(DEFAULT_COST_PREFS)}
+            className="text-[12px] font-semibold text-af-muted hover:text-af-ink-2 transition"
+          >
+            Reset to defaults
+          </button>
+        </div>
+      </Card>
+
+      {/* Account */}
+      <Card className="p-6">
+        <SectionTitle icon={<Shield className="w-4 h-4" />} title="Account" subtitle="Your login & session" />
         <div className="mt-5 space-y-3">
-          <Row label="Phone verification" value="Verified" tone="good" />
-          <Row label="Two-factor auth" value="Set up" tone="action" />
-          <Row label="Data & privacy" value="Manage" tone="action" />
-          <Row label="Sign out" value="→" tone="action" />
+          <div className="flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3">
+            <span className="text-sm font-semibold text-af-ink">Signed in as</span>
+            <span className="text-meta font-semibold text-af-primary-deep">{username ?? "—"}</span>
+          </div>
+          {profile.phone && (
+            <div className="flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3">
+              <span className="text-sm font-semibold text-af-ink">Phone</span>
+              <span className="text-meta font-semibold text-af-ink-2">{profile.phone}</span>
+            </div>
+          )}
+          <button
+            onClick={signOut}
+            disabled={signingOut}
+            className="w-full flex items-center justify-center gap-2 rounded-[12px] bg-af-danger/10 border border-af-danger/20 px-4 py-3 text-sm font-semibold text-af-danger hover:bg-af-danger/15 transition disabled:opacity-50"
+          >
+            {signingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+            {signingOut ? "Signing out…" : "Sign out"}
+          </button>
         </div>
       </Card>
     </div>
@@ -139,8 +274,8 @@ function SectionTitle({ icon, title, subtitle }: { icon: React.ReactNode; title:
     <div className="flex items-center gap-2.5">
       <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary">{icon}</span>
       <div>
-        <h2 className="text-lg font-extrabold text-af-ink leading-tight">{title}</h2>
-        <p className="text-[13px] text-af-muted">{subtitle}</p>
+        <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">{title}</h2>
+        <p className="text-meta text-af-muted">{subtitle}</p>
       </div>
     </div>
   );
@@ -149,7 +284,7 @@ function SectionTitle({ icon, title, subtitle }: { icon: React.ReactNode; title:
 function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div className="space-y-1.5">
-      <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">{label}</label>
+      <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">{label}</label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -165,7 +300,7 @@ function Toggle({ icon, label, desc, on, onToggle }: { icon: React.ReactNode; la
     <button onClick={onToggle} className="w-full flex items-center gap-3 rounded-[12px] px-2 py-2.5 hover:bg-af-bg transition">
       <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-bg border border-af-border shrink-0">{icon}</span>
       <div className="min-w-0 flex-1 text-left">
-        <div className="text-sm font-bold text-af-ink">{label}</div>
+        <div className="text-sm font-semibold text-af-ink">{label}</div>
         <div className="text-[11px] text-af-muted">{desc}</div>
       </div>
       <span className={`relative w-10 h-6 rounded-full transition-colors shrink-0 ${on ? "bg-af-primary" : "bg-af-border"}`}>
@@ -175,11 +310,3 @@ function Toggle({ icon, label, desc, on, onToggle }: { icon: React.ReactNode; la
   );
 }
 
-function Row({ label, value, tone }: { label: string; value: string; tone: "good" | "action" }) {
-  return (
-    <div className="flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3">
-      <span className="text-sm font-semibold text-af-ink">{label}</span>
-      <span className={`text-[13px] font-bold ${tone === "good" ? "text-af-primary-deep" : "text-af-ai"}`}>{value}</span>
-    </div>
-  );
-}

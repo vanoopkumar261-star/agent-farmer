@@ -7,6 +7,7 @@ export async function POST(req: Request) {
 
     const locationAddress = String(body?.locationAddress ?? "");
     const farms = (body?.farms ?? []) as FarmInput[];
+    const preferOilseed = body?.preferOilseed === true;
 
     if (!locationAddress || !Array.isArray(farms) || farms.length === 0) {
       return NextResponse.json(
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await getCropRecommendations({ locationAddress, farms });
+    const result = await getCropRecommendations({ locationAddress, farms, preferOilseed });
     return NextResponse.json(result, { status: 200 });
   } catch (e: any) {
     return NextResponse.json(

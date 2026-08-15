@@ -1,16 +1,17 @@
 import { getDashboardData } from "@/lib/dashboard";
-import { getMarket, nearbyMandis, MandiRow } from "@/lib/market";
+import { getMarket, getMandiBoard, deriveRegion } from "@/lib/market";
+import { costPrefsFrom } from "@/lib/mandi-costs";
 import MarketBoard from "@/components/dashboard/MarketBoard";
 import MarketAdvice from "@/components/dashboard/MarketAdvice";
 import Reveal from "@/components/ui/Reveal";
 import { T } from "@/components/i18n/LanguageProvider";
-import { ShoppingCart } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function MarketPage() {
   const { farmer, farms } = await getDashboardData();
-  const crops = getMarket();
+  const region = deriveRegion(farmer?.house_address);
+  const crops = await getMarket(region);
 
   // Focus on a crop the farmer actually grows, if it's in our market list.
   const farmerCropNames = Array.from(
@@ -20,8 +21,12 @@ export default async function MarketPage() {
     crops.find((c) => farmerCropNames.some((n) => n.toLowerCase() === c.name.toLowerCase()))?.name ??
     crops[0].name;
 
-  const mandisByFocus: Record<string, MandiRow[]> = {};
-  for (const c of crops) mandisByFocus[c.name] = nearbyMandis(c);
+  const mandisByFocus = await getMandiBoard(crops, {
+    farmLat: farmer?.house_lat,
+    farmLng: farmer?.house_lng,
+    prefs: costPrefsFrom(farmer?.preferences),
+    region,
+  });
 
   const pricesForAi = crops.map((c) => ({
     name: c.name,
@@ -32,16 +37,11 @@ export default async function MarketPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex items-center justify-center w-11 h-11 rounded-2xl bg-af-sage text-af-secondary">
-          <ShoppingCart className="w-5 h-5" />
-        </span>
-        <div>
-          <h1 className="text-[26px] font-extrabold tracking-tight text-af-ink"><T k="title.market" /></h1>
-          <p className="mt-0.5 text-sm text-af-ink-2">
-            Live mandi prices, trends, and AI-powered selling windows.
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-heading font-semibold text-af-ink"><T k="title.market" /></h1>
+        <p className="mt-1 text-sm text-af-ink-2">
+          Live mandi prices, price trends, and when to sell or hold.
+        </p>
       </div>
 
       <div className="space-y-6">

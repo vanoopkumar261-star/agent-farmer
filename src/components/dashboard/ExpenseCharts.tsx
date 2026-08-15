@@ -15,22 +15,18 @@ import {
 } from "recharts";
 import Card from "@/components/ui/Card";
 import { PieChart as PieIcon, BarChart3 } from "lucide-react";
+import { SERIES, SEQUENTIAL_GREEN, GRID, AXIS, tooltipStyle } from "@/lib/chartTheme";
 
-const GRID = "#E4E9E3";
-const AXIS = "#8A8A8A";
-const EMERALD = "#10B981";
-const AMBER = "#F59E0B";
+const EMERALD = SERIES.income;
+const AMBER = SERIES.expense;
 
-// Single-hue emerald ramp — composition read by lightness (CVD-safe), identity by legend.
-const RAMP = ["#059669", "#10B981", "#34D399", "#6EE7B7", "#047857", "#065F46", "#0B3B2E", "#A7F3D0"];
-
-const tooltipStyle = {
-  borderRadius: 12,
-  border: "1px solid #E4E9E3",
-  boxShadow: "0 12px 32px rgba(16,24,20,0.08)",
-  fontSize: 12,
-  padding: "8px 12px",
-};
+/**
+ * Composition ramp. The old emerald version zig-zagged in lightness (#059669,
+ * #10B981, #34D399, #6EE7B7, then back down to #047857) so slice order carried
+ * no meaning; SEQUENTIAL_GREEN steps monotonically dark→light, which is what
+ * makes the split readable without colour vision. Identity is the legend list.
+ */
+const RAMP = SEQUENTIAL_GREEN;
 
 const rupee = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
 
@@ -52,8 +48,8 @@ export default function ExpenseCharts({
             <PieIcon className="w-4 h-4" />
           </span>
           <div>
-            <h2 className="text-lg font-extrabold text-af-ink leading-tight">Where money goes</h2>
-            <p className="text-[13px] text-af-muted">Expenses by category</p>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">Where money goes</h2>
+            <p className="text-meta text-af-muted">Expenses by category</p>
           </div>
         </div>
 
@@ -86,7 +82,7 @@ export default function ExpenseCharts({
             </div>
             <ul className="flex-1 space-y-1.5 min-w-0">
               {byCategory.map((c, i) => (
-                <li key={c.category} className="flex items-center gap-2 text-[13px]">
+                <li key={c.category} className="flex items-center gap-2 text-meta">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: RAMP[i % RAMP.length] }} />
                   <span className="font-semibold text-af-ink truncate">{c.category}</span>
                   <span className="ml-auto font-mono text-af-ink-2">{rupee(c.amount)}</span>
@@ -107,8 +103,8 @@ export default function ExpenseCharts({
             <BarChart3 className="w-4 h-4" />
           </span>
           <div>
-            <h2 className="text-lg font-extrabold text-af-ink leading-tight">Monthly cash flow</h2>
-            <p className="text-[13px] text-af-muted">Income vs expense</p>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">Monthly cash flow</h2>
+            <p className="text-meta text-af-muted">Income vs expense</p>
           </div>
         </div>
         <div className="h-[200px] w-full">
@@ -118,7 +114,15 @@ export default function ExpenseCharts({
               <XAxis dataKey="month" tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} />
               <YAxis tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
               <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => rupee(v)} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+              <Legend
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+              // Identity is the legend dot; the text stays in ink. Recharts
+              // colours legend labels with the series colour by default, which
+              // puts mustard type at 2.2:1 on white.
+              formatter={(value) => <span style={{ color: "#3F5347" }}>{value}</span>}
+              />
               <Bar dataKey="income" name="Income" fill={EMERALD} radius={[4, 4, 0, 0]} />
               <Bar dataKey="expense" name="Expense" fill={AMBER} radius={[4, 4, 0, 0]} />
             </BarChart>

@@ -1,11 +1,12 @@
 "use client";
 
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
+import { CATEGORICAL } from "@/lib/chartTheme";
 
 /** Tiny single-series area sparkline for stat tiles. No axes, no legend (title names it). */
 export default function Sparkline({
   data,
-  color = "#10B981",
+  color = CATEGORICAL[0],
   height = 36,
 }: {
   data: number[];

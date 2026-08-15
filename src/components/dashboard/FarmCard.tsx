@@ -4,7 +4,9 @@ import { cropStage, daysSince } from "@/lib/dashboard";
 
 export default function FarmCard({ farm }: { farm: FarmWithCrop }) {
   const crop = farm.crop;
-  const stage = crop ? cropStage(crop.seeding_date) : null;
+  const stage = crop
+    ? cropStage(crop.seeding_date, crop.chosen_crop, crop.estimated_harvest_date)
+    : null;
   const days = crop ? daysSince(crop.seeding_date) : null;
 
   return (
@@ -15,11 +17,11 @@ export default function FarmCard({ farm }: { farm: FarmWithCrop }) {
             <Sprout className="w-[18px] h-[18px] text-af-secondary" />
           </div>
           <div>
-            <div className="text-sm font-bold text-af-ink leading-tight">Farm {farm.farm_index}</div>
+            <div className="text-sm font-semibold text-af-ink leading-tight">Farm {farm.farm_index}</div>
             <div className="text-[11px] text-af-muted">{farm.area} acres</div>
           </div>
         </div>
-        <span className="rounded-full bg-af-primary/10 text-af-primary-deep px-2.5 py-1 text-[11px] font-bold">
+        <span className="rounded-full bg-af-primary/10 text-af-primary-deep px-2.5 py-1 text-[11px] font-semibold">
           {crop?.chosen_crop ?? "No crop"}
         </span>
       </div>
@@ -37,12 +39,12 @@ export default function FarmCard({ farm }: { farm: FarmWithCrop }) {
       {stage && (
         <div className="mt-4">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-af-ink-2">{stage.label}</span>
+            <span className="text-[11px] font-semibold text-af-ink-2">{stage.label}</span>
             <span className="font-mono text-[11px] text-af-muted">Day {days}</span>
           </div>
           <div className="h-2 w-full rounded-full bg-af-bg overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-af-primary to-af-leaf"
+              className="h-full rounded-full bg-af-primary"
               style={{ width: `${Math.round(stage.progress * 100)}%` }}
             />
           </div>

@@ -8,10 +8,17 @@ import { useT } from "@/components/i18n/LanguageProvider";
 type Rec = { crop: string; action: "Sell now" | "Hold" | "Wait"; reason: string; confidence: number };
 type Advice = { headline: string; recommendations: Rec[] };
 
+/**
+ * These chips sit on the dark forest advisor band, not on a card, so they need
+ * the inverse of the usual light-surface tints. Under v2 the old
+ * `text-af-primary-deep` resolved to #173B2A — the band's own colour — which
+ * made "Sell now" effectively invisible. Light type on a translucent colour
+ * chip instead; the icon and the word carry the state, never the hue alone.
+ */
 const actionCfg = {
-  "Sell now": { icon: ArrowUpRight, tint: "bg-af-primary/10 text-af-primary-deep" },
-  Hold: { icon: PauseCircle, tint: "bg-af-amber/12 text-[#9a7100]" },
-  Wait: { icon: Clock, tint: "bg-af-ai/10 text-af-ai" },
+  "Sell now": { icon: ArrowUpRight, tint: "bg-af-leaf/35 text-white" },
+  Hold: { icon: PauseCircle, tint: "bg-af-amber/35 text-white" },
+  Wait: { icon: Clock, tint: "bg-af-ai/40 text-white" },
 };
 
 export default function MarketAdvice({
@@ -53,8 +60,9 @@ export default function MarketAdvice({
       <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-af-ai/25 blur-2xl" />
       <div className="relative z-10">
         <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-af-primary" />
-          <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-white/90">
+          {/* Also on the dark band — af-primary is too dark to read here. */}
+          <Sparkles className="w-3.5 h-3.5 text-af-sage" />
+          <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-white/90">
             AI Selling Advisor
           </span>
         </div>
@@ -75,8 +83,8 @@ export default function MarketAdvice({
                 return (
                   <div key={i} className="rounded-[14px] bg-white/[0.08] border border-white/10 px-3.5 py-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-white">{r.crop}</span>
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${cfg.tint}`}>
+                      <span className="text-sm font-semibold text-white">{r.crop}</span>
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${cfg.tint}`}>
                         <Icon className="w-3 h-3" /> {r.action}
                       </span>
                     </div>

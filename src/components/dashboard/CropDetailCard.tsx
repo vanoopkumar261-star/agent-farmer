@@ -1,35 +1,47 @@
 import { Sprout, Droplets, Layers, CalendarDays, CalendarClock } from "lucide-react";
 import Card from "@/components/ui/Card";
 import type { FarmWithCrop } from "@/lib/dashboard";
-import { cropStage, daysSince } from "@/lib/dashboard";
+import { cropStageFor, harvestInfo, stageTimelinePct, STAGE_LABELS } from "@/lib/agronomy";
+import HarvestDateEditor from "@/components/dashboard/HarvestDateEditor";
+import DeleteFarmButton from "@/components/dashboard/DeleteFarmButton";
 
-const STAGES = ["Germination", "Seedling", "Vegetative", "Flowering", "Maturity"];
+const STAGES = STAGE_LABELS;
 
-export default function CropDetailCard({ farm }: { farm: FarmWithCrop }) {
+export default function CropDetailCard({ farm, health: healthProp }: { farm: FarmWithCrop; health?: number }) {
   const crop = farm.crop;
 
   if (!crop) {
     return (
       <Card className="p-6">
-        <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-bg text-af-muted">
-            <Sprout className="w-[18px] h-[18px]" />
-          </span>
-          <div>
-            <div className="text-sm font-bold text-af-ink">Farm {farm.farm_index}</div>
-            <div className="text-[12px] text-af-muted">No crop selected yet</div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-bg text-af-muted">
+              <Sprout className="w-[18px] h-[18px]" />
+            </span>
+            <div>
+              <div className="text-sm font-semibold text-af-ink">Farm {farm.farm_index}</div>
+              <div className="text-[12px] text-af-muted">No crop selected yet</div>
+            </div>
           </div>
+          {/* A cropless farm is the most likely leftover, so it needs the
+              control at least as much as a planted one. */}
+          <DeleteFarmButton farmId={farm.id} farmIndex={farm.farm_index} />
         </div>
       </Card>
     );
   }
 
-  const stage = cropStage(crop.seeding_date);
-  const days = daysSince(crop.seeding_date);
+  const stage = cropStageFor(crop.chosen_crop, crop.seeding_date, crop.estimated_harvest_date);
+  const days = stage.day;
   const currentStageIdx = STAGES.indexOf(stage.label);
-  const harvest = new Date(new Date(crop.seeding_date).getTime() + 120 * 86_400_000);
-  const daysLeft = Math.max(0, Math.ceil((harvest.getTime() - Date.now()) / 86_400_000));
-  const health = Math.max(60, Math.min(96, 78 + Math.round(stage.progress * 12)));
+  const { daysLeft, harvestLabel, estimated } = harvestInfo(
+    crop.chosen_crop,
+    crop.seeding_date,
+    crop.estimated_harvest_date
+  );
+  // Prefer a real weather-aware health score from the page; fall back to a
+  // stage-based estimate when it isn't supplied.
+  const health = healthProp ?? Math.max(60, Math.min(96, 78 + Math.round(stage.progress * 12)));
 
   return (
     <Card className="p-6">
@@ -40,17 +52,24 @@ export default function CropDetailCard({ farm }: { farm: FarmWithCrop }) {
           </span>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-extrabold text-af-ink">{crop.chosen_crop}</h3>
-              <span className="rounded-full bg-af-primary/10 text-af-primary-deep px-2.5 py-0.5 text-[11px] font-bold">
+              <h3 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink">{crop.chosen_crop}</h3>
+              <span className="rounded-full bg-af-primary/10 text-af-primary-deep px-2.5 py-0.5 text-[11px] font-semibold">
                 Farm {farm.farm_index}
               </span>
             </div>
             <div className="text-[12px] text-af-muted">Day {days} · {stage.label} stage</div>
           </div>
         </div>
-        <div className="text-right">
-          <div className="font-mono text-2xl font-extrabold text-af-ink">{health}</div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-af-muted">Health</div>
+        <div className="flex items-start gap-2">
+          <div className="text-right">
+            <div className="font-mono text-2xl font-semibold text-af-ink">{health}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-af-muted">Health</div>
+          </div>
+          <DeleteFarmButton
+            farmId={farm.id}
+            farmIndex={farm.farm_index}
+            cropName={crop.chosen_crop}
+          />
         </div>
       </div>
 
@@ -65,18 +84,26 @@ export default function CropDetailCard({ farm }: { farm: FarmWithCrop }) {
       {/* growth timeline */}
       <div className="mt-6">
         <div className="flex items-center justify-between mb-3">
-          <span className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+          <span className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
             Growth Timeline
           </span>
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-af-ink-2">
-            <CalendarClock className="w-3.5 h-3.5 text-af-primary" /> ~{daysLeft} days to harvest
+            <CalendarClock className="w-3.5 h-3.5 text-af-primary" />
+            {daysLeft > 0 ? `~${daysLeft} days to harvest` : "Ready to harvest"}
+            <span className="text-af-muted">
+              · {estimated ? "Est." : "Planned"} {harvestLabel}
+            </span>
           </span>
         </div>
         <div className="relative">
           <div className="absolute top-[11px] left-0 right-0 h-0.5 bg-af-border" />
+          {/* Driven by real elapsed days, not the stage index. Anchoring it to
+              the index meant the line jumped only five times in a 100-day
+              cycle and looked frozen for a fortnight at a stretch; now it
+              creeps forward every single day the farmer signs in. */}
           <div
             className="absolute top-[11px] left-0 h-0.5 bg-af-primary transition-all"
-            style={{ width: `${(currentStageIdx / (STAGES.length - 1)) * 100}%` }}
+            style={{ width: `${stageTimelinePct(stage.progress)}%` }}
           />
           <div className="relative flex justify-between">
             {STAGES.map((s, i) => {
@@ -99,6 +126,13 @@ export default function CropDetailCard({ farm }: { farm: FarmWithCrop }) {
           </div>
         </div>
       </div>
+
+      <HarvestDateEditor
+        cropCycleId={crop.id}
+        cropName={crop.chosen_crop}
+        seedingDate={crop.seeding_date}
+        estimatedHarvestDate={crop.estimated_harvest_date}
+      />
     </Card>
   );
 }

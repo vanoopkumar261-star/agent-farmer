@@ -20,8 +20,8 @@ export default function SectionHeader({
           </span>
         )}
         <div className="min-w-0">
-          <h2 className="text-lg font-extrabold text-af-ink leading-tight truncate">{title}</h2>
-          {subtitle && <p className="text-[13px] text-af-muted truncate">{subtitle}</p>}
+          <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight truncate">{title}</h2>
+          {subtitle && <p className="text-meta text-af-muted truncate">{subtitle}</p>}
         </div>
       </div>
       {action && <div className="shrink-0">{action}</div>}

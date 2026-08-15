@@ -12,9 +12,9 @@ export default async function SettingsPage() {
   if (!farmer) {
     return (
       <div className="max-w-md mx-auto mt-20 text-center rounded-2xl bg-af-card border border-af-border shadow-af-sm p-10">
-        <h2 className="text-xl font-extrabold text-af-ink">No profile</h2>
+        <h2 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink">No profile</h2>
         <p className="mt-2 text-sm text-af-ink-2">Complete onboarding first.</p>
-        <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-bold">
+        <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold">
           Start Onboarding
         </Link>
       </div>
@@ -28,7 +28,7 @@ export default async function SettingsPage() {
           <SettingsIcon className="w-5 h-5" />
         </span>
         <div>
-          <h1 className="text-[26px] font-extrabold tracking-tight text-af-ink"><T k="title.settings" /></h1>
+          <h1 className="text-heading font-semibold text-af-ink"><T k="title.settings" /></h1>
           <p className="mt-0.5 text-sm text-af-ink-2">Manage your profile, language, notifications &amp; security.</p>
         </div>
       </div>
@@ -40,6 +40,7 @@ export default async function SettingsPage() {
           phone: farmer.phone,
           email: farmer.email,
           house_address: farmer.house_address,
+          preferences: farmer.preferences ?? {},
         }}
       />
     </div>

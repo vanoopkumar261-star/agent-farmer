@@ -17,6 +17,34 @@ export type DiseaseResult = {
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
+/** The only multimodal model on the current Groq tier. Override if that changes. */
+const VISION_MODEL = process.env.GROQ_VISION_MODEL ?? "qwen/qwen3.6-27b";
+
+/**
+ * POST to Groq and return the parsed body. Surfaces the API's own error text instead
+ * of letting a missing `choices` array turn into a meaningless "empty response", and
+ * rides out the 429/503 the on-demand tier hands back under load.
+ */
+async function groqFetch(apiKey: string, body: unknown, label: string): Promise<any> {
+  let lastErr = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(GROQ_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return res.json();
+
+    lastErr = (await res.text()).slice(0, 300);
+    if (res.status !== 429 && res.status !== 503) {
+      throw new Error(`Groq ${label} ${res.status}: ${lastErr}`);
+    }
+    const retryAfter = Number(res.headers.get("retry-after")) || 2 * (attempt + 1);
+    await new Promise((r) => setTimeout(r, Math.min(retryAfter, 10) * 1000));
+  }
+  throw new Error(`Groq ${label} unavailable after retries: ${lastErr}`);
+}
+
 function safeParseJson(raw: string): any {
   const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
   const a = cleaned.indexOf("{");
@@ -44,21 +72,20 @@ export async function narrativeFromLabel(crop: string, disease: string): Promise
     ? `A ${crop} leaf was analysed and looks HEALTHY. Return JSON ${NARRATIVE_SHAPE} with severity "Low", affectedAreaPct 0, an encouraging summary, empty treatment arrays, recovery "N/A", and 2 short prevention/maintenance tips. Indian agriculture context. JSON only.`
     : `A ${crop} plant has "${disease}". Give a practical treatment plan for an Indian farmer. Return ONLY JSON in this exact shape: ${NARRATIVE_SHAPE}. Use ₹ where relevant. Keep every string short. JSON only, no prose.`;
 
-  const res = await fetch(GROQ_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
+  const data = await groqFetch(
+    apiKey,
+    {
       model: "llama-3.1-8b-instant",
       messages: [
         { role: "system", content: "You are a plant pathologist. Return valid JSON only." },
         { role: "user", content: prompt },
       ],
       temperature: 0.3,
-    }),
-  });
-  const data = await res.json();
+    },
+    "narrative"
+  );
   const raw = data?.choices?.[0]?.message?.content;
-  if (!raw) throw new Error("Empty narrative response");
+  if (!raw) throw new Error(`Empty narrative response: ${JSON.stringify(data).slice(0, 300)}`);
   return safeParseJson(raw);
 }
 
@@ -80,11 +107,13 @@ export async function diagnoseFromImage(dataUrl: string): Promise<DiseaseResult>
   "prevention": ["short tip", "short tip"]
 }`;
 
-  const res = await fetch(GROQ_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "meta-llama/llama-4-scout-17b-16e-instruct",
+  const data = await groqFetch(
+    apiKey,
+    {
+      model: VISION_MODEL,
+      // Qwen3.6 is a reasoning model: without this it spends the whole token budget
+      // inside <think> and returns truncated, unparseable JSON.
+      reasoning_effort: "none",
       messages: [
         {
           role: "user",
@@ -98,13 +127,13 @@ export async function diagnoseFromImage(dataUrl: string): Promise<DiseaseResult>
         },
       ],
       temperature: 0.2,
-      max_tokens: 700,
-    }),
-  });
+      max_tokens: 900,
+    },
+    "vision"
+  );
 
-  const data = await res.json();
   const raw = data?.choices?.[0]?.message?.content;
-  if (!raw) throw new Error("Empty vision response");
+  if (!raw) throw new Error(`Empty vision response: ${JSON.stringify(data).slice(0, 300)}`);
   const parsed = safeParseJson(raw);
   return {
     source: "vision",

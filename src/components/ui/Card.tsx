@@ -7,17 +7,21 @@ type CardProps = {
   as?: "div" | "section" | "article";
 };
 
-/** Standard app card — white surface, hairline border, soft shadow, subtle top highlight. */
+/**
+ * Standard app surface — white, hairline border, whisper of a shadow.
+ *
+ * Redesign v2: 16px radius per the design direction, and the gradient top edge
+ * is gone. That highlight was a glassmorphism cue; the surface now reads as
+ * paper, and separation comes from the border rather than from lighting.
+ */
 export default function Card({ children, className = "", hover = false, as = "div" }: CardProps) {
   const Comp = as as any;
   return (
     <Comp
-      className={`af-spotlight relative rounded-2xl bg-af-card border border-af-border shadow-af-sm ${
-        hover ? "transition-all duration-200 hover:shadow-af-md hover:-translate-y-0.5" : ""
+      className={`af-spotlight relative rounded-[16px] bg-af-card border border-af-border shadow-af-sm ${
+        hover ? "transition-all duration-200 ease-out hover:shadow-af-md hover:border-af-primary/25" : ""
       } ${className}`}
     >
-      {/* emerald-tinted top edge for the lifted-glass feel */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-2xl bg-gradient-to-r from-transparent via-af-primary/40 to-transparent" />
       {children}
     </Comp>
   );

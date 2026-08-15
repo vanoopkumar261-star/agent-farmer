@@ -2,7 +2,6 @@ import { getDashboardData } from "@/lib/dashboard";
 import { SCHEMES } from "@/lib/schemes";
 import SchemesBoard from "@/components/dashboard/SchemesBoard";
 import { T } from "@/components/i18n/LanguageProvider";
-import { Landmark } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -18,16 +17,11 @@ export default async function SchemesPage() {
 
   return (
     <div className="max-w-[1100px] mx-auto">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex items-center justify-center w-11 h-11 rounded-2xl bg-af-sage text-af-secondary">
-          <Landmark className="w-5 h-5" />
-        </span>
-        <div>
-          <h1 className="text-[26px] font-extrabold tracking-tight text-af-ink"><T k="title.schemes" /></h1>
-          <p className="mt-0.5 text-sm text-af-ink-2">
-            Subsidies, insurance &amp; credit — matched to your farm by AI.
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-heading font-semibold text-af-ink"><T k="title.schemes" /></h1>
+        <p className="mt-1 text-sm text-af-ink-2">
+          Central and state subsidies, insurance and credit — matched to your farm details.
+        </p>
       </div>
 
       <SchemesBoard schemes={SCHEMES} profile={profile} />

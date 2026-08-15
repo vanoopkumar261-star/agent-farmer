@@ -9,18 +9,18 @@ import type { Store } from "@/lib/stores";
 
 const houseIcon = L.divIcon({
   className: "",
-  html: `<div style="width:32px;height:32px;border-radius:50%;background:#064E3B;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(6,78,59,.4);border:2px solid #fff"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>`,
+  html: `<div style="width:32px;height:32px;border-radius:50%;background:#173B2A;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(23,59,42,.35);border:2px solid #fff"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>`,
   iconSize: [32, 32],
   iconAnchor: [16, 16],
 });
 
 function storeIcon(active: boolean) {
-  const bg = active ? "#10B981" : "#ffffff";
-  const fg = active ? "#ffffff" : "#0F9D58";
+  const bg = active ? "#284D35" : "#ffffff";
+  const fg = active ? "#ffffff" : "#284D35";
   const size = active ? 30 : 26;
   return L.divIcon({
     className: "",
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2px solid #10B981;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(16,24,20,.25)"><div style="transform:rotate(45deg);width:8px;height:8px;border-radius:50%;background:${fg}"></div></div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2px solid #284D35;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(23,59,42,.25)"><div style="transform:rotate(45deg);width:8px;height:8px;border-radius:50%;background:${fg}"></div></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
   });
@@ -54,9 +54,9 @@ export default function StoreLocatorMap({
             <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
               <StoreIcon className="w-4 h-4" />
             </span>
-            <h2 className="text-lg font-extrabold text-af-ink">Nearby Stores</h2>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Nearby Stores</h2>
           </div>
-          <span className="font-mono text-[11px] font-bold text-af-muted">{stores.length} found</span>
+          <span className="font-mono text-[11px] font-semibold text-af-muted">{stores.length} found</span>
         </div>
 
         <ul className="space-y-2 max-h-[460px] overflow-auto -mr-1 pr-1">
@@ -74,10 +74,10 @@ export default function StoreLocatorMap({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="text-sm font-bold text-af-ink truncate">{s.name}</div>
+                      <div className="text-sm font-semibold text-af-ink truncate">{s.name}</div>
                       <div className="text-[11px] text-af-muted">{s.type}</div>
                     </div>
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-af-amber/12 text-[#9a7100] px-2 py-0.5 text-[11px] font-bold shrink-0">
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-af-amber/10 text-af-amber-ink px-2 py-0.5 text-[11px] font-semibold shrink-0">
                       <Star className="w-3 h-3 fill-current" /> {s.rating}
                     </span>
                   </div>
@@ -90,7 +90,7 @@ export default function StoreLocatorMap({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 rounded-lg bg-af-primary/10 text-af-primary-deep px-2.5 py-1 text-[11px] font-bold hover:bg-af-primary/15 transition"
+                      className="inline-flex items-center gap-1 rounded-lg bg-af-primary/10 text-af-primary-deep px-2.5 py-1 text-[11px] font-semibold hover:bg-af-primary/15 transition"
                     >
                       <Navigation className="w-3 h-3" /> Directions
                     </a>
@@ -119,7 +119,7 @@ export default function StoreLocatorMap({
             <Circle
               center={[house.lat, house.lng]}
               radius={20000}
-              pathOptions={{ color: "#10B981", weight: 1, fillColor: "#10B981", fillOpacity: 0.04 }}
+              pathOptions={{ color: "#668653", weight: 1, fillColor: "#668653", fillOpacity: 0.05 }}
             />
             <Marker position={[house.lat, house.lng]} icon={houseIcon} />
             {stores.map((s) => (

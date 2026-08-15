@@ -1,6 +1,8 @@
 """
-Local FastAPI inference server for plant disease classification.
-Loads the trained MobileNetV3 model and exposes /predict.
+Local FastAPI inference server.
+
+  /predict  plant disease classification (MobileNetV3)
+  /tts      speech synthesis for the AI assistant (Meta MMS-TTS)
 
 Run:
   ml/.venv/Scripts/python.exe -m uvicorn server:app --host 127.0.0.1 --port 8008
@@ -9,12 +11,16 @@ Run:
 import io
 import json
 import os
+import wave
+from collections import OrderedDict
 
+import numpy as np
 import torch
 import torch.nn.functional as F
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
+from pydantic import BaseModel
 from torchvision import transforms
 from torchvision.models import mobilenet_v3_large
 
@@ -63,10 +69,124 @@ def pretty(label: str):
     return crop, disease
 
 
+# ── Text to speech ───────────────────────────────────────────────────────────
+#
+# Why this lives here rather than in a cloud API: the browser can only speak
+# languages whose voices are installed on the device, and on desktop Windows
+# seven of the app's nine languages have none. Bhashini would have solved it but
+# registration was a dead end, so we serve the voices ourselves.
+#
+# Meta's MMS-TTS checkpoints are small (36.3M params, ~145MB) and synthesise
+# faster than real time on CPU — measured 1.7s to produce 3.3s of Tamil audio.
+# All nine languages were checked for `tokenizer.is_uroman`; every one is False,
+# so native script goes straight in with no romanisation step.
+#
+# LICENCE: these checkpoints are CC-BY-NC 4.0 — non-commercial. Fine for the
+# hackathon demo. Before this is ever sold, swap TTS_MODELS to Apache-2.0
+# `ai4bharat/indic-parler-tts`, which covers the same languages.
+TTS_MODELS = {
+    "en": "facebook/mms-tts-eng",
+    "hi": "facebook/mms-tts-hin",
+    "kn": "facebook/mms-tts-kan",
+    "ta": "facebook/mms-tts-tam",
+    "te": "facebook/mms-tts-tel",
+    "ml": "facebook/mms-tts-mal",
+    "mr": "facebook/mms-tts-mar",
+    "bn": "facebook/mms-tts-ben",
+    "pa": "facebook/mms-tts-pan",
+}
+
+MAX_TTS_CHARS = 1200
+
+# Loaded on first use per language, then kept. Loading all nine up front would
+# cost ~1.3GB and slow startup for a feature many sessions never touch.
+_tts_models = {}
+# Bounded cache of finished audio. The voice loop replays identical replies
+# often, and re-synthesising them is pure waste.
+_tts_audio_cache = OrderedDict()
+_TTS_CACHE_MAX = 32
+
+
+def load_tts(locale: str):
+    if locale in _tts_models:
+        return _tts_models[locale]
+    model_id = TTS_MODELS[locale]
+    # Imported lazily so /predict still works if transformers isn't installed.
+    from transformers import AutoTokenizer, VitsModel
+
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = VitsModel.from_pretrained(model_id)
+    model.eval().to(device)
+    _tts_models[locale] = (tokenizer, model)
+    print(f"[server] tts loaded: {locale} ({model_id}) on {device}", flush=True)
+    return _tts_models[locale]
+
+
+def to_wav_bytes(waveform, sampling_rate: int) -> bytes:
+    """VITS emits a float waveform; browsers want a real WAV container.
+
+    Written with the stdlib `wave` module rather than pulling in scipy or
+    soundfile just to add a 44-byte header.
+    """
+    audio = waveform.squeeze().detach().cpu().numpy()
+    audio = np.clip(audio, -1.0, 1.0)
+    pcm = (audio * 32767.0).astype(np.int16)
+
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)  # 16-bit
+        w.setframerate(sampling_rate)
+        w.writeframes(pcm.tobytes())
+    return buf.getvalue()
+
+
+class TTSRequest(BaseModel):
+    text: str
+    locale: str = "en"
+
+
+@app.post("/tts")
+def tts(req: TTSRequest):
+    locale = req.locale if req.locale in TTS_MODELS else "en"
+    text = (req.text or "").strip()[:MAX_TTS_CHARS]
+    if not text:
+        return Response(status_code=400, content="No text supplied.")
+
+    key = f"{locale}:{text}"
+    cached = _tts_audio_cache.get(key)
+    if cached is not None:
+        _tts_audio_cache.move_to_end(key)
+        return Response(content=cached, media_type="audio/wav")
+
+    try:
+        tokenizer, model = load_tts(locale)
+        inputs = tokenizer(text, return_tensors="pt").to(device)
+        with torch.no_grad():
+            waveform = model(**inputs).waveform
+        data = to_wav_bytes(waveform, model.config.sampling_rate)
+    except Exception as e:
+        print(f"[server] tts failed ({locale}): {e}", flush=True)
+        # 503 rather than 500 — the client treats this as "fall back quietly".
+        return Response(status_code=503, content="Speech synthesis unavailable.")
+
+    _tts_audio_cache[key] = data
+    if len(_tts_audio_cache) > _TTS_CACHE_MAX:
+        _tts_audio_cache.popitem(last=False)
+
+    return Response(content=data, media_type="audio/wav")
+
+
 @app.get("/health")
 def health():
     ready = os.path.exists(MODEL_PATH)
-    return {"ok": True, "model_present": ready, "device": device}
+    return {
+        "ok": True,
+        "model_present": ready,
+        "device": device,
+        "tts_languages": sorted(TTS_MODELS.keys()),
+        "tts_loaded": sorted(_tts_models.keys()),
+    }
 
 
 @app.post("/predict")

@@ -11,17 +11,17 @@ export default function AiChatPreview() {
           <Sparkles className="w-4 h-4" />
         </span>
         <div>
-          <h2 className="text-lg font-extrabold text-af-ink leading-tight">AI Assistant</h2>
-          <p className="text-[13px] text-af-muted">Memory-aware · knows your farm</p>
+          <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">AI Assistant</h2>
+          <p className="text-meta text-af-muted">Memory-aware · knows your farm</p>
         </div>
       </div>
 
       {/* sample exchange */}
       <div className="space-y-2.5">
-        <div className="max-w-[80%] ml-auto rounded-2xl rounded-br-sm bg-af-sage text-af-secondary px-3.5 py-2 text-[13px] font-medium">
+        <div className="max-w-[80%] ml-auto rounded-2xl rounded-br-sm bg-af-sage text-af-secondary px-3.5 py-2 text-meta font-medium">
           Is my paddy on track?
         </div>
-        <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-af-bg border border-af-border px-3.5 py-2 text-[13px] text-af-ink-2">
+        <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-af-bg border border-af-border px-3.5 py-2 text-meta text-af-ink-2">
           Yes — Farm 1 is at day 1 of germination, tracking on schedule. Rain is expected in 3 days, so hold irrigation.
         </div>
       </div>

@@ -24,12 +24,29 @@ export type RecommendationResponse = {
 export async function getCropRecommendations(params: {
   locationAddress: string;
   farms: FarmInput[];
+  /** Set when the farmer acknowledged the oilseed awareness page. */
+  preferOilseed?: boolean;
 }): Promise<RecommendationResponse> {
 
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("Missing GROQ_API_KEY");
 
-  const { locationAddress, farms } = params;
+  const { locationAddress, farms, preferOilseed = false } = params;
+
+  // Suitability still decides. The acknowledgement only asks the model to give
+  // an oilseed a fair look where one genuinely fits — never to force one onto
+  // land it doesn't suit.
+  const oilseedDirective = preferOilseed
+    ? `
+This farmer has asked to consider oilseed crops.
+For each farm, include ONE oilseed crop (mustard/rapeseed, groundnut, soybean,
+sesame, sunflower, castor, safflower, linseed or niger) among the 3
+recommendations — but ONLY where it is genuinely agronomically suitable for that
+farm's soil, irrigation, region and season. If no oilseed is suitable for a
+farm, recommend the best-suited crops instead and do NOT force an oilseed.
+Score every crop honestly on its own merits.
+`.trim()
+    : "";
 
   const prompt = `
 Farmer location: "${locationAddress}"
@@ -38,6 +55,7 @@ Farms:
 ${JSON.stringify(farms, null, 2)}
 
 For EACH farm generate 3 crop recommendations.
+${oilseedDirective}
 
 Return JSON strictly in this format:
 

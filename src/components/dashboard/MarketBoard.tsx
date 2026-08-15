@@ -13,14 +13,24 @@ import {
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Sparkline from "./Sparkline";
-import { TrendingUp, TrendingDown, MapPin, Store } from "lucide-react";
+import { TrendingUp, TrendingDown, MapPin, Store, ChevronDown } from "lucide-react";
 import type { CropMarket, MandiRow } from "@/lib/market";
+import type { CostTier } from "@/lib/mandi-costs";
+import { STATUS, GRID, AXIS } from "@/lib/chartTheme";
 
-const GRID = "#E4E9E3";
-const AXIS = "#8A8A8A";
 const rupee = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
 
 const demandTone = { High: "primary", Medium: "amber", Low: "danger" } as const;
+
+/**
+ * Where each number in the breakdown comes from. Rendered as a coloured dot so a
+ * government figure and a modelled guess are never mistaken for one another.
+ */
+const TIER_META: Record<CostTier, { dot: string; label: string }> = {
+  exact: { dot: "bg-af-primary", label: "From the government feed" },
+  statutory: { dot: "bg-af-ai", label: "State APMC rules — indicative" },
+  estimated: { dot: "bg-af-amber", label: "Estimated — editable in Settings" },
+};
 
 export default function MarketBoard({
   crops,
@@ -32,10 +42,18 @@ export default function MarketBoard({
   focusName: string;
 }) {
   const [selected, setSelected] = useState(focusName);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"gross" | "net">("gross");
   const active = crops.find((c) => c.name === selected) ?? crops[0];
-  const mandis = mandisByFocus[active.name] ?? [];
+
+  const mandis = [...(mandisByFocus[active.name] ?? [])].sort((a, b) =>
+    sortBy === "net"
+      ? (b.breakdown?.net ?? b.price) - (a.breakdown?.net ?? a.price)
+      : b.price - a.price
+  );
   const up = active.change >= 0;
-  const chartColor = up ? "#10B981" : "#D93025";
+  const chartColor = up ? STATUS.up : STATUS.down;
+  const isLive = active.source === "live";
 
   return (
     <div className="space-y-6">
@@ -51,13 +69,13 @@ export default function MarketBoard({
               className={`af-spotlight relative overflow-hidden text-left rounded-2xl border p-4 transition-all ${
                 isActive
                   ? "border-af-primary/50 bg-af-card ring-2 ring-af-primary/15 shadow-af-md"
-                  : "border-af-border bg-af-card shadow-af-sm hover:-translate-y-0.5 hover:shadow-af-md"
+                  : "border-af-border bg-af-card shadow-af-sm hover:shadow-af-md hover:border-af-primary/25"
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-af-ink">{c.name}</span>
+                <span className="text-sm font-semibold text-af-ink">{c.name}</span>
                 <span
-                  className={`inline-flex items-center gap-0.5 text-[11px] font-bold ${
+                  className={`inline-flex items-center gap-0.5 text-[11px] font-semibold ${
                     cUp ? "text-af-primary-deep" : "text-af-danger"
                   }`}
                 >
@@ -66,10 +84,10 @@ export default function MarketBoard({
                   {c.change}%
                 </span>
               </div>
-              <div className="mt-1 font-mono text-lg font-extrabold text-af-ink">{rupee(c.price)}</div>
+              <div className="mt-1 font-mono text-[17px] font-semibold tracking-[-0.02em] text-af-ink">{rupee(c.price)}</div>
               <div className="text-[10px] text-af-muted">{c.unit}</div>
               <div className="mt-2 -mx-1">
-                <Sparkline data={c.series.map((s) => s.price)} color={cUp ? "#10B981" : "#D93025"} height={26} />
+                <Sparkline data={c.series.map((s) => s.price)} color={cUp ? STATUS.up : STATUS.down} height={26} />
               </div>
             </button>
           );
@@ -82,16 +100,40 @@ export default function MarketBoard({
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-extrabold text-af-ink">{active.name}</h2>
+                <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">{active.name}</h2>
                 <Badge tone={demandTone[active.demand]}>{active.demand} demand</Badge>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    isLive
+                      ? "bg-af-primary/10 text-af-primary-deep"
+                      : "bg-af-neutral/10 text-af-muted"
+                  }`}
+                  title={
+                    isLive
+                      ? "Live Agmarknet mandi prices"
+                      : "Estimated — live data unavailable for this crop/region"
+                  }
+                >
+                  {isLive ? (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-af-primary animate-pulse" /> Live
+                    </>
+                  ) : (
+                    "Estimated"
+                  )}
+                </span>
               </div>
-              <p className="text-[13px] text-af-muted">21-day price trend · {active.unit}</p>
+              <p className="text-meta text-af-muted">
+                {isLive
+                  ? `Prices across nearby mandis${active.asOf ? ` · as of ${active.asOf}` : ""} · ${active.unit}`
+                  : `21-day price trend (estimated) · ${active.unit}`}
+              </p>
             </div>
             <div className="text-right">
-              <div className="font-mono text-2xl font-extrabold text-af-ink">{rupee(active.price)}</div>
-              <div className={`text-[12px] font-bold ${up ? "text-af-primary-deep" : "text-af-danger"}`}>
+              <div className="font-mono text-2xl font-semibold text-af-ink">{rupee(active.price)}</div>
+              <div className={`text-[12px] font-semibold ${up ? "text-af-primary-deep" : "text-af-danger"}`}>
                 {up ? "▲" : "▼"} {up ? "+" : ""}
-                {active.change}% today
+                {active.change}% {isLive ? "vs median" : "today"}
               </div>
             </div>
           </div>
@@ -105,7 +147,7 @@ export default function MarketBoard({
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="d" tick={{ fill: AXIS, fontSize: 10 }} tickLine={false} axisLine={false} interval={4} />
+                <XAxis dataKey="d" tick={{ fill: AXIS, fontSize: 10 }} tickLine={false} axisLine={false} interval={isLive ? 0 : 4} />
                 <YAxis
                   tick={{ fill: AXIS, fontSize: 11 }}
                   tickLine={false}
@@ -126,37 +168,191 @@ export default function MarketBoard({
 
         {/* Nearby mandis */}
         <Card className="p-6">
-          <div className="flex items-center gap-2.5 mb-4">
-            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
-              <Store className="w-4 h-4" />
-            </span>
-            <div>
-              <h2 className="text-lg font-extrabold text-af-ink leading-tight">Nearby Mandis</h2>
-              <p className="text-[13px] text-af-muted">{active.name} · best rates first</p>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+                <Store className="w-4 h-4" />
+              </span>
+              <div>
+                <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">Nearby Mandis</h2>
+                <p className="text-meta text-af-muted">{active.name} · tap a mandi for the breakdown</p>
+              </div>
             </div>
-          </div>
-          <ul className="divide-y divide-af-border">
-            {mandis.map((m, i) => (
-              <li key={m.mandi} className="flex items-center gap-3 py-2.5">
-                <span
-                  className={`flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-bold shrink-0 ${
-                    i === 0 ? "bg-af-primary/10 text-af-primary-deep" : "bg-af-bg text-af-muted"
+            {/* The whole point: the top gross mandi often isn't the top net one. */}
+            <div className="flex rounded-[10px] border border-af-border bg-af-bg p-0.5 shrink-0">
+              {(["gross", "net"] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setSortBy(k)}
+                  className={`rounded-[8px] px-2.5 py-1 text-[11px] font-semibold transition ${
+                    sortBy === k ? "bg-af-card text-af-ink shadow-af-sm" : "text-af-muted hover:text-af-ink-2"
                   }`}
                 >
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold text-af-ink truncate">{m.mandi}</div>
-                  <div className="inline-flex items-center gap-1 text-[11px] text-af-muted">
-                    <MapPin className="w-3 h-3" /> {m.distanceKm} km away
-                  </div>
-                </div>
-                <div className="font-mono text-sm font-bold text-af-ink">{rupee(m.price)}</div>
-              </li>
-            ))}
+                  {k === "gross" ? "Quoted" : "Net to you"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {!isLive && (
+            <p className="mb-3 rounded-[10px] border border-af-amber/25 bg-af-amber/[0.07] px-3 py-2 text-[11px] text-af-ink-2">
+              These mandis and prices are <strong>estimated</strong> — live data isn&apos;t available for{" "}
+              {active.name} in your region, so no transport cost is applied.
+            </p>
+          )}
+
+          <ul className="divide-y divide-af-border">
+            {mandis.map((m, i) => {
+              const b = m.breakdown;
+              const isOpen = expanded === m.mandi;
+              return (
+                <li key={m.mandi} className="py-1">
+                  <button
+                    onClick={() => setExpanded(isOpen ? null : m.mandi)}
+                    className="w-full flex items-center gap-3 py-2 text-left rounded-[10px] hover:bg-af-bg transition px-1"
+                  >
+                    <span
+                      className={`flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-semibold shrink-0 ${
+                        i === 0 ? "bg-af-primary/10 text-af-primary-deep" : "bg-af-bg text-af-muted"
+                      }`}
+                    >
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold text-af-ink truncate">{m.mandi}</div>
+                      <div className="inline-flex items-center gap-1 text-[11px] text-af-muted">
+                        <MapPin className="w-3 h-3" />
+                        {m.distanceKm != null ? `${m.distanceKm} km away` : m.place || "Nearby"}
+                        {m.grade ? ` · ${m.grade}` : ""}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-mono text-sm font-semibold text-af-ink">{rupee(m.price)}</div>
+                      {b && (
+                        <div className="font-mono text-[10px] text-af-muted">net {rupee(b.net)}</div>
+                      )}
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-af-muted shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {isOpen && b && <Breakdown row={m} />}
+                </li>
+              );
+            })}
           </ul>
+
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-af-border pt-3">
+            {(Object.keys(TIER_META) as CostTier[]).map((t) => (
+              <span key={t} className="inline-flex items-center gap-1.5 text-[10px] text-af-muted">
+                <span className={`w-1.5 h-1.5 rounded-full ${TIER_META[t].dot}`} />
+                {TIER_META[t].label}
+              </span>
+            ))}
+          </div>
         </Card>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The expanded price breakdown for one mandi: what it's quoting, how that sits
+ * against the government floor and today's state median, and what comes off
+ * before the money reaches the farmer.
+ */
+function Breakdown({ row }: { row: MandiRow }) {
+  const b = row.breakdown!;
+
+  return (
+    <div className="mb-2 ml-1 mr-1 rounded-[12px] border border-af-border bg-af-bg/60 p-3.5">
+      {/* Benchmarks — the "standard market price" anchors */}
+      {b.benchmarks.length > 0 && (
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {b.benchmarks.map((bm) => {
+            const over = bm.deltaPct >= 0;
+            return (
+              <div key={bm.label} className="rounded-[10px] border border-af-border bg-af-card px-2.5 py-2">
+                <div className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-af-muted truncate">
+                  {bm.label}
+                </div>
+                <div className="mt-0.5 flex items-baseline gap-1.5">
+                  <span className="font-mono text-meta font-semibold text-af-ink">{rupee(bm.value)}</span>
+                  <span
+                    className={`text-[10px] font-semibold ${over ? "text-af-primary-deep" : "text-af-danger"}`}
+                  >
+                    {over ? "+" : ""}
+                    {bm.deltaPct}%
+                  </span>
+                </div>
+                <div className="mt-0.5 text-[9.5px] leading-tight text-af-muted">{bm.note}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Quoted price → deductions → net */}
+      <div className="flex items-center justify-between py-1.5">
+        <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-af-ink">
+          <span className={`w-1.5 h-1.5 rounded-full ${TIER_META.exact.dot}`} />
+          Quoted modal price
+        </span>
+        <span className="font-mono text-meta font-semibold text-af-ink">{rupee(b.gross)}</span>
+      </div>
+
+      {row.min != null && row.max != null && row.max > row.min && (
+        <div className="pb-1.5 pl-3 text-[10px] text-af-muted">
+          Yard range {rupee(row.min)} – {rupee(row.max)}
+          {row.variety ? ` · ${row.variety}` : ""}
+        </div>
+      )}
+
+      <ul className="divide-y divide-af-border/70 border-t border-af-border/70">
+        {b.lines.map((l) => (
+          <li key={l.label} className="flex items-start justify-between gap-3 py-1.5">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-af-ink-2">
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${TIER_META[l.tier].dot}`} />
+                {l.label}
+              </div>
+              <div className="pl-3 text-[9.5px] leading-tight text-af-muted">{l.note}</div>
+            </div>
+            <span className="font-mono text-[12px] font-semibold text-af-danger shrink-0">
+              −{rupee(Math.abs(l.amount))}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-2 flex items-center justify-between rounded-[10px] bg-af-primary/[0.07] px-2.5 py-2">
+        <div>
+          <div className="text-[12px] font-semibold text-af-primary-deep">Net at your farm gate</div>
+          <div className="text-[9.5px] text-af-muted">
+            {b.deductionPct}% of the quoted price goes to charges &amp; logistics
+          </div>
+        </div>
+        <span className="font-mono text-[15px] font-semibold text-af-primary-deep">{rupee(b.net)}</span>
+      </div>
+
+      {b.distanceSource === "geocoded" && (
+        <p className="mt-2 text-[9.5px] leading-tight text-af-muted">
+          Distance is straight-line to the mandi town (±2–5 km) — road distance will be longer, so treat
+          the transport figure as a floor.
+        </p>
+      )}
+      {b.distanceSource === "district" && (
+        <p className="mt-2 text-[9.5px] leading-tight text-af-muted">
+          Distance is approximated from the district centre (±20–30 km) — the mandi itself wasn&apos;t found
+          on the map, so the transport figure is rough.
+        </p>
+      )}
+      {b.distanceSource === "unknown" && (
+        <p className="mt-2 text-[9.5px] leading-tight text-af-muted">
+          No transport cost included — this mandi&apos;s location couldn&apos;t be resolved.
+        </p>
+      )}
     </div>
   );
 }

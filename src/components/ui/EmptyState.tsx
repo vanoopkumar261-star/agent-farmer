@@ -16,7 +16,7 @@ export default function EmptyState({
       <div className="w-12 h-12 rounded-2xl bg-af-sage flex items-center justify-center text-af-secondary">
         {icon}
       </div>
-      <h3 className="mt-4 text-base font-bold text-af-ink">{title}</h3>
+      <h3 className="mt-4 text-base font-semibold text-af-ink">{title}</h3>
       {body && <p className="mt-1 text-sm text-af-muted max-w-xs">{body}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>

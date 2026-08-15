@@ -1,10 +1,19 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import Sparkline from "./Sparkline";
 import CountUp from "@/components/ui/CountUp";
 import TrendDelta from "@/components/ui/TrendDelta";
+import Card from "@/components/ui/Card";
 
+/**
+ * Stat tile in the "New version" layout: value top-left, outlined glyph
+ * top-right, then a footer that is either a context line ("Across 2 farms") or
+ * a drill-in link ("View all farms →"). Falls back to the original sparkline
+ * footer when neither is supplied, so existing pages keep their look.
+ */
 export default function StatTile({
   icon,
   label,
@@ -14,8 +23,10 @@ export default function StatTile({
   decimals = 0,
   delta,
   positiveIsGood = true,
+  meta,
+  link,
   spark,
-  sparkColor = "#10B981",
+  sparkColor = "currentColor",
 }: {
   icon: React.ReactNode;
   label: string;
@@ -25,29 +36,50 @@ export default function StatTile({
   decimals?: number;
   delta?: number;
   positiveIsGood?: boolean;
-  spark: number[];
+  /** Context line under the label, e.g. "Across 2 farms". */
+  meta?: string;
+  /** Drill-in link under the label. Takes precedence over `meta`. */
+  link?: { label: string; href: string };
+  spark?: number[];
   sparkColor?: string;
 }) {
   return (
-    <div className="af-spotlight relative overflow-hidden rounded-2xl bg-af-card border border-af-border shadow-af-sm p-5 transition-all duration-200 hover:shadow-af-md hover:-translate-y-0.5">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-      <div className="flex items-start justify-between">
-        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary">
-          {icon}
-        </span>
-        {delta !== undefined && <TrendDelta value={delta} positiveIsGood={positiveIsGood} />}
+    // v2: the tile is now the shared Card surface rather than a hand-rolled copy
+    // of it, so radius/border/shadow/hover stay in one place. The white gradient
+    // top edge and the -translate-y lift are gone for the same reason Card
+    // dropped them — both were lighting cues, and separation comes from the
+    // border now.
+    <Card hover className="overflow-hidden p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-mono text-[26px] leading-none font-semibold tracking-[-0.02em] text-af-ink">
+            <CountUp value={value} prefix={prefix} suffix={suffix} decimals={decimals} />
+          </div>
+          <div className="mt-2 text-label font-semibold text-af-muted uppercase">
+            {label}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <span className="text-af-primary">{icon}</span>
+          {delta !== undefined && <TrendDelta value={delta} positiveIsGood={positiveIsGood} />}
+        </div>
       </div>
 
-      <div className="mt-3 font-mono text-2xl font-extrabold text-af-ink">
-        <CountUp value={value} prefix={prefix} suffix={suffix} decimals={decimals} />
-      </div>
-      <div className="text-[11px] font-semibold text-af-muted uppercase tracking-wide mt-0.5">
-        {label}
-      </div>
-
-      <div className="mt-3 -mx-1">
-        <Sparkline data={spark} color={sparkColor} height={32} />
-      </div>
-    </div>
+      {link ? (
+        <Link
+          href={link.href}
+          className="mt-3 inline-flex items-center gap-1.5 text-meta font-semibold text-af-primary-deep hover:gap-2.5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40 rounded"
+        >
+          {link.label}
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      ) : meta ? (
+        <div className="mt-3 text-meta text-af-ink-2 truncate">{meta}</div>
+      ) : spark ? (
+        <div className="mt-3 -mx-1">
+          <Sparkline data={spark} color={sparkColor} height={32} />
+        </div>
+      ) : null}
+    </Card>
   );
 }

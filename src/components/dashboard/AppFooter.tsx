@@ -9,7 +9,7 @@ export default function AppFooter() {
           <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-af-primary/10">
             <Leaf className="w-3.5 h-3.5 text-af-primary" />
           </span>
-          <span className="text-[13px] font-semibold text-af-ink-2">Agent Farmer</span>
+          <span className="text-meta font-semibold text-af-ink-2">Agent Farmer</span>
           <span className="font-mono text-[10px] tracking-[0.16em] uppercase">AI Farm OS</span>
         </div>
         <div className="flex items-center gap-4 text-[12px] text-af-muted">

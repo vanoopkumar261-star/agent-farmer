@@ -1,5 +1,5 @@
 import { getDashboardData } from "@/lib/dashboard";
-import { getExpensesData } from "@/lib/expenses";
+import { getExpensesData } from "@/lib/expenses-server";
 import ExpenseCharts from "@/components/dashboard/ExpenseCharts";
 import TransactionPanel from "@/components/dashboard/TransactionPanel";
 import StatTile from "@/components/dashboard/StatTile";
@@ -7,6 +7,7 @@ import Reveal from "@/components/ui/Reveal";
 import { T } from "@/components/i18n/LanguageProvider";
 import { Wallet, TrendingUp, TrendingDown, Landmark } from "lucide-react";
 import Link from "next/link";
+import { STATUS, SERIES } from "@/lib/chartTheme";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +17,9 @@ export default async function ExpensesPage() {
   if (!farmer) {
     return (
       <div className="max-w-md mx-auto mt-20 text-center rounded-2xl bg-af-card border border-af-border shadow-af-sm p-10">
-        <h2 className="text-xl font-extrabold text-af-ink">No farmer profile</h2>
+        <h2 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink">No farmer profile</h2>
         <p className="mt-2 text-sm text-af-ink-2">Complete onboarding to track expenses.</p>
-        <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-bold">
+        <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold">
           Start Onboarding
         </Link>
       </div>
@@ -35,7 +36,7 @@ export default async function ExpensesPage() {
           <Wallet className="w-5 h-5" />
         </span>
         <div>
-          <h1 className="text-[26px] font-extrabold tracking-tight text-af-ink"><T k="title.expenses" /></h1>
+          <h1 className="text-heading font-semibold text-af-ink"><T k="title.expenses" /></h1>
           <p className="mt-0.5 text-sm text-af-ink-2">Your farm ledger — income, expenses, and seasonal profit.</p>
         </div>
       </div>
@@ -57,7 +58,7 @@ export default async function ExpensesPage() {
             label="Total Expenses"
             value={data.totalExpense}
             prefix="₹"
-            sparkColor="#F59E0B"
+            sparkColor={SERIES.expense}
             spark={[4, 11, 19, 21, 27, 33]}
           />
         </Reveal>
@@ -68,7 +69,7 @@ export default async function ExpensesPage() {
             value={data.profit}
             prefix="₹"
             delta={margin}
-            sparkColor={data.profit >= 0 ? "#10B981" : "#D93025"}
+            sparkColor={data.profit >= 0 ? STATUS.up : STATUS.down}
             spark={[-4, -9, 3, 6, 0, data.profit / 1000]}
           />
         </Reveal>

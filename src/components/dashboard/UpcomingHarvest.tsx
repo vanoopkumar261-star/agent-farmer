@@ -1,54 +1,61 @@
-import { CalendarClock, Sprout } from "lucide-react";
-import Sheen from "@/components/ui/Sheen";
+import { Wheat, Sprout } from "lucide-react";
+import { harvestInfo } from "@/lib/agronomy";
+import Card from "@/components/ui/Card";
 
-/** Countdown to expected harvest (~120-day cycle from seeding). */
-export default function UpcomingHarvest({
-  crop,
-  seedingDate,
-  farmIndex,
-}: {
+export type HarvestItem = {
+  id: string;
   crop: string;
   seedingDate: string;
+  /** The farmer's own harvest date; null falls back to the crop's cycle length. */
+  estimatedHarvestDate?: string | null;
   farmIndex: number;
-}) {
-  const seeded = new Date(seedingDate).getTime();
-  const harvest = seeded + 120 * 86_400_000;
-  const daysLeft = Math.max(0, Math.ceil((harvest - Date.now()) / 86_400_000));
-  const elapsed = Math.min(120, Math.max(0, Math.round((Date.now() - seeded) / 86_400_000)));
-  const pct = Math.round((elapsed / 120) * 100);
-  const harvestLabel = new Date(harvest).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+};
+
+const CEREALS = ["wheat", "paddy", "rice", "maize", "bajra", "jowar", "barley", "millet"];
+
+/**
+ * Countdown to harvest for every cropped farm — one row per farm, driven by that
+ * farm's own crop, seeding date and harvest date. Farms with no crop are
+ * filtered out upstream, so the row count always tracks the real farm count.
+ */
+export default function UpcomingHarvest({ items }: { items: HarvestItem[] }) {
+  if (items.length === 0) return null;
+
+  const rows = items
+    .map((it) => ({ ...it, ...harvestInfo(it.crop, it.seedingDate, it.estimatedHarvestDate) }))
+    .sort((a, b) => a.daysLeft - b.daysLeft);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-af-secondary text-white shadow-af-md p-6">
-      <div className="pointer-events-none absolute -top-14 -right-10 h-40 w-40 rounded-full bg-af-primary/25 blur-2xl" />
-      <Sheen />
-      <div className="relative z-10">
-        <div className="flex items-center gap-2 text-white/80">
-          <CalendarClock className="w-4 h-4" />
-          <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase">Upcoming Harvest</span>
-        </div>
+    <Card className="p-6">
+      <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Upcoming Harvest</h2>
 
-        <div className="mt-4 flex items-end gap-2">
-          <span className="font-mono text-4xl font-extrabold leading-none">{daysLeft}</span>
-          <span className="text-sm font-semibold text-white/75 mb-1">days left</span>
-        </div>
-
-        <div className="mt-1 flex items-center gap-1.5 text-sm text-white/85">
-          <Sprout className="w-3.5 h-3.5 text-af-primary" />
-          {crop} · Farm {farmIndex}
-        </div>
-
-        <div className="mt-4 h-2 w-full rounded-full bg-white/15 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-af-primary to-af-leaf"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <div className="mt-2 flex items-center justify-between text-[11px] text-white/60">
-          <span>{pct}% grown</span>
-          <span>Est. {harvestLabel}</span>
-        </div>
-      </div>
-    </div>
+      <ul className="mt-4 space-y-4">
+        {rows.map((r) => {
+          const Icon = CEREALS.includes(r.crop.toLowerCase()) ? Wheat : Sprout;
+          return (
+            <li key={r.id} className="flex items-start gap-3">
+              <span className="flex items-center justify-center w-10 h-10 rounded-[12px] bg-af-sage text-af-primary-deep shrink-0">
+                <Icon className="w-5 h-5" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-[15px] font-semibold text-af-ink leading-tight">
+                  {r.crop} <span className="text-af-muted font-semibold">– Farm {String(r.farmIndex).padStart(2, "0")}</span>
+                </div>
+                <div className="mt-0.5 text-meta text-af-ink-2">
+                  {r.daysLeft > 0 ? `In ${r.daysLeft} days` : "Ready to harvest"}
+                  <span className="text-af-muted">
+                    {" "}
+                    · {r.estimated ? "Est." : "Planned"} {r.harvestLabel}
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 w-full rounded-full bg-af-sage overflow-hidden">
+                  <div className="h-full rounded-full bg-af-primary" style={{ width: `${r.pct}%` }} />
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
   );
 }

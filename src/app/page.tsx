@@ -311,6 +311,9 @@ function Footer() {
 
 function HomeContent() {
   const router = useRouter();
+  // "I'm a Farmer" goes via the oilseed awareness page, which hands off to
+  // registration. The demo CTA still opens onboarding directly.
+  const goFarmer = () => router.push("/oilseeds");
   const goOnboarding = () => router.push("/onboarding");
   const goCompany = () => router.push("/jaivik-sathi");
   const [showBoot, setShowBoot] = useState(true);
@@ -343,7 +346,7 @@ function HomeContent() {
 
       {showBoot && <BootSplash onDone={endBoot} />}
       <SiteHeader />
-      <Hero onFarmer={goOnboarding} onCompany={goCompany} />
+      <Hero onFarmer={goFarmer} onCompany={goCompany} />
       <Features />
       <HowItWorks />
       <Capabilities />

@@ -11,7 +11,7 @@ export type ActivityItem = {
 const iconMap = {
   crop: { Icon: Sprout, tint: "bg-af-primary/10 text-af-primary-deep" },
   weather: { Icon: CloudRain, tint: "bg-af-ai/10 text-af-ai" },
-  disease: { Icon: Microscope, tint: "bg-af-amber/12 text-[#9a7100]" },
+  disease: { Icon: Microscope, tint: "bg-af-amber/10 text-af-amber-ink" },
   expense: { Icon: Wallet, tint: "bg-af-sage text-af-secondary" },
 };
 

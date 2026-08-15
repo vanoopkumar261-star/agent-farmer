@@ -80,7 +80,7 @@ export default function TransactionPanel({
           <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
             <Plus className="w-4 h-4" />
           </span>
-          <h2 className="text-lg font-extrabold text-af-ink">Add Transaction</h2>
+          <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Add Transaction</h2>
         </div>
 
         <form onSubmit={add} className="space-y-4">
@@ -89,7 +89,7 @@ export default function TransactionPanel({
             <button
               type="button"
               onClick={() => switchKind("expense")}
-              className={`inline-flex items-center justify-center gap-1.5 py-2 rounded-[9px] text-sm font-bold transition ${
+              className={`inline-flex items-center justify-center gap-1.5 py-2 rounded-[9px] text-sm font-semibold transition ${
                 kind === "expense" ? "bg-af-card text-af-danger shadow-af-sm" : "text-af-muted"
               }`}
             >
@@ -98,7 +98,7 @@ export default function TransactionPanel({
             <button
               type="button"
               onClick={() => switchKind("income")}
-              className={`inline-flex items-center justify-center gap-1.5 py-2 rounded-[9px] text-sm font-bold transition ${
+              className={`inline-flex items-center justify-center gap-1.5 py-2 rounded-[9px] text-sm font-semibold transition ${
                 kind === "income" ? "bg-af-card text-af-primary-deep shadow-af-sm" : "text-af-muted"
               }`}
             >
@@ -150,7 +150,7 @@ export default function TransactionPanel({
           <button
             type="submit"
             disabled={saving || !desc.trim() || !Number(amount)}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-bold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             Add {kind === "expense" ? "Expense" : "Income"}
@@ -165,9 +165,9 @@ export default function TransactionPanel({
             <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
               <Receipt className="w-4 h-4" />
             </span>
-            <h2 className="text-lg font-extrabold text-af-ink">Ledger</h2>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Ledger</h2>
           </div>
-          <span className="font-mono text-[11px] font-bold text-af-muted">{txns.length} entries</span>
+          <span className="font-mono text-[11px] font-semibold text-af-muted">{txns.length} entries</span>
         </div>
 
         {txns.length === 0 ? (
@@ -182,7 +182,7 @@ export default function TransactionPanel({
                 <li key={t.id} className="group flex items-center gap-3 py-3">
                   <span
                     className={`flex items-center justify-center w-9 h-9 rounded-xl shrink-0 ${
-                      income ? "bg-af-primary/10 text-af-primary-deep" : "bg-af-amber/12 text-[#9a7100]"
+                      income ? "bg-af-primary/10 text-af-primary-deep" : "bg-af-amber/10 text-af-amber-ink"
                     }`}
                   >
                     {income ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
@@ -193,14 +193,14 @@ export default function TransactionPanel({
                       {t.category} · {t.txn_date}
                     </div>
                   </div>
-                  <div className={`font-mono text-sm font-bold ${income ? "text-af-primary-deep" : "text-af-ink"}`}>
+                  <div className={`font-mono text-sm font-semibold ${income ? "text-af-primary-deep" : "text-af-ink"}`}>
                     {income ? "+" : "−"}
                     {rupee(t.amount)}
                   </div>
                   <button
                     onClick={() => remove(t.id)}
                     disabled={deletingId === t.id}
-                    className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-8 h-8 rounded-lg text-af-muted hover:text-af-danger hover:bg-af-danger/8 transition"
+                    className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-8 h-8 rounded-lg text-af-muted hover:text-af-danger hover:bg-af-danger/10 transition"
                   >
                     {deletingId === t.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   </button>
@@ -217,7 +217,7 @@ export default function TransactionPanel({
 function Labeled({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+      <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
         {label}
       </label>
       {children}

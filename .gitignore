@@ -43,3 +43,7 @@ next-env.d.ts
 
 # internal concept documents (kept off the repo)
 *.docx
+
+# Python bytecode (a .pyc was committed once by accident)
+__pycache__/
+*.pyc

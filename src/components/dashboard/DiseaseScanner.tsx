@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Card from "@/components/ui/Card";
 import {
   Upload,
   ScanLine,
@@ -31,6 +33,7 @@ type DiseaseResult = {
 };
 
 export default function DiseaseScanner() {
+  const router = useRouter();
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,6 +71,8 @@ export default function DiseaseScanner() {
         setError(data?.error ?? "Diagnosis failed. Please try again.");
       } else {
         setResult(data as DiseaseResult);
+        // Refresh the server-rendered "Recent Scans" list with the saved record.
+        router.refresh();
       }
     } catch {
       setError("Network error. Is the app online?");
@@ -79,14 +84,14 @@ export default function DiseaseScanner() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Upload panel */}
-      <div className="af-spotlight relative rounded-2xl bg-af-card border border-af-border shadow-af-sm p-6">
+      <Card className="p-6">
         <div className="flex items-center gap-2.5 mb-4">
           <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary">
             <ScanLine className="w-[18px] h-[18px]" />
           </span>
           <div>
-            <h2 className="text-lg font-extrabold text-af-ink leading-tight">Upload a Leaf</h2>
-            <p className="text-[13px] text-af-muted">A clear, close photo works best</p>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">Upload a Leaf</h2>
+            <p className="text-meta text-af-muted">A clear, close photo works best</p>
           </div>
         </div>
 
@@ -110,8 +115,8 @@ export default function DiseaseScanner() {
             <span className="flex items-center justify-center w-14 h-14 rounded-2xl bg-af-primary/10 text-af-primary-deep">
               <Upload className="w-6 h-6" />
             </span>
-            <div className="mt-4 text-sm font-bold text-af-ink">Drop an image or click to browse</div>
-            <div className="mt-1 text-[12px] text-af-muted">JPG / PNG · a single affected leaf</div>
+            <div className="mt-4 text-sm font-semibold text-af-ink">Drag &amp; drop an image or click to browse</div>
+            <div className="mt-1 text-[12px] text-af-muted">JPG, PNG up to 10MB · a single affected leaf</div>
           </button>
         ) : (
           <div className="relative">
@@ -130,7 +135,7 @@ export default function DiseaseScanner() {
               <div className="absolute inset-0 rounded-2xl bg-af-ink/25 backdrop-blur-[1px] overflow-hidden">
                 <div className="absolute inset-x-0 h-16 bg-gradient-to-b from-af-primary/0 via-af-primary/40 to-af-primary/0 animate-hud-scan" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-af-card px-4 py-2 text-sm font-bold text-af-ink shadow-af-md">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-af-card px-4 py-2 text-sm font-semibold text-af-ink shadow-af-md">
                     <Loader2 className="w-4 h-4 animate-spin text-af-primary" /> Analyzing…
                   </span>
                 </div>
@@ -151,46 +156,71 @@ export default function DiseaseScanner() {
           <div className="mt-4 flex gap-3">
             <button
               onClick={reset}
-              className="inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-card border border-af-border px-4 py-3 text-sm font-bold text-af-ink hover:bg-af-bg transition"
+              className="inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-card border border-af-border px-4 py-3 text-sm font-semibold text-af-ink hover:bg-af-bg transition"
             >
               <RefreshCw className="w-4 h-4" /> Change
             </button>
             <button
               onClick={analyze}
               disabled={loading}
-              className="flex-1 inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-bold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanLine className="w-4 h-4" />}
               {loading ? "Analyzing…" : "Diagnose Disease"}
             </button>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Result panel */}
-      <div className="af-spotlight relative rounded-2xl bg-af-card border border-af-border shadow-af-sm p-6 min-h-[420px]">
-        {!result && !error && (
-          <div className="h-full flex flex-col items-center justify-center text-center py-10">
-            <span className="flex items-center justify-center w-14 h-14 rounded-2xl bg-af-sage text-af-secondary">
-              <Leaf className="w-7 h-7" />
-            </span>
-            <h3 className="mt-4 text-base font-bold text-af-ink">Diagnosis appears here</h3>
-            <p className="mt-1 text-sm text-af-muted max-w-xs">
-              Upload a leaf and run the scan. Our trained model identifies the disease; AI writes the
-              treatment plan.
-            </p>
-          </div>
-        )}
+      <Card className="p-6 min-h-[420px]">
+        {!result && !error && <HowItWorks />}
 
         {error && (
-          <div className="flex items-start gap-2 rounded-[16px] bg-af-danger/8 border border-af-danger/20 px-4 py-3">
+          <div className="flex items-start gap-2 rounded-[16px] bg-af-danger/10 border border-af-danger/20 px-4 py-3">
             <AlertTriangle className="w-4 h-4 text-af-danger mt-0.5 shrink-0" />
             <div className="text-sm text-af-ink-2">{error}</div>
           </div>
         )}
 
         {result && <ResultView r={result} />}
-      </div>
+      </Card>
+    </div>
+  );
+}
+
+const STEPS = [
+  { title: "Upload a clear leaf image", body: "Our AI scans the leaf" },
+  { title: "AI identifies the issue", body: "Trained on thousands of samples" },
+  { title: "Get treatment plan", body: "Step-by-step action for your crop" },
+];
+
+/** Empty state for the result panel — explains the flow before the first scan. */
+function HowItWorks() {
+  return (
+    // The page backdrop already carries the botanical/circuit motif, so this
+    // panel stays clean rather than stacking a second illustration on top.
+    <div className="h-full">
+      <h3 className="text-lg font-semibold text-af-primary-deep tracking-tight">How it works</h3>
+
+      <ol className="mt-6 space-y-7">
+        {STEPS.map((s, i) => (
+          <li key={s.title} className="flex items-start gap-3.5">
+            <span className="relative flex flex-col items-center shrink-0">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-af-sage text-af-primary-deep font-mono text-[11px] font-semibold">
+                {i + 1}
+              </span>
+              {i < STEPS.length - 1 && (
+                <span className="absolute top-8 h-[calc(100%+1rem)] w-px border-l border-dashed border-af-border" />
+              )}
+            </span>
+            <div className="min-w-0 pt-0.5">
+              <div className="text-[15px] font-semibold text-af-ink leading-tight">{s.title}</div>
+              <div className="mt-1 text-meta text-af-ink-2">{s.body}</div>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
@@ -200,7 +230,7 @@ function ResultView({ r }: { r: DiseaseResult }) {
     r.severity === "Low"
       ? "bg-af-primary/10 text-af-primary-deep"
       : r.severity === "Medium"
-      ? "bg-af-amber/12 text-[#9a7100]"
+      ? "bg-af-amber/10 text-af-amber-ink"
       : "bg-af-danger/10 text-af-danger";
   const conf = Math.round(r.confidence * 100);
 
@@ -213,16 +243,16 @@ function ResultView({ r }: { r: DiseaseResult }) {
             <Sprout className="w-3.5 h-3.5 text-af-primary" />
             {r.crop}
           </div>
-          <h3 className="mt-1 text-2xl font-extrabold text-af-ink leading-tight">
+          <h3 className="mt-1 text-2xl font-semibold text-af-ink leading-tight">
             {r.healthy ? "Healthy" : r.disease}
           </h3>
         </div>
         {r.healthy ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-af-primary/10 text-af-primary-deep px-3 py-1.5 text-[11px] font-bold">
+          <span className="inline-flex items-center gap-1 rounded-full bg-af-primary/10 text-af-primary-deep px-3 py-1.5 text-[11px] font-semibold">
             <ShieldCheck className="w-3.5 h-3.5" /> No disease
           </span>
         ) : (
-          <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold ${sevTone}`}>
+          <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold ${sevTone}`}>
             {r.severity} severity
           </span>
         )}
@@ -256,7 +286,7 @@ function ResultView({ r }: { r: DiseaseResult }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {r.recovery && (
           <div className="rounded-[14px] bg-af-bg border border-af-border px-4 py-3">
-            <div className="font-mono text-[10px] font-bold tracking-[0.16em] uppercase text-af-muted">
+            <div className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted">
               Recovery
             </div>
             <div className="mt-1 text-sm font-semibold text-af-ink">{r.recovery}</div>
@@ -264,10 +294,10 @@ function ResultView({ r }: { r: DiseaseResult }) {
         )}
         {r.prevention?.length > 0 && (
           <div className="rounded-[14px] bg-af-bg border border-af-border px-4 py-3">
-            <div className="font-mono text-[10px] font-bold tracking-[0.16em] uppercase text-af-muted">
+            <div className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted">
               Prevention
             </div>
-            <ul className="mt-1 text-[13px] text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
+            <ul className="mt-1 text-meta text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
               {r.prevention.slice(0, 3).map((p, i) => (
                 <li key={i}>{p}</li>
               ))}
@@ -295,10 +325,10 @@ function Meter({ label, value, tone }: { label: string; value: number; tone: "ai
   return (
     <div className="rounded-[14px] bg-af-bg border border-af-border px-4 py-3">
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[10px] font-bold tracking-[0.16em] uppercase text-af-muted">
+        <span className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted">
           {label}
         </span>
-        <span className="font-mono text-sm font-bold text-af-ink">{value}%</span>
+        <span className="font-mono text-sm font-semibold text-af-ink">{value}%</span>
       </div>
       <div className="mt-2 h-1.5 w-full rounded-full bg-af-border overflow-hidden">
         <div className={`h-full rounded-full ${bar}`} style={{ width: `${Math.min(100, value)}%` }} />
@@ -313,9 +343,9 @@ function TreatBlock({ icon, title, items }: { icon: React.ReactNode; title: stri
     <div className="rounded-[14px] bg-af-bg border border-af-border px-4 py-3">
       <div className="flex items-center gap-1.5 mb-1.5">
         {icon}
-        <span className="text-[13px] font-bold text-af-ink">{title}</span>
+        <span className="text-meta font-semibold text-af-ink">{title}</span>
       </div>
-      <ul className="text-[13px] text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
+      <ul className="text-meta text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
         {items.slice(0, 4).map((t, i) => (
           <li key={i}>{t}</li>
         ))}

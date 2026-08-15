@@ -2,6 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Agent Farmer app palette (af-* tokens)
+   ---------------------------------------------------------------------------
+   Values are space-separated RGB channels so Tailwind's <alpha-value> syntax
+   keeps working (af-primary/40 etc).
+
+   Redesign v2 — one palette for the whole product. The app (af-*) and the
+   marketing site (of-*, tailwind.config.ts) now resolve to the same greens, so
+   the two halves read as one company. Token NAMES are unchanged, so no
+   component markup had to move.
+
+   Source palette:
+     Primary Forest #173B2A · Deep Green #284D35 · Agricultural Green #668653
+     Sage #A9B99A · Warm Ivory #F7F6F0 · Mustard #D6A72C · Earth Brown #8B7355
+
+   Green carries branding, navigation and CTAs; mustard is an accent only.
+   Backgrounds stay ivory/white so the interface never reads as "all green".
+
+   :root                 — /login and /onboarding.
+   [data-shell="app"]    — the dashboard shell. Now identical to :root (the
+                           split existed only to reconcile two old palettes);
+                           kept as a hook for any future shell-specific tuning.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --af-primary: 40 77 53;          /* #284D35 Deep Green — CTAs, active nav */
+  --af-primary-deep: 23 59 42;     /* #173B2A Primary Forest — hover/pressed */
+  --af-secondary: 23 59 42;        /* #173B2A — dark emphasis bands */
+  --af-leaf: 102 134 83;           /* #668653 Agricultural Green — icons, positive */
+  --af-sage: 233 237 227;          /* #E9EDE3 — light sage tint for card fills */
+  --af-beige: 243 238 225;         /* #F3EEE1 — warm highlight tint */
+  --af-ai: 74 111 165;             /* #4A6FA5 — desaturated blue, AI moments only */
+  --af-ai-soft: 234 240 247;       /* #EAF0F7 */
+  --af-neutral: 110 122 107;       /* #6E7A6B — warm neutral */
+  --af-bg: 247 246 240;            /* #F7F6F0 Warm Ivory — the page ground */
+  --af-card: 255 255 255;          /* #FFFFFF */
+  --af-border: 227 228 217;        /* #E3E4D9 — sage-tinted hairline */
+  --af-ink: 23 59 42;              /* #173B2A — primary text */
+  --af-ink-2: 63 83 71;            /* #3F5347 — secondary text */
+  --af-muted: 124 138 120;         /* #7C8A78 — muted text */
+  --af-amber: 214 167 44;          /* #D6A72C Mustard — accent / warning */
+  --af-amber-ink: 138 106 18;      /* #8A6A12 — mustard dark enough to set text
+                                      on an af-amber/10 tint (5.1:1 on white).
+                                      The mustard itself is 2.2:1 and unreadable
+                                      as type; seven components had each
+                                      hand-picked their own #9a7100 for this. */
+  --af-danger: 168 69 47;          /* #A8452F — muted brick, genuine errors */
+}
+
+/* Dashboard shell. Unified with :root — see the note above. */
+[data-shell="app"] {
+  --af-primary: 40 77 53;          /* #284D35 */
+  --af-primary-deep: 23 59 42;     /* #173B2A */
+  --af-secondary: 23 59 42;        /* #173B2A */
+  --af-leaf: 102 134 83;           /* #668653 */
+  --af-sage: 233 237 227;          /* #E9EDE3 */
+  --af-beige: 243 238 225;         /* #F3EEE1 */
+  --af-bg: 247 246 240;            /* #F7F6F0 */
+  --af-card: 255 255 255;          /* #FFFFFF */
+  --af-border: 227 228 217;        /* #E3E4D9 */
+  --af-ink: 23 59 42;              /* #173B2A */
+  --af-ink-2: 63 83 71;            /* #3F5347 */
+  --af-muted: 124 138 120;         /* #7C8A78 */
+  --af-amber-ink: 138 106 18;      /* #8A6A12 */
+}
+
 /* ── Lenis smooth scroll (recommended base styles) ── */
 html.lenis,
 html.lenis body {
@@ -22,18 +87,19 @@ html.lenis body {
 
 /* ── Agent Farmer OS — textures & gradients for the light modern re-theme ── */
 
-/* Airy base wash: soft emerald + blue radial glows over the light canvas. */
+/* Warm ivory ground with barely-there sage washes. Deliberately quiet: the
+   photography carries the colour, not the background. */
 .of-canvas {
-  background-color: #f4f7f5;
+  background-color: #f7f6f0;
   background-image:
-    radial-gradient(60% 55% at 12% 8%, rgba(16, 185, 129, 0.10), transparent 60%),
-    radial-gradient(50% 50% at 92% 4%, rgba(59, 130, 246, 0.08), transparent 55%),
-    radial-gradient(45% 45% at 78% 96%, rgba(6, 78, 59, 0.07), transparent 60%);
+    radial-gradient(60% 55% at 12% 8%, rgba(102, 134, 83, 0.07), transparent 60%),
+    radial-gradient(50% 50% at 92% 4%, rgba(169, 185, 154, 0.10), transparent 55%),
+    radial-gradient(45% 45% at 78% 96%, rgba(23, 59, 42, 0.05), transparent 60%);
 }
 
 /* Fine dot-grid texture (use as an overlay layer). */
 .of-dotgrid {
-  background-image: radial-gradient(rgba(6, 78, 59, 0.10) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(23, 59, 42, 0.09) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
@@ -42,9 +108,9 @@ html.lenis body {
    contour lines rather than perfect circles. Meant as a low-opacity overlay. */
 .of-topo {
   background-image:
-    repeating-radial-gradient(circle at 15% 18%, transparent 0 44px, rgba(6, 78, 59, 0.06) 44px 45px, transparent 45px 46px),
-    repeating-radial-gradient(circle at 85% 72%, transparent 0 58px, rgba(11, 122, 91, 0.05) 58px 59px, transparent 59px 60px),
-    repeating-radial-gradient(circle at 60% 40%, transparent 0 76px, rgba(59, 130, 246, 0.035) 76px 77px, transparent 77px 78px);
+    repeating-radial-gradient(circle at 15% 18%, transparent 0 44px, rgba(23, 59, 42, 0.055) 44px 45px, transparent 45px 46px),
+    repeating-radial-gradient(circle at 85% 72%, transparent 0 58px, rgba(102, 134, 83, 0.05) 58px 59px, transparent 59px 60px),
+    repeating-radial-gradient(circle at 60% 40%, transparent 0 76px, rgba(139, 115, 85, 0.035) 76px 77px, transparent 77px 78px);
 }
 
 /* Subtle grain to keep large flat areas from feeling plasticky. */
@@ -52,30 +118,33 @@ html.lenis body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 
-/* Emerald → forest brand gradient (buttons, dark bands). */
+/* Brand green for buttons and dark bands. A two-stop deep-green ramp rather
+   than the old three-colour emerald gradient — restrained enough to read as a
+   solid surface, which is what the redesign calls for. */
 .of-grad-emerald {
-  background-image: linear-gradient(135deg, #10b981 0%, #0b7a5b 55%, #064e3b 100%);
+  background-image: linear-gradient(135deg, #284d35 0%, #173b2a 100%);
 }
 
-/* Gradient text for hero keywords. */
+/* Display numerals and hero keywords. Now solid forest — large type reads as
+   emphasis through scale, not through a colour ramp. */
 .of-grad-text {
-  background-image: linear-gradient(120deg, #10b981 0%, #3b82f6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: #173b2a;
 }
 
-/* Glassy gradient hairline border (wrap a card, put the fill inside). */
+/* Hairline border for framed surfaces (wrap a card, put the fill inside). */
 .of-ring {
-  background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.55), rgba(59, 130, 246, 0.35) 45%, rgba(255, 255, 255, 0.6));
+  background-image: linear-gradient(135deg, rgba(23, 59, 42, 0.28), rgba(169, 185, 154, 0.45) 45%, rgba(255, 255, 255, 0.7));
 }
 
 /* Disable default chrome autocomplete yellow highlighting in input boxes */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #eff4ff inset !important;
-  -webkit-text-fill-color: #0b1c30 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #f7f6f0 inset !important;
+  -webkit-text-fill-color: #173b2a !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -87,8 +156,9 @@ select {
   -moz-appearance: none;
   appearance: none;
 
-  /* custom chevron */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%230b1c30' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  /* Custom chevron, stroked in Primary Forest (#173B2A) — v2 replaced the old
+     Terra-Tech navy, which was the last cool-toned mark left in the app chrome. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23173b2a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px;
@@ -101,8 +171,13 @@ select:focus {
   outline: none;
 }
 
-/* Cursor-follow spotlight — a soft emerald highlight that tracks the mouse.
-   Position vars (--mx/--my) are set by the SpotlightLayer controller. */
+/* Cursor-follow spotlight — a soft sage wash that tracks the mouse.
+   Position vars (--mx/--my) are set by the SpotlightLayer controller.
+
+   Redesign v2 retuned this from bright emerald (rgba(16,185,129,0.09)) to a
+   faint agricultural-green wash. It is kept, but deliberately weaker: v2 asks
+   surfaces to read as paper separated by borders, so this is now a hint that
+   the card is interactive rather than a lighting effect that lifts it. */
 .af-spotlight::after {
   content: "";
   position: absolute;
@@ -110,7 +185,7 @@ select:focus {
   border-radius: inherit;
   background: radial-gradient(
     240px circle at var(--mx, 50%) var(--my, 0%),
-    rgba(16, 185, 129, 0.09),
+    rgba(102, 134, 83, 0.07),
     transparent 62%
   );
   opacity: 0;

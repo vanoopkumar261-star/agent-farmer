@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Sparkles,
+  BadgeCheck,
   Bookmark,
   BookmarkCheck,
   CalendarClock,
@@ -91,14 +91,14 @@ export default function SchemesBoard({
 
   return (
     <div className="space-y-6">
-      {/* AI match */}
+      {/* Schemes surfaced from the farmer's own profile and farm details. */}
       <div className="relative overflow-hidden rounded-2xl bg-af-secondary text-white shadow-af-md p-6">
-        <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-af-primary/25 blur-2xl" />
+        <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-af-leaf/30 blur-2xl" />
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-af-primary" />
-            <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-white/90">
-              AI Scheme Match
+            <Landmark className="w-3.5 h-3.5 text-af-sage" />
+            <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-white/90">
+              Recommended schemes for your farm
             </span>
           </div>
           {loadingMatch ? (
@@ -115,7 +115,7 @@ export default function SchemesBoard({
                   if (!s) return null;
                   return (
                     <span key={m.id} className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] border border-white/10 px-3 py-1.5 text-[12px] font-semibold text-white">
-                      <Sparkles className="w-3 h-3 text-af-primary" />
+                      <BadgeCheck className="w-3 h-3 text-af-sage" />
                       {s.name}
                     </span>
                   );
@@ -134,7 +134,7 @@ export default function SchemesBoard({
           <button
             key={c}
             onClick={() => setCat(c)}
-            className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
+            className={`rounded-full px-3.5 py-1.5 text-meta font-semibold transition ${
               cat === c ? "bg-af-primary text-white shadow-af-sm" : "bg-af-card border border-af-border text-af-ink-2 hover:text-af-ink"
             }`}
           >
@@ -158,8 +158,8 @@ export default function SchemesBoard({
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-[15px] font-extrabold text-af-ink truncate">{s.name}</h3>
-                      {isMatch && <Badge tone="primary">AI pick</Badge>}
+                      <h3 className="text-[15px] font-semibold text-af-ink truncate">{s.name}</h3>
+                      {isMatch && <Badge tone="primary">Recommended</Badge>}
                     </div>
                     <div className="text-[12px] text-af-muted truncate">{s.short}</div>
                   </div>
@@ -183,16 +183,16 @@ export default function SchemesBoard({
 
               {isMatch && whyById[s.id] && (
                 <div className="mt-3 flex items-start gap-2 rounded-[12px] bg-af-primary/[0.06] border border-af-primary/15 px-3 py-2">
-                  <Sparkles className="w-3.5 h-3.5 text-af-primary-deep mt-0.5 shrink-0" />
+                  <BadgeCheck className="w-3.5 h-3.5 text-af-primary-deep mt-0.5 shrink-0" />
                   <span className="text-[12px] text-af-ink-2">{whyById[s.id]}</span>
                 </div>
               )}
 
-              <p className="mt-3 text-[13px] text-af-ink-2 leading-relaxed">{s.benefit}</p>
+              <p className="mt-3 text-meta text-af-ink-2 leading-relaxed">{s.benefit}</p>
 
               {isOpen && (
                 <div className="mt-3 rounded-[12px] bg-af-bg border border-af-border p-3">
-                  <div className="font-mono text-[10px] font-bold tracking-[0.16em] uppercase text-af-muted mb-1.5">
+                  <div className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted mb-1.5">
                     Eligibility
                   </div>
                   <ul className="text-[12px] text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
@@ -207,7 +207,7 @@ export default function SchemesBoard({
               <div className="mt-4 flex items-center justify-between">
                 <button
                   onClick={() => setExpanded(isOpen ? null : s.id)}
-                  className="inline-flex items-center gap-1 text-[13px] font-bold text-af-ink-2 hover:text-af-ink transition"
+                  className="inline-flex items-center gap-1 text-meta font-semibold text-af-ink-2 hover:text-af-ink transition"
                 >
                   {isOpen ? "Hide details" : "Eligibility"}
                   <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
@@ -216,7 +216,7 @@ export default function SchemesBoard({
                   href={s.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-[10px] bg-af-primary hover:bg-af-primary-deep text-white px-3.5 py-2 text-[13px] font-bold transition"
+                  className="inline-flex items-center gap-1.5 rounded-[10px] bg-af-primary hover:bg-af-primary-deep text-white px-3.5 py-2 text-meta font-semibold transition"
                 >
                   Apply <ExternalLink className="w-3.5 h-3.5" />
                 </a>

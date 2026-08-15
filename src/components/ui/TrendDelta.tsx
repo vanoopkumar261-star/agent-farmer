@@ -21,7 +21,7 @@ export default function TrendDelta({
     : "text-af-danger bg-af-danger/10";
 
   return (
-    <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-bold ${color} ${className}`}>
+    <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${color} ${className}`}>
       <Icon className="w-3 h-3" />
       {value > 0 ? "+" : ""}
       {value}%

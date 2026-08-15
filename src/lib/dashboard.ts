@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { supabase } from "./supabase";
+import { createSupabaseServer } from "./supabase-server";
+import { cropStageFor } from "./agronomy";
 
 export type FarmerProfile = {
   id: string;
@@ -10,6 +11,7 @@ export type FarmerProfile = {
   house_lng: number | null;
   house_address: string | null;
   created_at: string | null;
+  preferences?: Record<string, any> | null;
 };
 
 export type FarmRow = {
@@ -26,6 +28,8 @@ export type CropCycleRow = {
   farm_id: string;
   chosen_crop: string;
   seeding_date: string;
+  /** Farmer-set harvest date. Null on cycles created before migration 009 — callers fall back to the agronomy estimate. */
+  estimated_harvest_date: string | null;
   expected_yield: string | null;
   created_at?: string | null;
 };
@@ -38,17 +42,23 @@ export type DashboardData = {
 };
 
 /**
- * Loads the most recently created farmer and their farms + crop cycles in a
- * single nested query. Wrapped in React cache() so the layout and the page
- * share one fetch per request instead of re-querying.
- * No auth yet, so "current farmer" = latest profile — fine for the MVP demo.
+ * Loads the signed-in farmer and their farms + crop cycles in a single nested
+ * query, scoped by the session's owner_id (RLS also enforces this). Wrapped in
+ * React cache() so the layout and the page share one fetch per request.
+ * Returns an empty result when no user is signed in or the user hasn't onboarded.
  */
 export const getDashboardData = cache(async (): Promise<DashboardData> => {
+  const supabase = createSupabaseServer();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { farmer: null, farms: [] };
+
   const { data, error } = await supabase
     .from("farmer_profiles")
     .select("*, farms(*, crop_cycles(*))")
-    .order("created_at", { ascending: false })
-    .limit(1)
+    .eq("owner_id", user.id)
     .maybeSingle();
 
   if (error) console.error("DASHBOARD error:", error);
@@ -97,14 +107,16 @@ export type CropStage = {
   progress: number; // 0..1 through a ~120-day cycle
 };
 
-export function cropStage(seedingDate: string): CropStage {
-  const d = daysSince(seedingDate);
-  const cycle = 120;
-  const progress = Math.min(1, d / cycle);
-  let label = "Germination";
-  if (d > 90) label = "Maturity";
-  else if (d > 55) label = "Flowering";
-  else if (d > 25) label = "Vegetative";
-  else if (d > 7) label = "Seedling";
-  return { label, progress };
+/**
+ * Growth stage for a crop. Delegates to the crop-aware agronomy engine — pass
+ * the crop name for per-crop cycle timing; without it, a 120-day default is used.
+ * A farmer-set harvest date, when given, defines the window instead.
+ */
+export function cropStage(
+  seedingDate: string,
+  crop?: string,
+  estimatedHarvestDate?: string | null
+): CropStage {
+  const s = cropStageFor(crop ?? "", seedingDate, estimatedHarvestDate);
+  return { label: s.label, progress: s.progress };
 }

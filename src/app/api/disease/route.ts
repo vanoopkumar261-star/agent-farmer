@@ -1,11 +1,35 @@
 import { NextResponse } from "next/server";
 import { narrativeFromLabel, diagnoseFromImage, DiseaseResult } from "@/lib/disease";
+import { getSessionFarmer } from "@/lib/auth";
+import { saveDiagnosis, uploadLeafImage } from "@/lib/history";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const INFERENCE_URL = process.env.INFERENCE_URL ?? "http://127.0.0.1:8008";
 const CONFIDENCE_THRESHOLD = 0.6;
+
+/** Persist the scan (image + diagnosis) to the farmer's health timeline. Non-fatal. */
+async function persistScan(result: DiseaseResult, bytes: Buffer, mime: string) {
+  try {
+    const farmer = await getSessionFarmer();
+    if (!farmer) return;
+    const imageUrl = await uploadLeafImage(farmer.id, new Blob([new Uint8Array(bytes)], { type: mime }), mime);
+    await saveDiagnosis(farmer.id, {
+      crop: result.crop,
+      disease: result.disease,
+      healthy: result.healthy,
+      confidence: result.confidence,
+      severity: result.severity,
+      affectedAreaPct: result.affectedAreaPct,
+      summary: result.summary,
+      source: result.source,
+      imageUrl,
+    });
+  } catch (e) {
+    console.error("persistScan failed (non-fatal):", e);
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -59,6 +83,7 @@ export async function POST(req: Request) {
         prevention: narrative.prevention ?? [],
         note: "Identified by the trained PlantVillage model.",
       };
+      await persistScan(result, bytes, mime);
       return NextResponse.json(result);
     }
 
@@ -69,6 +94,7 @@ export async function POST(req: Request) {
         modelBest.confidence * 100
       )}%) — diagnosed with AI vision instead.`;
     }
+    await persistScan(visionResult, bytes, mime);
     return NextResponse.json(visionResult);
   } catch (e: any) {
     console.error("DISEASE route error:", e);

@@ -1,22 +1,25 @@
-import { AlertTriangle, CloudRain, Bug, Sparkles } from "lucide-react";
+import { AlertTriangle, CloudRain, Bug, Sparkles, ListChecks } from "lucide-react";
 
 export type Alert = {
-  kind: "weather" | "disease" | "ai" | "critical";
+  kind: "weather" | "disease" | "ai" | "critical" | "task";
   title: string;
   body: string;
 };
 
 const config = {
-  weather: { icon: CloudRain, ring: "border-af-primary/25", tint: "bg-af-primary/8", color: "text-af-primary-deep" },
-  ai: { icon: Sparkles, ring: "border-af-ai/25", tint: "bg-af-ai/8", color: "text-af-ai" },
+  weather: { icon: CloudRain, ring: "border-af-primary/25", tint: "bg-af-primary/10", color: "text-af-primary-deep" },
+  ai: { icon: Sparkles, ring: "border-af-ai/25", tint: "bg-af-ai/10", color: "text-af-ai" },
   disease: { icon: Bug, ring: "border-af-amber/30", tint: "bg-af-amber/10", color: "text-af-amber" },
-  critical: { icon: AlertTriangle, ring: "border-af-danger/30", tint: "bg-af-danger/8", color: "text-af-danger" },
+  critical: { icon: AlertTriangle, ring: "border-af-danger/30", tint: "bg-af-danger/10", color: "text-af-danger" },
+  // Unfinished work: mustard, so it reads as "attend to this" without the
+  // alarm of a genuine weather or disease emergency.
+  task: { icon: ListChecks, ring: "border-af-amber/30", tint: "bg-af-amber/10", color: "text-af-amber-ink" },
 };
 
 export default function AlertsCard({ alerts }: { alerts: Alert[] }) {
   return (
     <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm p-6">
-      <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-af-muted">
+      <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-af-muted">
         Alerts
       </span>
 
@@ -31,7 +34,7 @@ export default function AlertsCard({ alerts }: { alerts: Alert[] }) {
             <div key={i} className={`flex items-start gap-3 rounded-xl border ${c.ring} ${c.tint} px-3.5 py-3`}>
               <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${c.color}`} />
               <div>
-                <div className="text-sm font-bold text-af-ink leading-tight">{a.title}</div>
+                <div className="text-sm font-semibold text-af-ink leading-tight">{a.title}</div>
                 <div className="text-[12px] text-af-ink-2 mt-0.5 leading-relaxed">{a.body}</div>
               </div>
             </div>

@@ -1,31 +1,25 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono, Inter, Cormorant_Garamond } from "next/font/google";
+import { JetBrains_Mono, Inter } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
-});
-
-const jetBrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-  display: "swap",
-});
-
-// Arva editorial pairing — Inter (sans) + Cormorant Garamond (Reckless serif substitute).
+/**
+ * Redesign v2 loads two faces, down from four.
+ *
+ * Inter is the whole product's voice (tailwind `font-sans`). JetBrains Mono
+ * stays for the small uppercase metadata labels used across the cards.
+ * Plus Jakarta Sans and Cormorant Garamond were dropped: Inter replaced the
+ * former, and the latter was loaded but referenced by no component.
+ */
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
+const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-cormorant",
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -40,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${jetBrainsMono.variable} ${inter.variable} ${cormorant.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetBrainsMono.variable}`}>
       <body className="bg-background text-on-background antialiased font-sans">
         {children}
       </body>

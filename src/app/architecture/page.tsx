@@ -84,7 +84,7 @@ const LAYERS: Layer[] = [
     blurb: "Where the intelligence lives.",
     nodes: [
       { id: "groq", title: "Groq LLM", sub: "llama-3.1-8b · chat, recs, schemes, market", x: 290, y: 140, detail: "Groq's llama-3.1-8b-instant powers the assistant chat, crop recommendations, scheme matching and market advice — and writes the treatment plan once a disease is named. Replies come back in the user's chosen language." },
-      { id: "vision", title: "Groq Vision", sub: "llama-4-scout-17b · fallback dx", x: 720, y: 150, detail: "When the trained classifier is unsure or the crop is out-of-distribution, llama-4-scout-17b vision diagnoses directly from the leaf photo instead of guessing." },
+      { id: "vision", title: "Groq Vision", sub: "qwen3.6-27b · fallback dx", x: 720, y: 150, detail: "When the trained classifier is unsure or the crop is out-of-distribution, qwen3.6-27b vision diagnoses directly from the leaf photo instead of guessing. It is a safety net, not a replacement — the trained CNN is markedly more precise on the crops it knows." },
       { id: "cnn", title: "FastAPI + MobileNetV3", sub: "PyTorch · PlantVillage · :8008", x: 300, y: 420, detail: "A local FastAPI server (ml/server.py, port 8008) serves a MobileNetV3-Large fine-tuned on PlantVillage. /predict returns the top-3 classes with confidence." },
       { id: "hybrid", title: "Hybrid router", sub: "model ≥ 0.6 → narrative · else vision", x: 720, y: 420, detail: "The /api/disease handler tries the CNN first; if confidence ≥ 0.6 it enriches the label with a Groq narrative, otherwise it falls back to Groq vision — best of speed and coverage." },
     ],
