@@ -1,4 +1,5 @@
 import "server-only";
+import { SUPPORTED_CROPS } from "./agronomy";
 
 export type FarmInput = {
   area: number;
@@ -48,6 +49,12 @@ Score every crop honestly on its own merits.
 `.trim()
     : "";
 
+  // The agronomy engine only holds cycle length, yield and heat thresholds for
+  // this list, and the onboarding cards only have photographs for it. A crop
+  // outside it silently fell back to a generic 120-day cycle and a blank card,
+  // so the model is held to the same vocabulary the rest of the app knows.
+  const allowed = SUPPORTED_CROPS.join(", ");
+
   const prompt = `
 Farmer location: "${locationAddress}"
 
@@ -55,6 +62,11 @@ Farms:
 ${JSON.stringify(farms, null, 2)}
 
 For EACH farm generate 3 crop recommendations.
+
+You MUST choose cropName from this list, spelled exactly as written:
+${allowed}
+Never invent a crop outside this list. If an ideal crop is missing, pick the
+closest suitable one that IS listed.
 ${oilseedDirective}
 
 Return JSON strictly in this format:

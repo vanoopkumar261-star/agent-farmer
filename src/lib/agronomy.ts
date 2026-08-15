@@ -117,6 +117,20 @@ const ALIASES: Record<string, string> = {
   moongphali: "groundnut",
 };
 
+/**
+ * Every crop the engine has real data for, by display name.
+ *
+ * This is the app's crop vocabulary and three things depend on it agreeing:
+ * the agronomy table (cycle length, yield, heat threshold), the onboarding
+ * photo pack in public/images/crops, and the prompt that asks the model for
+ * recommendations. Derived from CROP_TABLE so adding a crop in one place
+ * updates all three — "Crop" is the generic fallback entry and is excluded.
+ */
+export const SUPPORTED_CROPS: string[] = Object.values(CROP_TABLE)
+  .map((c) => c.displayName)
+  .filter((n) => n !== "Crop")
+  .sort();
+
 /** Canonical oilseed crops known to the engine, in rough national-importance order. */
 export const OILSEED_CROPS = [
   "mustard",

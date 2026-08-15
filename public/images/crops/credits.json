@@ -1,0 +1,152 @@
+{
+  "paddy": {
+    "crop": "Paddy field",
+    "article": "https://en.wikipedia.org/wiki/Paddy_field",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Pana_Banaue_Rice_Terraces_%28Cropped%29.jpg/3840px-Pana_Banaue_Rice_Terraces_%28Cropped%29.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "wheat": {
+    "crop": "Wheat",
+    "article": "https://en.wikipedia.org/wiki/Wheat",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Vehn%C3%A4pelto_6.jpg/3840px-Vehn%C3%A4pelto_6.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "maize": {
+    "crop": "maize",
+    "article": "https://commons.wikimedia.org/wiki/File%3ABelize%20-%20panoramio%20(47).jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Belize_-_panoramio_%2847%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "bajra": {
+    "crop": "Pearl millet",
+    "article": "https://en.wikipedia.org/wiki/Pearl_millet",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Grain_millet%2C_early_grain_fill%2C_Tifton%2C_7-3-02.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "jowar": {
+    "crop": "Sorghum bicolor",
+    "article": "https://en.wikipedia.org/wiki/Sorghum",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/8/84/Sorghum_bicolor03.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "ragi": {
+    "crop": "Eleusine coracana",
+    "article": "https://en.wikipedia.org/wiki/Finger_millet",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Finger_millet_3_11-21-02.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "groundnut": {
+    "crop": "groundnut",
+    "article": "https://commons.wikimedia.org/wiki/File%3AArachis%20hypogaea%20-%20Wilhelma%20Zoo%20-%20Stuttgart%2C%20Germany%20-%20DSC01974.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/8/89/Arachis_hypogaea_-_Wilhelma_Zoo_-_Stuttgart%2C_Germany_-_DSC01974.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "cotton": {
+    "crop": "Cotton",
+    "article": "https://en.wikipedia.org/wiki/Cotton",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/6/68/CottonPlant.JPG",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "soybean": {
+    "crop": "Soybean",
+    "article": "https://en.wikipedia.org/wiki/Soybean",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/8/82/Soybean.USDA.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "sugarcane": {
+    "crop": "sugarcane",
+    "article": "https://commons.wikimedia.org/wiki/File%3ASugarcane%20Field%20Srirangapatna%20Karnataka%20Jul22%20R16%2006192.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/9/90/Sugarcane_Field_Srirangapatna_Karnataka_Jul22_R16_06192.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "onion": {
+    "crop": "Onion",
+    "article": "https://en.wikipedia.org/wiki/Onion",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Mixed_onions.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "tomato": {
+    "crop": "Tomato",
+    "article": "https://en.wikipedia.org/wiki/Tomato",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/8/89/Tomato_je.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "potato": {
+    "crop": "Potato",
+    "article": "https://en.wikipedia.org/wiki/Potato",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Patates.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "chilli": {
+    "crop": "Chili pepper",
+    "article": "https://en.wikipedia.org/wiki/Chili_pepper",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/5/50/Madame_Jeanette_and_other_chillies.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "mustard": {
+    "crop": "Mustard plant",
+    "article": "https://en.wikipedia.org/wiki/Mustard_plant",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Mustard_plant_flower.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "gram": {
+    "crop": "gram",
+    "article": "https://commons.wikimedia.org/wiki/File%3ACSIRO%20ScienceImage%203196%20Chickpeas%20in%20glasshouse.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/a/a3/CSIRO_ScienceImage_3196_Chickpeas_in_glasshouse.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "pigeonpea": {
+    "crop": "pigeonpea",
+    "article": "https://commons.wikimedia.org/wiki/File%3ACajanus%20cajan%20(L.)%20Millsp.%20(50527772687).jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Cajanus_cajan_%28L.%29_Millsp._%2850527772687%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "banana": {
+    "crop": "banana",
+    "article": "https://commons.wikimedia.org/wiki/File%3AAmazonia%20Peruana%201980%2009.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Amazonia_Peruana_1980_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "sunflower": {
+    "crop": "Sunflower",
+    "article": "https://en.wikipedia.org/wiki/Common_sunflower",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/4/40/Sunflower_sky_backdrop.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "sesame": {
+    "crop": "sesame",
+    "article": "https://commons.wikimedia.org/wiki/File%3AEconomic%20plants.%20Curing%20sesame%20(Sesamum%20indicum%20L.)%20LOC%20matpc.05864.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Economic_plants._Curing_sesame_%28Sesamum_indicum_L.%29_LOC_matpc.05864.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "castor": {
+    "crop": "Ricinus",
+    "article": "https://en.wikipedia.org/wiki/Ricinus",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Ricinus_March_2010-1.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "safflower": {
+    "crop": "Safflower",
+    "article": "https://en.wikipedia.org/wiki/Safflower",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Safflower.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "linseed": {
+    "crop": "linseed",
+    "article": "https://commons.wikimedia.org/wiki/File%3ABambouseraie%20de%20Prafrance%2020100904%20081.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Bambouseraie_de_Prafrance_20100904_081.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "niger": {
+    "crop": "Guizotia abyssinica",
+    "article": "https://en.wikipedia.org/wiki/Guizotia_abyssinica",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/7/74/Guizotia_abyssinica_niger.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "turmeric": {
+    "crop": "Turmeric",
+    "article": "https://en.wikipedia.org/wiki/Turmeric",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Turmeric_inflorescence.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  }
+}
