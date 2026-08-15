@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES } from "@/lib/i18n/config";
 import Card from "@/components/ui/Card";
-import { DEFAULT_COST_PREFS, costPrefsFrom, type CostPrefs } from "@/lib/mandi-costs";
 import {
   User,
   Globe,
@@ -20,19 +19,9 @@ import {
   TrendingUp,
   Sparkles,
   LogOut,
-  Truck,
 } from "lucide-react";
 
 type NotifPrefs = { weather: boolean; disease: boolean; market: boolean; ai: boolean };
-
-/** The mandi charges no dataset can supply — the farmer's own numbers. */
-const COST_FIELDS: { key: keyof CostPrefs; label: string; unit: string; hint: string }[] = [
-  { key: "transportPerQuintalKm", label: "Transport", unit: "₹/qtl/km", hint: "Tractor or hired truck, per km" },
-  { key: "hamaliPerQuintal", label: "Loading & unloading", unit: "₹/qtl", hint: "Hamali / palledari" },
-  { key: "bardanaPerQuintal", label: "Gunny bags", unit: "₹/qtl", hint: "0 if you reuse your own" },
-  { key: "weighingPerQuintal", label: "Weighing", unit: "₹/qtl", hint: "Tolai charge at the yard" },
-  { key: "qualityCutPercent", label: "Moisture / quality cut", unit: "%", hint: "Typical deduction on your produce" },
-];
 
 type Profile = {
   id: string;
@@ -61,8 +50,6 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
     ...(profile.preferences?.notifications ?? {}),
   });
 
-  const [costs, setCosts] = useState<CostPrefs>(costPrefsFrom(profile.preferences));
-  const [costsSaved, setCostsSaved] = useState(false);
 
   // Resolve the login username (internal email is <handle>@agentfarmer.local).
   useEffect(() => {
@@ -83,21 +70,6 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
         .eq("id", profile.id);
     } catch {
       /* preferences column may not exist yet — keep the local toggle */
-    }
-  }
-
-  // Persist the mandi cost assumptions used by the Market page breakdown.
-  async function saveCosts() {
-    try {
-      await supabase
-        .from("farmer_profiles")
-        .update({ preferences: { ...(profile.preferences ?? {}), mandiCosts: costs } })
-        .eq("id", profile.id);
-      setCostsSaved(true);
-      router.refresh();
-      setTimeout(() => setCostsSaved(false), 2500);
-    } catch {
-      /* preferences column may not exist yet — keep the local values */
     }
   }
 
@@ -189,57 +161,6 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
         </div>
       </Card>
 
-      {/* Mandi selling costs */}
-      <Card className="p-6">
-        <SectionTitle
-          icon={<Truck className="w-4 h-4" />}
-          title="Mandi selling costs"
-          subtitle="Used to work out your net price per mandi"
-        />
-        <p className="mt-3 text-[12px] text-af-ink-2">
-          Market fees and commission come from your state&apos;s APMC rules. These charges don&apos;t exist in
-          any dataset — enter what you actually pay and the Market page breakdown becomes your numbers,
-          not our estimates.
-        </p>
-        <div className="mt-4 space-y-2.5">
-          {COST_FIELDS.map((f) => (
-            <div key={f.key} className="flex items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="text-meta font-semibold text-af-ink">{f.label}</div>
-                <div className="text-[11px] text-af-muted">{f.hint}</div>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <input
-                  type="number"
-                  min={0}
-                  step="0.5"
-                  value={costs[f.key]}
-                  onChange={(e) =>
-                    setCosts({ ...costs, [f.key]: Math.max(0, Number(e.target.value) || 0) })
-                  }
-                  className="w-20 rounded-[10px] bg-af-bg border border-af-border px-2.5 py-2 text-sm font-mono text-af-ink text-right outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
-                />
-                <span className="font-mono text-[10px] text-af-muted w-14">{f.unit}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-4 flex items-center gap-3">
-          <button
-            onClick={saveCosts}
-            className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm"
-          >
-            {costsSaved ? <Check className="w-4 h-4" /> : null}
-            {costsSaved ? t("common.saved") : t("common.save")}
-          </button>
-          <button
-            onClick={() => setCosts(DEFAULT_COST_PREFS)}
-            className="text-[12px] font-semibold text-af-muted hover:text-af-ink-2 transition"
-          >
-            Reset to defaults
-          </button>
-        </div>
-      </Card>
 
       {/* Account */}
       <Card className="p-6">

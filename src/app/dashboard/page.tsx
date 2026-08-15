@@ -4,7 +4,7 @@ import { getExpensesData } from "@/lib/expenses-server";
 import { generateTasks, cropStageFor, harvestInfo, getCropProfile } from "@/lib/agronomy";
 import { computeFarmHealth } from "@/lib/health";
 import { deriveAlerts } from "@/lib/alerts";
-import { getMarket, deriveRegion } from "@/lib/market";
+import { getMarket, extractStateFromAddress } from "@/lib/market";
 import { syncNotifications } from "@/lib/notifications-server";
 import { getRecentDiagnoses } from "@/lib/history";
 import { recordDayTasks, tallyDayTasks, serverYesterday } from "@/lib/tasks-server";
@@ -68,11 +68,21 @@ export default async function DashboardPage() {
   const cashPoints = expenses.byMonth.map((m) => ({ m: m.month, income: m.income, expense: m.expense }));
 
   // Real mandi prices for the ticker, scoped to the farmer's region.
-  const marketTicks = (await getMarket(deriveRegion(farmer.house_address))).map((c) => ({
-    crop: c.name,
-    price: c.price,
-    change: c.change,
-  }));
+  // The market library now takes (state, apiKey) rather than a parsed region
+  // object. Crops not arriving at a mandi today are dropped so the ticker never
+  // scrolls a price that isn't real.
+  const marketTicks = (
+    await getMarket(
+      extractStateFromAddress(farmer.house_address ?? ""),
+      process.env.DATA_GOV_API_KEY ?? null
+    )
+  )
+    .filter((c) => !c.notAvailable)
+    .map((c) => ({
+      crop: c.name,
+      price: c.price,
+      change: c.change,
+    }));
 
   // ---- Derived metrics ----
   const totalArea = farms.reduce((s, f) => s + (f.area || 0), 0);
