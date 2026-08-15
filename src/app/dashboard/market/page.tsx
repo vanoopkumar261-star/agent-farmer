@@ -17,9 +17,15 @@ export default async function MarketPage() {
 
   const apiKey = process.env.DATA_GOV_API_KEY ?? null;
   const state = extractStateFromAddress(farmer?.house_address ?? "");
-  const isRealData = Boolean(apiKey && state);
 
   const crops = await getMarket(state, apiKey);
+
+  // Derived from what actually came back, not from whether a key and a state
+  // merely exist. getMarket falls back to generated series whenever the API
+  // fails — and the shared data.gov.in sample key returns HTTP 429 often — so
+  // the old `Boolean(apiKey && state)` cheerfully labelled demo numbers
+  // "Live · <state> · Agmarknet". Every real record sets isReal.
+  const isRealData = crops.some((c) => c.isReal);
 
   const farmerCropNames = Array.from(
     new Set(farms.map((f) => f.crop?.chosen_crop).filter(Boolean) as string[])
@@ -88,7 +94,11 @@ export default async function MarketPage() {
           ) : (
             <>
               <WifiOff className="w-3.5 h-3.5" />
-              {!apiKey ? "Demo mode · Add DATA_GOV_API_KEY" : "Demo mode · State not detected"}
+              {!apiKey
+                ? "Demo mode · Add DATA_GOV_API_KEY"
+                : !state
+                ? "Demo mode · State not detected"
+                : `Demo mode · Agmarknet unavailable for ${state}`}
             </>
           )}
         </div>
