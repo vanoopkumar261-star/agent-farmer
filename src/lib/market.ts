@@ -395,17 +395,20 @@ export async function getMandiRows(
   const crop = CROPS.find((c) => c.name === cropName);
   if (!crop) return [];
 
-  if (!apiKey || !state) {
-    return nearbyMandisMock({ name: cropName, price: crop.base } as CropMarket);
-  }
+  // Never invent mandis. The page can render "Live · <state>" while this
+  // function falls back, so a fabricated list is indistinguishable from real
+  // data — which is how a Rajasthan farmer ended up looking at Karnataka
+  // mandis. An empty list makes MarketBoard show its honest empty state.
+  if (!apiKey || !state) return [];
 
   try {
     const allRecords = await fetchAllStateRecords(state, apiKey);
     const records = filterByCommodity(allRecords, crop.agmarkNames);
     const rows = recordsToMandiRows(records);
     return rows.length > 0 ? rows : [];
-  } catch {
-    return nearbyMandisMock({ name: cropName, price: crop.base } as CropMarket);
+  } catch (err) {
+    console.error(`Mandi lookup failed for ${cropName} in ${state}:`, err);
+    return [];
   }
 }
 
@@ -496,29 +499,3 @@ function buildMockSeries(name: string, base: number): CropMarket {
   };
 }
 
-export { nearbyMandisMock as nearbyMandis };
-
-function nearbyMandisMock(crop: CropMarket): MandiRow[] {
-  const rand = mulberry32(
-    hash(crop.name + "mandi" + new Date().toISOString().slice(0, 10))
-  );
-  const names = [
-    "Hubballi APMC", "Dharwad Mandi", "Gadag Market",
-    "Haveri APMC", "Ranebennur", "Belgaum APMC",
-    "Davangere Mandi", "Shimoga APMC",
-  ];
-  return names
-    .map((mandi, i) => {
-      const price = Math.round(crop.price * (0.96 + rand() * 0.08));
-      const { fees, totalDeductions, netPrice } = calculateFees(price);
-      return {
-        mandi,
-        price,
-        distanceKm: Math.round(5 + rand() * 60),
-        fees,
-        totalDeductions,
-        netPrice,
-      };
-    })
-    .sort((a, b) => b.netPrice - a.netPrice);
-}
