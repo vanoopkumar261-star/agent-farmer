@@ -25,6 +25,7 @@ import { OILSEED_ACK_KEY, loadOilseedAck } from "@/lib/oilseed";
 import { supabase } from "@/lib/supabase";
 import { getLiveUser } from "@/lib/session";
 import AuthPanel from "@/components/auth/AuthPanel";
+import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 
 type Farm = {
   area: string;
@@ -116,6 +117,10 @@ export default function OnboardingPage() {
   const [selections, setSelections] = useState<Selection[]>([makeSelection()]);
 
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // A tick-box agreeing to documents the farmer cannot read is not consent,
+  // so both are now openable right where they are being agreed to.
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   // The farmer's oilseed answer — from this session if they just came via the
   // awareness page, otherwise from their saved profile (null = never answered).
@@ -396,6 +401,8 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-af-bg text-af-ink">
+      {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
+      {showPrivacy && <PrivacyModal onClose={() => setShowPrivacy(false)} />}
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[0.85fr_1.15fr]">
         {/* Left: Visual panel */}
         <div
@@ -884,7 +891,23 @@ export default function OnboardingPage() {
                           className="mt-1 h-4 w-4 accent-af-primary"
                         />
                         <div className="text-sm text-af-ink-2">
-                          I agree to the Terms &amp; Conditions and consent to AI-assisted recommendations, alerts, and decision support.
+                          I agree to the{" "}
+                          <button
+                            type="button"
+                            onClick={() => setShowTerms(true)}
+                            className="font-semibold text-af-primary-deep underline underline-offset-2 hover:text-af-primary"
+                          >
+                            Terms &amp; Conditions
+                          </button>{" "}
+                          and the{" "}
+                          <button
+                            type="button"
+                            onClick={() => setShowPrivacy(true)}
+                            className="font-semibold text-af-primary-deep underline underline-offset-2 hover:text-af-primary"
+                          >
+                            Privacy Policy
+                          </button>
+                          , and consent to AI-assisted recommendations, alerts, and decision support.
                         </div>
                       </label>
 

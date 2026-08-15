@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES } from "@/lib/i18n/config";
 import Card from "@/components/ui/Card";
+import DataPrivacyModal from "@/components/dashboard/DataPrivacyModal";
 import {
   User,
   Globe,
@@ -44,6 +45,7 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
   const [saved, setSaved] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [showDataPrivacy, setShowDataPrivacy] = useState(false);
 
   const [notif, setNotif] = useState<NotifPrefs>({
     ...DEFAULT_NOTIF,
@@ -177,6 +179,13 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
             </div>
           )}
           <button
+            onClick={() => setShowDataPrivacy(true)}
+            className="w-full flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3 hover:border-af-primary/30 transition"
+          >
+            <span className="text-sm font-semibold text-af-ink">Data &amp; privacy</span>
+            <span className="text-meta font-semibold text-af-primary-deep">Manage &rarr;</span>
+          </button>
+          <button
             onClick={signOut}
             disabled={signingOut}
             className="w-full flex items-center justify-center gap-2 rounded-[12px] bg-af-danger/10 border border-af-danger/20 px-4 py-3 text-sm font-semibold text-af-danger hover:bg-af-danger/15 transition disabled:opacity-50"
@@ -186,6 +195,10 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
           </button>
         </div>
       </Card>
+
+      {showDataPrivacy && (
+        <DataPrivacyModal profile={profile} onClose={() => setShowDataPrivacy(false)} />
+      )}
     </div>
   );
 }
