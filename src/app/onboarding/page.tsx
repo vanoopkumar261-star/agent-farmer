@@ -25,6 +25,8 @@ import { OILSEED_ACK_KEY, loadOilseedAck } from "@/lib/oilseed";
 import { supabase } from "@/lib/supabase";
 import { getLiveUser } from "@/lib/session";
 import AuthPanel from "@/components/auth/AuthPanel";
+import CropRecCard from "@/components/onboarding/CropRecCard";
+import CropGuideModal from "@/components/onboarding/CropGuideModal";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 
 type Farm = {
@@ -119,6 +121,10 @@ export default function OnboardingPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   // A tick-box agreeing to documents the farmer cannot read is not consent,
   // so both are now openable right where they are being agreed to.
+  /** The crop whose guide is open, with the field it is being written for. */
+  const [guideCrop, setGuideCrop] = useState<
+    { crop: string; soil?: string; irrigation?: string } | null
+  >(null);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
 
@@ -401,6 +407,15 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-af-bg text-af-ink">
+      {guideCrop && (
+        <CropGuideModal
+          crop={guideCrop.crop}
+          soil={guideCrop.soil}
+          irrigation={guideCrop.irrigation}
+          region={form.location?.address}
+          onClose={() => setGuideCrop(null)}
+        />
+      )}
       {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
       {showPrivacy && <PrivacyModal onClose={() => setShowPrivacy(false)} />}
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[0.85fr_1.15fr]">
@@ -741,88 +756,25 @@ export default function OnboardingPage() {
                                 </div>
                               ) : (
                                 <div className="flex gap-4 overflow-x-auto pb-4 px-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                                  {recs.map((r, rIdx) => {
-                                    const isActive = (sel.customCrop.trim() ? "" : sel.chosenCrop) === r.cropName;
-                                    const riskColor =
-                                      r.riskScore === "Low"
-                                        ? "text-af-primary-deep bg-af-primary/10"
-                                        : r.riskScore === "Medium"
-                                        ? "text-af-ai bg-af-ai/10"
-                                        : "text-af-danger bg-af-danger/10";
-
-                                    return (
-                                      <button
-                                        key={rIdx}
-                                        onClick={() =>
-                                          updateSelection(idx, { chosenCrop: r.cropName, customCrop: "" })
-                                        }
-                                        className={`relative overflow-hidden text-left rounded-[18px] border p-5 transition-all snap-start shrink-0 min-w-[280px] sm:min-w-[320px] md:min-w-[340px]
-                                          ${
-                                            isActive
-                                              ? "border-af-primary/50 bg-af-card ring-4 ring-af-primary/15 shadow-af-md"
-                                              : "border-af-border bg-af-card hover:border-af-primary/30 shadow-af-sm"
-                                          }`}
-                                      >
-                                        {isActive && (
-                                          <>
-                                            <div className="pointer-events-none absolute left-0 top-0 h-full w-1.5 rounded-l-[18px] bg-gradient-to-b from-af-primary to-af-leaf" />
-                                            <div className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-af-primary text-white px-2 py-1">
-                                              <BadgeCheck className="w-3.5 h-3.5" />
-                                              <span className="font-mono text-[9px] font-bold tracking-[0.18em] uppercase">
-                                                Selected
-                                              </span>
-                                            </div>
-                                          </>
-                                        )}
-
-                                        <div className="relative z-10">
-                                          <div className="flex items-start justify-between gap-2">
-                                            <div className="font-sans text-lg font-extrabold text-af-ink leading-tight">
-                                              {r.cropName}
-                                            </div>
-                                            <div className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold mt-0.5 ${riskColor}`}>
-                                              {r.riskScore} risk
-                                            </div>
-                                          </div>
-
-                                          <div className="mt-3 flex flex-wrap gap-2">
-                                            <span className="inline-flex items-center rounded-full bg-af-ai/10 text-af-ai px-2.5 py-1 text-[10px] font-bold">
-                                              Suitability {r.suitabilityScore}%
-                                            </span>
-                                            <span className="inline-flex items-center rounded-full bg-af-neutral/10 text-af-ink-2 px-2.5 py-1 text-[10px] font-bold">
-                                              Confidence {r.confidenceScore}%
-                                            </span>
-                                          </div>
-
-                                          <div className="mt-4 grid grid-cols-2 gap-2">
-                                            <div className="rounded-[12px] bg-af-bg border border-af-border px-3 py-2">
-                                              <div className="font-mono text-[9px] font-bold tracking-[0.16em] uppercase text-af-muted">
-                                                Yield
-                                              </div>
-                                              <div className="mt-1 text-[12px] font-semibold text-af-ink truncate" title={r.estimatedYield}>
-                                                {r.estimatedYield}
-                                              </div>
-                                            </div>
-                                            <div className="rounded-[12px] bg-af-bg border border-af-border px-3 py-2">
-                                              <div className="font-mono text-[9px] font-bold tracking-[0.16em] uppercase text-af-muted">
-                                                Profit
-                                              </div>
-                                              <div className="mt-1 text-[12px] font-semibold text-af-ink truncate" title={r.estimatedProfit}>
-                                                {r.estimatedProfit}
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          <div className="mt-4 h-px w-full bg-af-border" />
-                                          <ul className="mt-4 text-[12px] text-af-ink-2 leading-relaxed list-disc pl-4 space-y-1">
-                                            {(r.pros ?? []).slice(0, 2).map((p, i) => (
-                                              <li key={i}>{p}</li>
-                                            ))}
-                                          </ul>
-                                        </div>
-                                      </button>
-                                    );
-                                  })}
+                                  {recs.map((r, rIdx) => (
+                                    <CropRecCard
+                                      key={rIdx}
+                                      rec={r}
+                                      selected={
+                                        (sel.customCrop.trim() ? "" : sel.chosenCrop) === r.cropName
+                                      }
+                                      onSelect={() =>
+                                        updateSelection(idx, { chosenCrop: r.cropName, customCrop: "" })
+                                      }
+                                      onViewGuide={() =>
+                                        setGuideCrop({
+                                          crop: r.cropName,
+                                          soil: form.farms[idx]?.soilType,
+                                          irrigation: form.farms[idx]?.irrigation,
+                                        })
+                                      }
+                                    />
+                                  ))}
                                 </div>
                               )}
 
