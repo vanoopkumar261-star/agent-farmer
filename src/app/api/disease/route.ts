@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { narrativeFromLabel, diagnoseFromImage, DiseaseResult } from "@/lib/disease";
 import { getSessionFarmer } from "@/lib/auth";
 import { saveDiagnosis, uploadLeafImage } from "@/lib/history";
+import { inferenceBaseUrl } from "@/lib/inference";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const INFERENCE_URL = process.env.INFERENCE_URL ?? "http://127.0.0.1:8008";
 const CONFIDENCE_THRESHOLD = 0.6;
 
 /** Persist the scan (image + diagnosis) to the farmer's health timeline. Non-fatal. */
@@ -46,10 +46,14 @@ export async function POST(req: Request) {
     // 1) Try the local trained classifier.
     let modelBest: { crop: string; disease: string; confidence: number; healthy: boolean } | null = null;
     let modelUp = false;
+    // null when no classifier is configured and we are not on a dev machine —
+    // skip straight to the vision fallback rather than dial a dead address.
+    const inferenceUrl = inferenceBaseUrl();
     try {
+      if (!inferenceUrl) throw new Error("no inference server configured");
       const fd = new FormData();
       fd.append("file", new Blob([bytes], { type: mime }), "leaf.jpg");
-      const infRes = await fetch(`${INFERENCE_URL}/predict`, {
+      const infRes = await fetch(`${inferenceUrl}/predict`, {
         method: "POST",
         body: fd,
         signal: AbortSignal.timeout(15000),

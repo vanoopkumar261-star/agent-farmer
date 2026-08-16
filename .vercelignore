@@ -1,0 +1,23 @@
+# Files that belong in the repository but not in a Vercel deployment.
+#
+# Vercel uploads the whole repo unless told otherwise. Nothing below is imported
+# by the Next.js app, so excluding it keeps each build's upload small without
+# changing what runs.
+
+# The PyTorch disease classifier. It is a separate FastAPI service that has to
+# be hosted somewhere with a persistent process and ~100MB of model weights —
+# Vercel's serverless functions are neither. Point INFERENCE_URL at wherever it
+# runs; without it the scanner falls back to the Groq vision model on its own.
+/ml/
+
+# Project documentation. Read on GitHub, never served by the app.
+/docs/
+
+# Local-only tooling: SQL migrations are applied with scripts/db-exec.mjs from a
+# developer machine, and the image/validation scripts are build-time helpers
+# whose output is already committed.
+/scripts/
+
+# Working material (also gitignored — listed here in case a clone still has it).
+/Screenshots/
+/team images/

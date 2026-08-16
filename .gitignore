@@ -50,3 +50,13 @@ __pycache__/
 
 # Cached downloads for scripts/ (regenerable — see build-india-map.mjs)
 scripts/.cache/
+
+# Working material, kept locally and out of the repo.
+# Screenshots/ holds design references captured from other people's sites plus
+# throwaway QA captures; "team images/" holds the full-size originals whose
+# web-ready versions already live in public/team/. Neither is used by the app.
+/Screenshots/
+/team images/
+# Source photographs superseded by their optimised .webp in public/images.
+/public/images/Mustard feild.png
+/public/images/Sunflower field.png

@@ -1,8 +1,8 @@
 import { getSessionFarmer } from "@/lib/auth";
+import { inferenceBaseUrl } from "@/lib/inference";
 
 export const dynamic = "force-dynamic";
 
-const INFERENCE_URL = process.env.INFERENCE_URL ?? "http://127.0.0.1:8008";
 
 /** Matches the cap the Python server applies, so we fail fast rather than there. */
 const MAX_CHARS = 1200;
@@ -36,8 +36,15 @@ export async function POST(req: Request) {
 
   if (!text) return new Response("No text supplied.", { status: 400 });
 
+  const inferenceUrl = inferenceBaseUrl();
+  if (!inferenceUrl) {
+    // No speech server in this environment. 503 is the contract the client
+    // already understands: it falls back to the reply as text, silently.
+    return new Response("Speech synthesis is not available.", { status: 503 });
+  }
+
   try {
-    const res = await fetch(`${INFERENCE_URL}/tts`, {
+    const res = await fetch(`${inferenceUrl}/tts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, locale }),
