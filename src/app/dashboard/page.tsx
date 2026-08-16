@@ -19,6 +19,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import MarketTicker from "@/components/dashboard/MarketTicker";
 import AnalyticsCard from "@/components/dashboard/AnalyticsCard";
 import ActivityTimeline, { ActivityItem } from "@/components/dashboard/ActivityTimeline";
+import AddFarmButton from "@/components/dashboard/AddFarmButton";
 import UpcomingHarvest from "@/components/dashboard/UpcomingHarvest";
 import AiChatPreview from "@/components/dashboard/AiChatPreview";
 import Reveal from "@/components/ui/Reveal";
@@ -202,15 +203,22 @@ export default async function DashboardPage() {
     `Overall farm health is ${health}/100. ${health >= 75 ? "Everything looks healthy." : "A few items need attention — see tasks below."}`,
   ];
 
-  // Recent activity feed — timestamps derived from real records so they age with the calendar.
+  // Recent activity feed — timestamps derived from real records so they age with
+  // the calendar. Every cropped farm gets an entry, newest registration first:
+  // this used to show only `farms.find(f => f.crop)`, so a farm added later from
+  // the dashboard was saved correctly but never appeared in the log.
+  const seedingEntries: ActivityItem[] = farms
+    .filter((f) => f.crop)
+    .sort((a, b) => (b.crop!.created_at ?? "").localeCompare(a.crop!.created_at ?? ""))
+    .slice(0, 4)
+    .map((f) => ({
+      icon: "crop" as const,
+      title: `${f.crop!.chosen_crop} seeded on Farm ${f.farm_index}`,
+      time: relativeTime(f.crop!.seeding_date),
+    }));
+
   const activity: ActivityItem[] = [
-    ...(seededFarm?.crop
-      ? [{
-          icon: "crop" as const,
-          title: `${seededFarm.crop.chosen_crop} seeded on Farm ${seededFarm.farm_index}`,
-          time: relativeTime(seededFarm.crop.seeding_date),
-        }]
-      : []),
+    ...seedingEntries,
     { icon: "weather", title: "Weather forecast synced for your location", time: relativeTime(new Date(Date.now() - 2 * 3_600_000).toISOString()) },
     { icon: "crop", title: "AI crop recommendations generated", time: relativeTime(seededFarm?.crop?.created_at ?? farmer.created_at) },
     { icon: "expense", title: "Farm profile created", time: relativeTime(farmer.created_at) },
@@ -300,9 +308,7 @@ export default async function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Your Farms</h2>
-              <Link href="/onboarding" className="text-sm font-semibold text-af-primary-deep hover:underline">
-                + Add farm
-              </Link>
+              <AddFarmButton label="+ Add farm" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {farms.map((f, i) => (

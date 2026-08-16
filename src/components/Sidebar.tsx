@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useT } from "@/components/i18n/LanguageProvider";
+import AddFarmButton from "@/components/dashboard/AddFarmButton";
 
 const navGroups: { titleKey: string; items: { icon: any; labelKey: string; href: string }[] }[] = [
   {
@@ -112,13 +113,15 @@ export default function Sidebar() {
 
       {/* Bottom */}
       <div className="flex flex-col gap-4">
-        <button
-          onClick={() => router.push("/onboarding")}
+        {/* This used to push to /onboarding, which re-asked a signed-in farmer
+            for their name, phone and house pin before letting them add a field. */}
+        <AddFarmButton
+          variant="custom"
           className="w-full flex items-center justify-center gap-2 bg-af-primary hover:bg-af-primary-deep text-white py-2.5 rounded-[12px] text-sm font-semibold tracking-[-0.01em] transition-all duration-150 active:scale-[0.99] shadow-af-sm"
         >
           <Plus className="w-4 h-4" />
           {t("nav.newFarm")}
-        </button>
+        </AddFarmButton>
 
         <div className="h-px bg-af-border w-full" />
 

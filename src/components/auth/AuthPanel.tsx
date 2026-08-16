@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { validateEmail } from "@/lib/validation";
 
 export type AuthMode = "signin" | "signup";
 
@@ -44,13 +45,30 @@ export default function AuthPanel({
    */
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+  /**
+   * New accounts must be Gmail addresses, matching the rule onboarding enforces
+   * on the profile email. Enforcing it in only one of the two places would let a
+   * farmer register with another provider and then hit an onboarding field that
+   * is prefilled with their own address and impossible to satisfy.
+   *
+   * Sign-in deliberately keeps the looser check: the rule is about which
+   * accounts may be created, and applying it here would lock out anyone who
+   * already has a non-Gmail account rather than just stopping new ones.
+   */
+  const genericEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+  const emailProblem =
+    mode === "signup"
+      ? validateEmail(email)
+      : genericEmailValid
+      ? null
+      : "Please enter a valid email address.";
+  const emailValid = emailProblem === null;
   const canSubmit = emailValid && password.length >= 6;
 
   const submit = async () => {
     setError(null);
-    if (!emailValid) {
-      setError("Please enter a valid email address.");
+    if (emailProblem) {
+      setError(emailProblem);
       return;
     }
     if (password.length < 6) {
@@ -213,7 +231,7 @@ export default function AuthPanel({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && canSubmit && submit()}
-              placeholder="you@example.com"
+              placeholder="you@gmail.com"
               className="w-full rounded-[14px] bg-af-bg border border-af-border pl-11 pr-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
             />
           </div>

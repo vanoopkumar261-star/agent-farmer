@@ -28,6 +28,7 @@ import AuthPanel from "@/components/auth/AuthPanel";
 import CropRecCard from "@/components/onboarding/CropRecCard";
 import CropGuideModal from "@/components/onboarding/CropGuideModal";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
+import { normalizePhone, validateArea, validateEmail, validatePhone } from "@/lib/validation";
 
 type Farm = {
   area: string;
@@ -212,22 +213,43 @@ export default function OnboardingPage() {
     []
   );
 
+  /**
+   * Validation messages for step 1 and step 2.
+   *
+   * Computed unconditionally so the Continue buttons can gate on them, and
+   * surfaced per field only once that field has been blurred (see `touched`) —
+   * otherwise an untouched form greets the farmer covered in red.
+   */
+  const phoneError = validatePhone(form.phone);
+  const emailError = validateEmail(form.email);
+  const totalAreaError = validateArea(form.totalArea, "Total farm area");
+  const farmAreaErrors = form.farms.map((f) => validateArea(f.area, "Farm area"));
+
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const markTouched = (key: string) => setTouched((p) => ({ ...p, [key]: true }));
+  const shown = (key: string, error: string | null) => (touched[key] ? error : null);
+
   const canGoStep2 = useMemo(() => {
-    return Boolean(form.name.trim() && form.phone.trim() && form.location?.lat && form.location?.lng);
-  }, [form]);
+    return Boolean(
+      form.name.trim() &&
+        !phoneError &&
+        !emailError &&
+        form.location?.lat &&
+        form.location?.lng
+    );
+  }, [form.name, form.location, phoneError, emailError]);
 
   const canProceedCropSelection = useMemo(() => {
-    if (!form.totalArea.trim()) return false;
+    if (totalAreaError) return false;
     if (form.numFarms < 1 || form.numFarms > 6) return false;
 
-    for (const f of form.farms) {
-      const areaNum = Number(f.area);
-      if (!f.area.trim() || Number.isNaN(areaNum) || areaNum <= 0) return false;
-      if (!f.soilType) return false;
-      if (!f.irrigation) return false;
+    for (let i = 0; i < form.farms.length; i++) {
+      if (farmAreaErrors[i]) return false;
+      if (!form.farms[i].soilType) return false;
+      if (!form.farms[i].irrigation) return false;
     }
     return true;
-  }, [form]);
+  }, [form.numFarms, form.farms, totalAreaError, farmAreaErrors]);
 
   const setNumFarms = (n: number) => {
     const next = Math.max(1, Math.min(6, n));
@@ -369,8 +391,10 @@ export default function OnboardingPage() {
     try {
       const farmer = await createFarmerProfile({
         name: form.name,
-        phone: form.phone,
-        email: form.email,
+        // Stored as the bare ten digits, so a farmer who typed "+91 98765 43210"
+        // and one who typed "9876543210" end up with the same value on file.
+        phone: normalizePhone(form.phone),
+        email: form.email.trim().toLowerCase(),
         location: form.location,
         locationAddress,
         oilseedAck,
@@ -536,15 +560,26 @@ export default function OnboardingPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <Field
                           label="Phone Number"
-                          placeholder="+91 XXXXX XXXXX"
+                          placeholder="10-digit mobile number"
                           value={form.phone}
                           onChange={(v) => setForm((p) => ({ ...p, phone: v }))}
+                          onBlur={() => markTouched("phone")}
+                          error={shown("phone", phoneError)}
+                          inputMode="numeric"
+                          // Ten digits plus room for the formatting farmers
+                          // actually type: "+91 98765 43210" is already 15
+                          // characters, so a tighter cap silently truncates a
+                          // valid number into an invalid one.
+                          maxLength={18}
                         />
                         <Field
-                          label="Email (optional)"
-                          placeholder="name@example.com"
+                          label="Email"
+                          placeholder="name@gmail.com"
                           value={form.email}
                           onChange={(v) => setForm((p) => ({ ...p, email: v }))}
+                          onBlur={() => markTouched("email")}
+                          error={shown("email", emailError)}
+                          inputMode="email"
                         />
                       </div>
 
@@ -586,6 +621,9 @@ export default function OnboardingPage() {
                           placeholder="e.g. 12"
                           value={form.totalArea}
                           onChange={(v) => setForm((p) => ({ ...p, totalArea: v }))}
+                          onBlur={() => markTouched("totalArea")}
+                          error={shown("totalArea", totalAreaError)}
+                          inputMode="decimal"
                         />
 
                         <div className="space-y-1.5">
@@ -647,9 +685,19 @@ export default function OnboardingPage() {
                                 <input
                                   value={f.area}
                                   onChange={(e) => updateFarm(idx, { area: e.target.value })}
+                                  onBlur={() => markTouched(`farmArea-${idx}`)}
                                   placeholder="e.g. 3.5"
-                                  className="w-full rounded-[14px] bg-af-card border border-af-border px-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
+                                  inputMode="decimal"
+                                  aria-invalid={Boolean(shown(`farmArea-${idx}`, farmAreaErrors[idx]))}
+                                  className={`w-full rounded-[14px] bg-af-card border px-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 transition ${
+                                    shown(`farmArea-${idx}`, farmAreaErrors[idx])
+                                      ? "border-af-danger/50 focus:border-af-danger focus:ring-af-danger/20"
+                                      : "border-af-border focus:border-af-primary/40 focus:ring-af-primary/25"
+                                  }`}
                                 />
+                                {shown(`farmArea-${idx}`, farmAreaErrors[idx]) && (
+                                  <FieldError message={farmAreaErrors[idx]!} />
+                                )}
                               </div>
 
                               <TerraSelect
@@ -1042,16 +1090,32 @@ function HeaderBlock({
   );
 }
 
+/**
+ * A labelled text input that can show a validation message.
+ *
+ * `error` is only rendered once `onBlur` has fired, so a farmer typing the first
+ * character of their phone number isn't immediately told it's too short. The
+ * caller owns that "touched" state because it also needs it to decide whether
+ * the step can advance.
+ */
 function Field({
   label,
   placeholder,
   value,
   onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
 }: {
   label: string;
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
+  onBlur?: () => void;
+  error?: string | null;
+  inputMode?: "text" | "numeric" | "decimal" | "email";
+  maxLength?: number;
 }) {
   return (
     <div className="space-y-1.5">
@@ -1061,9 +1125,27 @@ function Field({
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         placeholder={placeholder}
-        className="w-full rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
+        inputMode={inputMode}
+        maxLength={maxLength}
+        aria-invalid={Boolean(error)}
+        className={`w-full rounded-[14px] bg-af-bg border px-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 transition ${
+          error
+            ? "border-af-danger/50 focus:border-af-danger focus:ring-af-danger/20"
+            : "border-af-border focus:border-af-primary/40 focus:ring-af-primary/25"
+        }`}
       />
+      {error && <FieldError message={error} />}
     </div>
+  );
+}
+
+function FieldError({ message }: { message: string }) {
+  return (
+    <p role="alert" className="flex items-center gap-1.5 text-[12px] font-semibold text-af-danger">
+      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+      {message}
+    </p>
   );
 }
