@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LanguageProvider, useT } from "@/components/i18n/LanguageProvider";
-import { LeafMark, LanguageMenu } from "@/components/landing/SiteHeader";
+import SiteHeader, { LeafMark } from "@/components/landing/SiteHeader";
 import SmoothScroll from "@/components/SmoothScroll";
 import FindUs from "@/components/landing/FindUs";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
@@ -11,12 +11,15 @@ import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 /* ────────────────────────────────────────────────────────────────────────────
    Agent Farmer — Home, in the Arva pastoral-editorial layout.
 
-   Structure follows the reference: a lime marquee above a solid forest header,
-   a full-viewport video hero, then bands alternating between the bone canvas,
-   quilted pastel tiles and solid forest interstitials, closing on a forest
-   footer. Depth comes from surface colour shifts, never shadows.
+   Structure follows the reference: a full-viewport video hero, then bands
+   alternating between the bone canvas, quilted pastel tiles and solid forest
+   interstitials, closing on the find-us band and a forest footer. Depth comes
+   from surface colour shifts, never shadows.
 
-   Two deliberate departures from the Arva spec:
+   Three deliberate departures from the Arva spec:
+   · The nav is the shared SiteHeader, the same one /team and /architecture use,
+     rather than the reference's solid forest bar under a lime marquee. One
+     header across the site beats a bespoke one on the home page.
    · Typography stays Inter. Arva pairs a Reckless serif with Inter, but the
      brief was to keep our type. Display sizes therefore lean on weight 200-300
      and tight tracking to carry the editorial tone instead of a serif.
@@ -27,91 +30,15 @@ import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
    existed in tailwind.config.ts from this site's earlier Arva era.
    ──────────────────────────────────────────────────────────────────────────── */
 
-/* ── Lime marquee ─────────────────────────────────────────────────────────── */
-function Marquee() {
-  const { t } = useT();
-  // Deliberately not the l.about.c*t trio verbatim — a.feat.f1t is the same
-  // string as l.about.c1t, and two identical words in one strip reads as a bug.
-  const items = [
-    t("l.about.c1t"),
-    t("l.about.c2t"),
-    t("l.about.c3t"),
-    t("a.feat.f4t"),
-    t("a.feat.f5t"),
-  ];
-  // Rendered twice so the -50% keyframe loops seamlessly.
-  const strip = [...items, ...items, ...items, ...items];
-
-  return (
-    <div className="relative z-30 overflow-hidden bg-vivid-lime">
-      <div className="flex w-max animate-af-ticker items-center gap-8 py-2 motion-reduce:animate-none">
-        {strip.map((label, i) => (
-          <span key={i} className="flex shrink-0 items-center gap-8">
-            <span className="font-sans text-[13px] font-medium tracking-[0.02em] text-charcoal">
-              {label}
-            </span>
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-charcoal/50" fill="none" aria-hidden>
-              <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ── Forest header ────────────────────────────────────────────────────────── */
-function ArvaHeader({ onDemo }: { onDemo: () => void }) {
-  const { t } = useT();
-  const nav = [
-    { label: t("l.nav.about"), href: "#about" },
-    { label: t("l.nav.team"), href: "/team" },
-    { label: t("l.nav.arch"), href: "/architecture" },
-  ];
-
-  return (
-    <header className="sticky top-0 z-30 bg-forest-ink">
-      <div className="mx-auto flex h-[60px] max-w-[1200px] items-center gap-6 px-6">
-        <a href="/" className="flex items-center gap-2.5 text-white">
-          <LeafMark className="h-5 w-5 text-vivid-lime" />
-          <span className="font-sans text-[19px] font-medium tracking-[-0.02em]">Agent Farmer</span>
-        </a>
-
-        <nav className="ml-6 hidden items-center gap-7 md:flex">
-          {nav.map((n) => (
-            <a
-              key={n.label}
-              href={n.href}
-              className="font-sans text-[15px] text-white/85 transition-colors hover:text-white"
-            >
-              {n.label}
-            </a>
-          ))}
-        </nav>
-
-        <div className="ml-auto flex items-center gap-4 sm:gap-5">
-          {/* Nine languages are the point of the product — the switcher stays in
-              the header, as it was before the restyle. */}
-          <div className="hidden sm:block">
-            <LanguageMenu tone="dark" />
-          </div>
-          <button
-            onClick={onDemo}
-            className="rounded-arva-nav bg-white px-5 py-2.5 font-sans text-[14px] font-medium text-charcoal transition-colors hover:bg-bone"
-          >
-            {t("l.cta.demo")}
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-}
-
 /* ── Full-bleed video hero ────────────────────────────────────────────────── */
 function Hero({ onFarmer, onCompany }: { onFarmer: () => void; onCompany: () => void }) {
   const { t } = useT();
+  // 76px is SiteHeader's block height (pt-4 + its 58px pill + the 1px ring
+  // either side). It is sticky rather than fixed, so it occupies layout space
+  // above the hero; subtracting it keeps the hero exactly one viewport tall
+  // instead of overflowing by the height of the nav.
   return (
-    <section className="relative h-[calc(100vh-96px)] min-h-[560px] w-full overflow-hidden">
+    <section className="relative h-[calc(100vh-76px)] min-h-[560px] w-full overflow-hidden">
       <video
         className="absolute inset-0 h-full w-full object-cover"
         autoPlay
@@ -478,8 +405,7 @@ function HomeContent() {
 
   return (
     <main className="min-h-screen bg-bone">
-      <Marquee />
-      <ArvaHeader onDemo={goDemo} />
+      <SiteHeader />
       <Hero onFarmer={goFarmer} onCompany={goCompany} />
       <Quilt />
       <HowItWorks />
