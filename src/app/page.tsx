@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LanguageProvider, useT } from "@/components/i18n/LanguageProvider";
 import { LeafMark, LanguageMenu } from "@/components/landing/SiteHeader";
 import SmoothScroll from "@/components/SmoothScroll";
+import FindUs from "@/components/landing/FindUs";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -485,6 +486,7 @@ function HomeContent() {
       <Capabilities />
       <Stats />
       <CtaBand onDemo={goDemo} />
+      <FindUs />
       <Footer />
     </main>
   );

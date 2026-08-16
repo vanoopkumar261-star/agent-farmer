@@ -47,3 +47,6 @@ next-env.d.ts
 # Python bytecode (a .pyc was committed once by accident)
 __pycache__/
 *.pyc
+
+# Cached downloads for scripts/ (regenerable — see build-india-map.mjs)
+scripts/.cache/
