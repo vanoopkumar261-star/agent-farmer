@@ -16,7 +16,9 @@ const src = readFileSync(new URL("../src/lib/validation.ts", import.meta.url), "
   .replace(/(\blabel)\s*:\s*string(\s*=)/g, "$1$2")
   .replace(/\)\s*:\s*(string \| null|string)\s*\{/g, ") {");
 
-const mod = new Function(`${src}; return { validatePhone, validateEmail, validateArea, normalizePhone };`)();
+const mod = new Function(
+  `${src}; return { validatePhone, validateEmail, validateArea, normalizePhone, normalizeEmail };`
+)();
 
 let failures = 0;
 function expect(fn, input, wantOk, note = "") {
@@ -40,13 +42,60 @@ console.log("\n── phone: exactly 10 digits ──");
 );
 console.log("normalize('+91 98765 43210') =>", mod.normalizePhone("+91 98765 43210"));
 
-console.log("\n── email: must end @gmail.com ──");
-["a@gmail.com", "A.B@Gmail.Com", "farmer123@gmail.com"].forEach((v) =>
-  expect(mod.validateEmail, v, true)
-);
-["a@outlook.com", "a@gmail.co", "@gmail.com", "a b@gmail.com", "", "a@gmail.com.in"].forEach((v) =>
-  expect(mod.validateEmail, v, false)
-);
+console.log("\n── email: standard structure, any provider ──");
+// The acceptance list from the spec, verbatim.
+[
+  "farmer@gmail.com",
+  "farmer@yahoo.com",
+  "user@outlook.com",
+  "abc123@domain.com",
+  "first.last@domain.com",
+  "farmer123@agri.in",
+].forEach((v) => expect(mod.validateEmail, v, true, "spec: accept"));
+
+// The rejection list from the spec, verbatim.
+[
+  "farmer",
+  "farmer@",
+  "@gmail.com",
+  "farmer@gmail",
+  "farmer gmail.com",
+  "farmer@.com",
+  "farmer@domain.",
+  "farmer@domain",
+  "farmer..name@domain.com",
+].forEach((v) => expect(mod.validateEmail, v, false, "spec: reject"));
+
+// Beyond the spec: shapes a naive regex tends to get wrong.
+[
+  "a+tag@domain.co.uk",
+  "a_b-c@sub.domain.org",
+  "x@a-b.com",
+  "MixedCase@Domain.COM",
+  "  padded@domain.com  ",
+].forEach((v) => expect(mod.validateEmail, v, true));
+[
+  ".lead@domain.com",
+  "trail.@domain.com",
+  "two@@domain.com",
+  "a@-domain.com",
+  "a@domain-.com",
+  "a@domain..com",
+  "a@domain.c",
+  "a@domain.123",
+  "",
+  "a".repeat(65) + "@domain.com",
+  "a@" + "b".repeat(250) + ".com",
+].forEach((v) => expect(mod.validateEmail, v, false));
+
+console.log("\n── email is stored as typed, never rewritten ──");
+for (const v of ["  Farmer.Name+Tag@Domain.COM  ", "abc@d.io"]) {
+  const got = mod.normalizeEmail(v);
+  const want = v.trim();
+  const pass = got === want;
+  if (!pass) failures++;
+  console.log(`${pass ? "pass" : "FAIL"}  ${JSON.stringify(v)} -> ${JSON.stringify(got)}`);
+}
 
 console.log("\n── area: positive number, no stray characters ──");
 ["12", "3.5", ".5", " 4 ", "0.25"].forEach((v) => expect(mod.validateArea, v, true));

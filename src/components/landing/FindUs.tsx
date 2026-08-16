@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle, Check, Loader2 } from "lucide-react";
 import IndiaMap, { Branch } from "./IndiaMap";
+import { validateEmail } from "@/lib/validation";
 
 /**
  * Bengaluru only, because Bengaluru is the only office there is.
@@ -53,7 +54,9 @@ export default function FindUs() {
   // lie when the mail provider is unconfigured or down.
   const [notified, setNotified] = useState(true);
 
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+  // The same validator /api/feedback runs. Keeping a looser copy here would let
+  // the button enable for an address the server then rejects.
+  const emailValid = validateEmail(email) === null;
   const canSubmit = emailValid && message.trim().length >= 4 && consent && status !== "sending";
 
   const submit = async () => {

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServer } from "@/lib/supabase-server";
+import { normalizeEmail, validateEmail } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
   let honeypot = "";
   try {
     const body = await req.json();
-    email = String(body?.email ?? "").trim().toLowerCase().slice(0, MAX_EMAIL);
+    email = normalizeEmail(String(body?.email ?? "")).slice(0, MAX_EMAIL);
     message = String(body?.message ?? "").trim().slice(0, MAX_MESSAGE);
     honeypot = String(body?.company ?? "").trim();
   } catch {
@@ -45,8 +46,11 @@ export async function POST(req: Request) {
   // Answer 200 rather than 400 — telling a bot it failed just invites a retry.
   if (honeypot) return Response.json({ ok: true });
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    return Response.json({ error: "Please enter a valid email address." }, { status: 400 });
+  // Server-side check against the same grammar the form uses. The client's
+  // validation is a courtesy; this is the one that decides.
+  const emailProblem = validateEmail(email);
+  if (emailProblem) {
+    return Response.json({ error: emailProblem }, { status: 400 });
   }
   if (message.length < 4) {
     return Response.json({ error: "Please tell us a little more." }, { status: 400 });

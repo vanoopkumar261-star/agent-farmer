@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { validateEmail } from "@/lib/validation";
+import { normalizeEmail, validateEmail } from "@/lib/validation";
 
 export type AuthMode = "signin" | "signup";
 
@@ -46,29 +46,27 @@ export default function AuthPanel({
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
   /**
-   * New accounts must be Gmail addresses, matching the rule onboarding enforces
-   * on the profile email. Enforcing it in only one of the two places would let a
-   * farmer register with another provider and then hit an onboarding field that
-   * is prefilled with their own address and impossible to satisfy.
+   * Structural email validation, shared with onboarding and the feedback API
+   * through src/lib/validation.ts — one grammar, one message, every form.
    *
-   * Sign-in deliberately keeps the looser check: the rule is about which
-   * accounts may be created, and applying it here would lock out anyone who
-   * already has a non-Gmail account rather than just stopping new ones.
+   * Any provider is accepted. An earlier build restricted accounts to Gmail;
+   * that rule is gone, and nothing here may reintroduce a provider allow-list.
+   *
+   * `emailTouched` keeps the field quiet until the farmer has actually left it,
+   * so an untouched form never greets them in red. It is set on blur and forced
+   * on submit, which is what surfaces the message for someone who tabs straight
+   * to the button.
    */
-  const genericEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
-  const emailProblem =
-    mode === "signup"
-      ? validateEmail(email)
-      : genericEmailValid
-      ? null
-      : "Please enter a valid email address.";
+  const [emailTouched, setEmailTouched] = useState(false);
+  const emailProblem = validateEmail(email);
   const emailValid = emailProblem === null;
+  const emailError = emailTouched ? emailProblem : null;
   const canSubmit = emailValid && password.length >= 6;
 
   const submit = async () => {
     setError(null);
     if (emailProblem) {
-      setError(emailProblem);
+      setEmailTouched(true);
       return;
     }
     if (password.length < 6) {
@@ -77,7 +75,10 @@ export default function AuthPanel({
     }
 
     setLoading(true);
-    const cleanEmail = email.trim().toLowerCase();
+    // Padding removed, nothing else. The address is sent exactly as typed —
+    // Supabase Auth does its own case-folding server-side, so lower-casing here
+    // would only mean the farmer's account no longer matches what they entered.
+    const cleanEmail = normalizeEmail(email);
 
     try {
       if (mode === "signup") {
@@ -230,11 +231,28 @@ export default function AuthPanel({
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && canSubmit && submit()}
-              placeholder="you@gmail.com"
-              className="w-full rounded-[14px] bg-af-bg border border-af-border pl-11 pr-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
+              onBlur={() => setEmailTouched(true)}
+              onKeyDown={(e) => e.key === "Enter" && (canSubmit ? submit() : setEmailTouched(true))}
+              placeholder="name@domain.com"
+              aria-invalid={Boolean(emailError)}
+              aria-describedby={emailError ? "auth-email-error" : undefined}
+              className={`w-full rounded-[14px] bg-af-bg border pl-11 pr-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 transition ${
+                emailError
+                  ? "border-af-danger/50 focus:ring-af-danger/20 focus:border-af-danger"
+                  : "border-af-border focus:ring-af-primary/25 focus:border-af-primary/40"
+              }`}
             />
           </div>
+          {emailError && (
+            <p
+              id="auth-email-error"
+              role="alert"
+              className="flex items-start gap-1.5 text-[12px] font-semibold text-af-danger"
+            >
+              <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" />
+              {emailError}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">

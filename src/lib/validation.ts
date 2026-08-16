@@ -37,20 +37,59 @@ export function normalizePhone(raw: string): string {
   return raw.trim().replace(/[\s\-()]/g, "").replace(/^\+?91/, "");
 }
 
+/** Shown for every malformed address, in every form. One rule, one wording. */
+export const INVALID_EMAIL_MSG =
+  "Please enter a valid email address (e.g., name@domain.com).";
+
 /**
- * Email must be a Gmail address.
+ * A structurally valid address: `local-part@domain.tld`, any provider.
  *
- * This is a product decision, not a technical one, and it is enforced at
- * registration too — see AuthPanel. If it were enforced only here, anyone who
- * signed up with another provider would reach this step with their own address
- * prefilled and no way to satisfy the rule.
+ * Built from two halves so each rejection is a property of the grammar rather
+ * than a special case bolted on:
+ *
+ *   local   one or more dot-separated atoms. Because the dot must *join* two
+ *           atoms, this rejects a leading dot, a trailing dot and the doubled
+ *           dot in "farmer..name@domain.com" without testing for them.
+ *   domain  one or more labels, each starting and ending alphanumeric so a
+ *           label cannot lead or trail a hyphen, then a TLD of two or more
+ *           letters. The mandatory trailing `.tld` is what rejects
+ *           "farmer@domain"; requiring a non-empty label before every dot is
+ *           what rejects "farmer@.com" and "farmer@domain.".
+ *
+ * The atom set is the RFC 5322 dot-atom list, so "+" tagging, "_" and the rest
+ * of the unusual-but-legal characters keep working — refusing a deliverable
+ * address is a worse failure than accepting an odd-looking one. Quoted local
+ * parts ("a b"@x.com), bare IP-literal domains and Unicode domains are the
+ * knowing omissions: all three are vanishingly rare and each one widens the
+ * grammar far more than it helps.
+ */
+const EMAIL_RE =
+  /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
+
+/**
+ * Validates an email address. Returns null when it is acceptable.
+ *
+ * Surrounding whitespace is ignored (people paste addresses with it), but the
+ * address itself is never rewritten — no lower-casing, no stripping of dots or
+ * "+" tags. Callers store exactly what the user typed, minus the padding.
+ *
+ * The RFC 5321 length caps are enforced too: a 300-character local part matches
+ * the grammar happily and is still not a real address.
  */
 export function validateEmail(raw: string): string | null {
-  const value = raw.trim().toLowerCase();
+  const value = raw.trim();
   if (!value) return "Email is required.";
-  if (/\s/.test(value)) return "Email cannot contain spaces.";
-  if (!/^[^\s@]+@gmail\.com$/.test(value)) return "Email must end in @gmail.com.";
-  return null;
+  if (value.length > 254) return INVALID_EMAIL_MSG;
+
+  const at = value.lastIndexOf("@");
+  if (at > 64) return INVALID_EMAIL_MSG;
+
+  return EMAIL_RE.test(value) ? null : INVALID_EMAIL_MSG;
+}
+
+/** The address as it should be stored: the user's own text, padding removed. */
+export function normalizeEmail(raw: string): string {
+  return raw.trim();
 }
 
 /**

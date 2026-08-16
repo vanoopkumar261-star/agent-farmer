@@ -28,7 +28,13 @@ import AuthPanel from "@/components/auth/AuthPanel";
 import CropRecCard from "@/components/onboarding/CropRecCard";
 import CropGuideModal from "@/components/onboarding/CropGuideModal";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
-import { normalizePhone, validateArea, validateEmail, validatePhone } from "@/lib/validation";
+import {
+  normalizeEmail,
+  normalizePhone,
+  validateArea,
+  validateEmail,
+  validatePhone,
+} from "@/lib/validation";
 
 type Farm = {
   area: string;
@@ -394,7 +400,9 @@ export default function OnboardingPage() {
         // Stored as the bare ten digits, so a farmer who typed "+91 98765 43210"
         // and one who typed "9876543210" end up with the same value on file.
         phone: normalizePhone(form.phone),
-        email: form.email.trim().toLowerCase(),
+        // Stored exactly as the farmer typed it, padding aside — an address
+        // is not ours to rewrite.
+        email: normalizeEmail(form.email),
         location: form.location,
         locationAddress,
         oilseedAck,
@@ -574,7 +582,7 @@ export default function OnboardingPage() {
                         />
                         <Field
                           label="Email"
-                          placeholder="name@gmail.com"
+                          placeholder="name@domain.com"
                           value={form.email}
                           onChange={(v) => setForm((p) => ({ ...p, email: v }))}
                           onBlur={() => markTouched("email")}
