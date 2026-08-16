@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { aiLanguageName } from "@/lib/i18n/config";
+import { fetchWithRetry } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -32,7 +33,7 @@ ${(schemes ?? []).map((s: any) => `- ${s.id} — ${s.name} — ${s.short}`).join
 
 Pick the 3 most relevant scheme ids for THIS farmer and give a short reason each. Return ONLY JSON: ${shape}. Use only ids from the list. JSON only.`;
 
-    const res = await fetch(GROQ_URL, {
+    const res = await fetchWithRetry(GROQ_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
@@ -43,7 +44,7 @@ Pick the 3 most relevant scheme ids for THIS farmer and give a short reason each
         ],
         temperature: 0.3,
       }),
-    });
+    }, { label: "groq/scheme-match" });
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content;
     if (!raw) throw new Error("empty");

@@ -1,4 +1,5 @@
 import { getCropProfile, normalizeCrop, STAGE_LABELS } from "@/lib/agronomy";
+import { fetchWithRetry } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +74,7 @@ Return ONLY JSON:
 Each bullet under 18 words. Practical and specific. Use ₹ and metric units. No preamble.`;
 
   try {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const res = await fetchWithRetry("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
@@ -84,7 +85,7 @@ Each bullet under 18 words. Practical and specific. Use ₹ and metric units. No
         response_format: { type: "json_object" },
       }),
       signal: AbortSignal.timeout(25_000),
-    });
+    }, { label: "groq/crop-guide" });
 
     if (!res.ok) {
       console.error("crop-guide groq error:", res.status);

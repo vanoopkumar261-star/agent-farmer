@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { aiLanguageName } from "@/lib/i18n/config";
+import { fetchWithRetry } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ IMPORTANT RULES:
 
 Return ONLY valid JSON matching this shape: ${shape}`;
 
-    const res = await fetch(GROQ_URL, {
+    const res = await fetchWithRetry(GROQ_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -89,7 +90,7 @@ Return ONLY valid JSON matching this shape: ${shape}`;
         ],
         temperature: 0.3,
       }),
-    });
+    }, { label: "groq/market-advice" });
 
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content;

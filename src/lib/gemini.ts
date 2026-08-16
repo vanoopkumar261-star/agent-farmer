@@ -1,5 +1,6 @@
 import "server-only";
 import { SUPPORTED_CROPS } from "./agronomy";
+import { fetchWithRetry } from "@/lib/http";
 
 export type FarmInput = {
   area: number;
@@ -92,7 +93,7 @@ ONLY JSON.
 NO explanation.
 `.trim();
 
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const res = await fetchWithRetry("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -106,7 +107,7 @@ NO explanation.
       ],
       temperature: 0.3
     })
-  });
+  }, { label: "groq/recommendations" });
 
   const data = await res.json();
 

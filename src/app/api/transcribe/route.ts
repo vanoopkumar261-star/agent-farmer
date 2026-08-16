@@ -1,5 +1,6 @@
 import { getSessionFarmer } from "@/lib/auth";
 import { iso639 } from "@/lib/speech";
+import { fetchWithRetry } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -59,11 +60,11 @@ export async function POST(req: Request) {
   upstream.append("prompt", "Indian farming: crops, soil, irrigation, mandi prices, weather.");
 
   try {
-    const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+    const res = await fetchWithRetry("https://api.groq.com/openai/v1/audio/transcriptions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}` },
       body: upstream,
-    });
+    }, { label: "groq/transcribe" });
 
     if (!res.ok) {
       const detail = await res.text().catch(() => "");

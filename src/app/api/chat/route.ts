@@ -2,6 +2,7 @@ import { buildAssistantContext } from "@/lib/chatContext";
 import { aiLanguageName } from "@/lib/i18n/config";
 import { getSessionFarmer } from "@/lib/auth";
 import { saveChatTurn } from "@/lib/history";
+import { fetchWithRetry } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -52,27 +53,49 @@ Guidelines:
 - If asked about farming beyond the data above, answer helpfully from general agronomy knowledge.
 - Never invent farm data that isn't provided. If data is missing, say so briefly.`;
 
-  const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      messages: [{ role: "system", content: system }, ...messages],
-      temperature: 0.4,
-      max_tokens: 700,
-      stream: true,
-    }),
-  });
+  // fetchWithRetry still throws once its attempts are spent — most often on the
+  // intermittent TLS chain failure described in src/lib/http.ts. Letting that
+  // escape returns a bare 500 with no body, and the client then has nothing to
+  // show but its own generic fallback. Catching it means the farmer gets a
+  // sentence that says what to do.
+  let groqRes: Response;
+  try {
+    groqRes = await fetchWithRetry(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [{ role: "system", content: system }, ...messages],
+          temperature: 0.4,
+          max_tokens: 700,
+          stream: true,
+        }),
+      },
+      { label: "groq/chat" }
+    );
+  } catch (e) {
+    console.error("GROQ chat unreachable:", e);
+    return new Response(
+      "The connection to the AI engine dropped. Please send that again.",
+      { status: 503 }
+    );
+  }
 
   if (!groqRes.ok || !groqRes.body) {
     const errText = await groqRes.text().catch(() => "");
     console.error("GROQ chat error:", groqRes.status, errText);
-    return new Response("The AI engine is busy right now. Please try again in a moment.", {
-      status: 502,
-    });
+    // 429 survives the retries when the free-tier minute budget is genuinely
+    // spent, and "busy, wait a moment" is exactly the right advice for it.
+    const msg =
+      groqRes.status === 429
+        ? "The AI engine is rate-limited right now. Please wait a moment and try again."
+        : "The AI engine is busy right now. Please try again in a moment.";
+    return new Response(msg, { status: 502 });
   }
 
   // Transform Groq's SSE stream into a plain text delta stream for the client,

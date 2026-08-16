@@ -1,4 +1,5 @@
 import "server-only";
+import { fetchWithRetry } from "@/lib/http";
 
 export type DiseaseResult = {
   source: "model" | "vision";
@@ -28,11 +29,11 @@ const VISION_MODEL = process.env.GROQ_VISION_MODEL ?? "qwen/qwen3.6-27b";
 async function groqFetch(apiKey: string, body: unknown, label: string): Promise<any> {
   let lastErr = "";
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(GROQ_URL, {
+    const res = await fetchWithRetry(GROQ_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify(body),
-    });
+    }, { label: "groq/disease" });
     if (res.ok) return res.json();
 
     lastErr = (await res.text()).slice(0, 300);
