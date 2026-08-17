@@ -306,6 +306,21 @@ function ResultView({ r }: { r: DiseaseResult }) {
         )}
       </div>
 
+      {/* A diagnosis the model itself is unsure about should not be acted on as
+          though it were certain. Below the same threshold the API uses to fall
+          back to vision, say so plainly rather than leaving the farmer to
+          interpret a percentage. */}
+      {conf < 60 && (
+        <div className="flex items-start gap-2 rounded-[14px] border border-af-amber/25 bg-af-amber/10 px-4 py-3">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-af-amber-ink" />
+          <div className="text-sm text-af-ink-2 leading-relaxed">
+            <span className="font-semibold text-af-ink">This diagnosis is uncertain ({conf}%).</span>{" "}
+            Please confirm with your local agriculture officer or Krishi Vigyan Kendra before
+            spending on treatment.
+          </div>
+        </div>
+      )}
+
       {/* source note */}
       <div className="flex items-center gap-1.5 text-[11px] text-af-muted pt-1">
         {r.source === "model" ? (
@@ -315,6 +330,13 @@ function ResultView({ r }: { r: DiseaseResult }) {
         )}
         {r.note ?? (r.source === "model" ? "Trained model" : "AI vision")}
       </div>
+
+      {/* Standing disclaimer. The scanner recommends spending money on chemicals
+          and can be wrong, so this is shown on every result, confident or not. */}
+      <p className="border-t border-af-border pt-3 text-[11px] leading-relaxed text-af-muted">
+        AI-assisted guidance — not a substitute for a qualified agronomist. Always confirm before
+        applying chemical treatment, and follow the label rates on any product you buy.
+      </p>
     </div>
   );
 }

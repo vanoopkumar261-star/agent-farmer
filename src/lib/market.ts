@@ -12,6 +12,12 @@ export type CropMarket = {
   series: { d: string; price: number }[];
   isReal: boolean;
   notAvailable?: boolean;
+  /**
+   * The mandi arrival date these prices were reported for, as returned by
+   * Agmarknet. Surfaced in the UI because "Live" is a claim — a date is
+   * evidence. Undefined for demo data, which must never look dated.
+   */
+  reportedOn?: string;
 };
 
 export type MandiRow = {
@@ -289,6 +295,14 @@ function recordsToCropMarket(
     };
   }
 
+  // Agmarknet reports per arrival date; take the most recent one present so the
+  // UI can show when these prices are actually from.
+  const reportedOn = records
+    .map((r) => r.arrival_date)
+    .filter(Boolean)
+    .sort()
+    .pop();
+
   // Today's price = average of all modal prices from API (all today's records)
   const todayPrice = Math.round(
     prices.reduce((a, b) => a + b, 0) / prices.length
@@ -320,6 +334,7 @@ function recordsToCropMarket(
     series,
     isReal: true,
     notAvailable: false,
+    reportedOn,
   };
 }
 

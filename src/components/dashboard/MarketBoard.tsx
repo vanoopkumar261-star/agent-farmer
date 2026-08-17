@@ -450,10 +450,15 @@ export default function MarketBoard({
               </ResponsiveContainer>
             </div>
 
+            {/* "Live" on its own is a claim; the arrival date Agmarknet reported
+                is evidence. Shown when we have it, omitted rather than faked
+                when we don't. */}
             <div className="mt-3 flex items-center gap-1.5 text-[11px] text-af-muted">
               <RefreshCw className="w-3 h-3" />
               {active.isReal
-                ? "Live prices from AGMARKNET · data.gov.in · refreshed every 6 hrs"
+                ? `Prices from AGMARKNET · data.gov.in${
+                    active.reportedOn ? ` · reported ${active.reportedOn}` : ""
+                  } · refreshed every 6 hrs`
                 : "Demo prices · Add DATA_GOV_API_KEY for live data"}
             </div>
           </Card>
