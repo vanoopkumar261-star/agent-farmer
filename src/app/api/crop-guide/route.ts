@@ -1,5 +1,5 @@
 import { getCropProfile, normalizeCrop, STAGE_LABELS } from "@/lib/agronomy";
-import { fetchWithRetry } from "@/lib/http";
+import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -78,17 +78,24 @@ Each bullet under 18 words. Practical and specific. Use ₹ and metric units. No
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: GROQ_TEXT_MODEL,
         messages: [{ role: "system", content: system }],
         temperature: 0.4,
-        max_tokens: 900,
+        // gpt-oss-120b is a reasoning model: its internal reasoning tokens count
+        // against this budget before any visible output is produced. A budget
+        // sized for the answer alone gets consumed by reasoning and returns an
+        // empty completion — measured at 1,647 tokens for a guide of this shape.
+        max_tokens: 2500,
         response_format: { type: "json_object" },
       }),
       signal: AbortSignal.timeout(25_000),
     }, { label: "groq/crop-guide" });
 
     if (!res.ok) {
-      console.error("crop-guide groq error:", res.status);
+      // Log the upstream reason, not just the number. A bare "400" cost real
+      // debugging time when the model id changed under us.
+      const detail = await res.text().catch(() => "");
+      console.error("crop-guide groq error:", res.status, detail.slice(0, 400));
       return Response.json({ facts, known, sections: null, note: "AI guidance unavailable." });
     }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { aiLanguageName } from "@/lib/i18n/config";
-import { fetchWithRetry } from "@/lib/http";
+import { fetchWithRetry, readGroqContent, GROQ_TEXT_MODEL } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +79,7 @@ Return ONLY valid JSON matching this shape: ${shape}`;
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: GROQ_TEXT_MODEL,
         messages: [
           {
             role: "system",
@@ -92,9 +92,7 @@ Return ONLY valid JSON matching this shape: ${shape}`;
       }),
     }, { label: "groq/market-advice" });
 
-    const data = await res.json();
-    const raw = data?.choices?.[0]?.message?.content;
-    if (!raw) throw new Error("Empty response");
+    const raw = await readGroqContent(res, "groq/market-advice");
     return NextResponse.json(safeParse(raw));
   } catch (e: any) {
     console.error("MARKET advice error:", e);

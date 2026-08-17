@@ -2,7 +2,7 @@ import { buildAssistantContext } from "@/lib/chatContext";
 import { aiLanguageName } from "@/lib/i18n/config";
 import { getSessionFarmer } from "@/lib/auth";
 import { saveChatTurn } from "@/lib/history";
-import { fetchWithRetry } from "@/lib/http";
+import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -69,10 +69,13 @@ Guidelines:
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
+          model: GROQ_TEXT_MODEL,
           messages: [{ role: "system", content: system }, ...messages],
           temperature: 0.4,
-          max_tokens: 700,
+          // Reasoning tokens are charged against this budget before any visible
+          // text, so a budget sized for the reply alone truncates it. See
+          // GROQ_TEXT_MODEL in src/lib/http.ts.
+          max_tokens: 1600,
           stream: true,
         }),
       },

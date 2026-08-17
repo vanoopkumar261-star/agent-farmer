@@ -1,6 +1,6 @@
 import "server-only";
 import { SUPPORTED_CROPS } from "./agronomy";
-import { fetchWithRetry } from "@/lib/http";
+import { fetchWithRetry, readGroqContent, GROQ_TEXT_MODEL } from "@/lib/http";
 
 export type FarmInput = {
   area: number;
@@ -100,7 +100,7 @@ NO explanation.
       "Authorization": `Bearer ${apiKey}`
     },
     body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
+      model: GROQ_TEXT_MODEL,
       messages: [
         { role: "system", content: "Return valid JSON only. No explanations." },
         { role: "user", content: prompt }
@@ -109,10 +109,7 @@ NO explanation.
     })
   }, { label: "groq/recommendations" });
 
-  const data = await res.json();
-
-  const raw = data?.choices?.[0]?.message?.content;
-  if (!raw) throw new Error("Groq returned empty response");
+  const raw = await readGroqContent(res, "groq/recommendations");
 
   // Extract JSON block safely
   const cleaned = raw

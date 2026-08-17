@@ -28,7 +28,72 @@
  * makes the same mistake more slowly — those return immediately.
  */
 
+/**
+ * The Groq text model every feature uses.
+ *
+ * Kept in one place with an env override because Groq retires models without
+ * warning, and the failure is total: on 2026-08-17 `llama-3.1-8b-instant`
+ * started returning 404 "model does not exist", which broke the assistant, crop
+ * recommendations, scheme matching, market advice, the crop guide and the
+ * disease narrative simultaneously. Recovering meant editing six files.
+ * Changing it is now one environment variable, with no redeploy of code.
+ *
+ * If the assistant starts failing, check https://console.groq.com/docs/models
+ * and set GROQ_TEXT_MODEL to a current id.
+ *
+ * Two models on the current list are traps and were rejected after testing:
+ * `openai/gpt-oss-20b` returns an EMPTY `content` string and puts its answer in
+ * a separate `reasoning` field, and `qwen/qwen3.6-27b` leaks `<think>` blocks
+ * into the reply. `gpt-oss-120b` returns clean prose, supports JSON mode and
+ * streaming, and answers correctly in Indic scripts.
+ */
+export const GROQ_TEXT_MODEL = process.env.GROQ_TEXT_MODEL || "openai/gpt-oss-120b";
+
 const RETRY_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+/**
+ * Reads a Groq chat-completion response, or throws something that says why not.
+ *
+ * The trap this exists to close: a rejected Groq request still returns valid
+ * JSON, but it carries `{ error: { message, code } }` and no `choices` array.
+ * Code that reaches straight for `data.choices[0].message.content` therefore
+ * turns *every* failure — a bad key, a rate limit, a retired model — into the
+ * same "empty response", which names the one thing that is not the problem and
+ * hides the one detail needed to fix it. That is exactly how a missing
+ * GROQ_API_KEY on a deployment presented itself.
+ *
+ * Returns the assistant's message content. Throws with the real reason
+ * otherwise, and logs the upstream detail for the server logs.
+ */
+export async function readGroqContent(res: Response, label: string): Promise<string> {
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const body = await res.json();
+      detail = body?.error?.message ?? JSON.stringify(body).slice(0, 300);
+    } catch {
+      detail = (await res.text().catch(() => "")).slice(0, 300);
+    }
+    console.error(`${label} failed:`, res.status, detail);
+
+    if (res.status === 401)
+      throw new Error(
+        "The AI engine rejected our credentials (401). Check GROQ_API_KEY in the deployment's environment variables."
+      );
+    if (res.status === 429)
+      throw new Error("The AI engine is rate-limited right now. Please wait a moment and try again.");
+    if (res.status === 404) throw new Error(`The AI model is unavailable (404): ${detail}`);
+    throw new Error(`The AI engine returned ${res.status}: ${detail}`);
+  }
+
+  const data = await res.json();
+  const raw = data?.choices?.[0]?.message?.content;
+  if (!raw) {
+    console.error(`${label}: HTTP 200 but no content:`, JSON.stringify(data).slice(0, 400));
+    throw new Error("The AI engine returned no content. Please try again.");
+  }
+  return raw as string;
+}
 
 export type RetryOptions = {
   /** Additional attempts after the first. Default 2, so 3 tries at most. */

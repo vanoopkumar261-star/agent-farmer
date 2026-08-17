@@ -1,5 +1,5 @@
 import "server-only";
-import { fetchWithRetry } from "@/lib/http";
+import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 
 export type DiseaseResult = {
   source: "model" | "vision";
@@ -76,7 +76,7 @@ export async function narrativeFromLabel(crop: string, disease: string): Promise
   const data = await groqFetch(
     apiKey,
     {
-      model: "llama-3.1-8b-instant",
+      model: GROQ_TEXT_MODEL,
       messages: [
         { role: "system", content: "You are a plant pathologist. Return valid JSON only." },
         { role: "user", content: prompt },
@@ -128,7 +128,8 @@ export async function diagnoseFromImage(dataUrl: string): Promise<DiseaseResult>
         },
       ],
       temperature: 0.2,
-      max_tokens: 900,
+      // Headroom for the model's reasoning pass — see GROQ_TEXT_MODEL.
+      max_tokens: 2500,
     },
     "vision"
   );
