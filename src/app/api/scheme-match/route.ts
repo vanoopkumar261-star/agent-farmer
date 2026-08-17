@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { aiLanguageName } from "@/lib/i18n/config";
 import { fetchWithRetry, readGroqContent, GROQ_TEXT_MODEL } from "@/lib/http";
+import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -14,6 +15,11 @@ function safeParse(raw: string): any {
 }
 
 export async function POST(req: Request) {
+  // Counted before any work is done — the point is to refuse the expensive
+  // call, not to do it and then complain.
+  const rl = await checkRateLimit(req, "scheme-match");
+  if (!rl.ok) return rateLimited(rl);
+
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "AI not configured" }, { status: 500 });
 

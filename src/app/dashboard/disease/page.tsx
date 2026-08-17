@@ -1,7 +1,7 @@
 import DiseaseScanner from "@/components/dashboard/DiseaseScanner";
 import { T } from "@/components/i18n/LanguageProvider";
 import { getDashboardData } from "@/lib/dashboard";
-import { getRecentDiagnoses, type DiagnosisRecord } from "@/lib/history";
+import { getRecentDiagnoses, signLeafImage, type DiagnosisRecord } from "@/lib/history";
 import { ShieldCheck, AlertTriangle, History, Sprout } from "lucide-react";
 import Card from "@/components/ui/Card";
 
@@ -10,6 +10,13 @@ export const dynamic = "force-dynamic";
 export default async function DiseasePage() {
   const { farmer } = await getDashboardData();
   const scans = farmer ? await getRecentDiagnoses(farmer.id, 8) : [];
+
+  // The bucket is private (migration 014), so a stored path is not a viewable
+  // link. Sign them here, on the server, where the service role can — the
+  // browser never receives anything that outlives the hour.
+  const signed = await Promise.all(
+    scans.map(async (s) => ({ ...s, viewUrl: await signLeafImage(s.image_url) }))
+  );
 
   return (
     <div className="max-w-[1100px] mx-auto">
@@ -30,8 +37,8 @@ export default async function DiseasePage() {
             <span className="font-mono text-[11px] font-semibold text-af-muted">{scans.length}</span>
           </div>
           <div className="space-y-3">
-            {scans.map((s) => (
-              <ScanRow key={s.id} s={s} />
+            {signed.map((s) => (
+              <ScanRow key={s.id} s={s} viewUrl={s.viewUrl} />
             ))}
           </div>
         </div>
@@ -40,7 +47,7 @@ export default async function DiseasePage() {
   );
 }
 
-function ScanRow({ s }: { s: DiagnosisRecord }) {
+function ScanRow({ s, viewUrl }: { s: DiagnosisRecord; viewUrl: string | null }) {
   const when = new Date(s.created_at).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
@@ -50,9 +57,9 @@ function ScanRow({ s }: { s: DiagnosisRecord }) {
 
   return (
     <Card className="flex items-center gap-4 p-4">
-      {s.image_url ? (
+      {viewUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={s.image_url} alt="leaf scan" className="w-14 h-14 rounded-full object-cover border border-af-border shrink-0" />
+        <img src={viewUrl} alt="Leaf photograph from this scan" className="w-14 h-14 rounded-full object-cover border border-af-border shrink-0" />
       ) : (
         <span className="flex items-center justify-center w-14 h-14 rounded-full bg-af-sage text-af-secondary shrink-0">
           <Sprout className="w-6 h-6" />

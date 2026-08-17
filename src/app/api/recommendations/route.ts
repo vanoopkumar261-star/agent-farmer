@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { getCropRecommendations, FarmInput } from "@/lib/gemini";
+import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+  // Counted before any work is done — the point is to refuse the expensive
+  // call, not to do it and then complain.
+  const rl = await checkRateLimit(req, "recommendations");
+  if (!rl.ok) return rateLimited(rl);
+
   try {
     const body = await req.json();
 

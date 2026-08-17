@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServer } from "@/lib/supabase-server";
 import { normalizeEmail, validateEmail } from "@/lib/validation";
+import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,11 @@ const MAX_EMAIL = 254;
  * validation below is the real gate, not a client-side convenience.
  */
 export async function POST(req: Request) {
+  // Counted before any work is done — the point is to refuse the expensive
+  // call, not to do it and then complain.
+  const rl = await checkRateLimit(req, "feedback");
+  if (!rl.ok) return rateLimited(rl);
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {

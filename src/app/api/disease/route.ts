@@ -3,9 +3,15 @@ import { narrativeFromLabel, diagnoseFromImage, DiseaseResult } from "@/lib/dise
 import { getSessionFarmer } from "@/lib/auth";
 import { saveDiagnosis, uploadLeafImage } from "@/lib/history";
 import { inferenceBaseUrl } from "@/lib/inference";
+import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { sniffImageType, stripImageMetadata } from "@/lib/image";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+/** Matches the bucket ceiling set in migration 014. */
+const MAX_UPLOAD_MB = 5;
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 const CONFIDENCE_THRESHOLD = 0.6;
 
@@ -32,6 +38,11 @@ async function persistScan(result: DiseaseResult, bytes: Buffer, mime: string) {
 }
 
 export async function POST(req: Request) {
+  // Counted before any work is done — the point is to refuse the expensive
+  // call, not to do it and then complain.
+  const rl = await checkRateLimit(req, "disease");
+  if (!rl.ok) return rateLimited(rl);
+
   try {
     const form = await req.formData();
     const file = form.get("image");
@@ -39,9 +50,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No image uploaded" }, { status: 400 });
     }
 
+    // Size is checked before the bytes are read into memory. The storage bucket
+    // enforces the same 5 MB ceiling (migration 014), but failing here gives the
+    // farmer a sentence instead of an opaque storage error — and avoids buffering
+    // an arbitrarily large upload just to reject it.
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: `That image is too large. Please upload a photo under ${MAX_UPLOAD_MB} MB.` },
+        { status: 413 }
+      );
+    }
+
     const bytes = Buffer.from(await file.arrayBuffer());
-    const mime = (file as any).type || "image/jpeg";
-    const dataUrl = `data:${mime};base64,${bytes.toString("base64")}`;
+
+    // The declared type is whatever the client wrote in the multipart body, so
+    // it is not evidence of anything — a text file renamed .jpg arrives claiming
+    // image/jpeg. Trust the magic bytes instead.
+    const mime = sniffImageType(bytes);
+    if (!mime) {
+      return NextResponse.json(
+        { error: "That file isn't a JPEG, PNG or WebP image. Please upload a photo of the leaf." },
+        { status: 415 }
+      );
+    }
+
+    // Phone cameras write the GPS coordinates of the field into EXIF. Strip
+    // metadata before the image is stored or sent anywhere.
+    const clean = stripImageMetadata(bytes, mime);
+    const dataUrl = `data:${mime};base64,${clean.toString("base64")}`;
 
     // 1) Try the local trained classifier.
     let modelBest: { crop: string; disease: string; confidence: number; healthy: boolean } | null = null;
@@ -52,7 +88,7 @@ export async function POST(req: Request) {
     try {
       if (!inferenceUrl) throw new Error("no inference server configured");
       const fd = new FormData();
-      fd.append("file", new Blob([bytes], { type: mime }), "leaf.jpg");
+      fd.append("file", new Blob([new Uint8Array(clean)], { type: mime }), "leaf.jpg");
       const infRes = await fetch(`${inferenceUrl}/predict`, {
         method: "POST",
         body: fd,
@@ -87,7 +123,7 @@ export async function POST(req: Request) {
         prevention: narrative.prevention ?? [],
         note: "Identified by the trained PlantVillage model.",
       };
-      await persistScan(result, bytes, mime);
+      await persistScan(result, clean, mime);
       return NextResponse.json(result);
     }
 
@@ -98,7 +134,7 @@ export async function POST(req: Request) {
         modelBest.confidence * 100
       )}%) — diagnosed with AI vision instead.`;
     }
-    await persistScan(visionResult, bytes, mime);
+    await persistScan(visionResult, clean, mime);
     return NextResponse.json(visionResult);
   } catch (e: any) {
     console.error("DISEASE route error:", e);

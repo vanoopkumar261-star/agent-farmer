@@ -1,5 +1,6 @@
 import { getSessionFarmer } from "@/lib/auth";
 import { inferenceBaseUrl } from "@/lib/inference";
+import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,11 @@ const MAX_CHARS = 1200;
  * and the client falls back to showing the reply as text when it is not running.
  */
 export async function POST(req: Request) {
+  // Counted before any work is done — the point is to refuse the expensive
+  // call, not to do it and then complain.
+  const rl = await checkRateLimit(req, "tts");
+  if (!rl.ok) return rateLimited(rl);
+
   const farmer = await getSessionFarmer();
   if (!farmer) {
     return new Response("Not signed in.", { status: 401 });

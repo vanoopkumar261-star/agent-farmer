@@ -1,5 +1,6 @@
 import { getCropProfile, normalizeCrop, STAGE_LABELS } from "@/lib/agronomy";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
+import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,11 @@ export const dynamic = "force-dynamic";
  * from the request, and the response is generic agronomy.
  */
 export async function POST(req: Request) {
+  // Counted before any work is done — the point is to refuse the expensive
+  // call, not to do it and then complain.
+  const rl = await checkRateLimit(req, "crop-guide");
+  if (!rl.ok) return rateLimited(rl);
+
   const apiKey = process.env.GROQ_API_KEY;
 
   let crop = "";

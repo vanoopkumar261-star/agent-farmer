@@ -1,6 +1,7 @@
 import { getSessionFarmer } from "@/lib/auth";
 import { iso639 } from "@/lib/speech";
 import { fetchWithRetry } from "@/lib/http";
+import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,11 @@ const MAX_BYTES = 10 * 1024 * 1024;
  * on short utterances, which is the common failure with Indic speech.
  */
 export async function POST(req: Request) {
+  // Counted before any work is done — the point is to refuse the expensive
+  // call, not to do it and then complain.
+  const rl = await checkRateLimit(req, "transcribe");
+  if (!rl.ok) return rateLimited(rl);
+
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return Response.json({ error: "Voice input is not configured." }, { status: 500 });

@@ -3,12 +3,18 @@ import { aiLanguageName } from "@/lib/i18n/config";
 import { getSessionFarmer } from "@/lib/auth";
 import { saveChatTurn } from "@/lib/history";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
+import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
 export async function POST(req: Request) {
+  // Counted before any work is done — the point is to refuse the expensive
+  // call, not to do it and then complain.
+  const rl = await checkRateLimit(req, "chat");
+  if (!rl.ok) return rateLimited(rl);
+
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return new Response("The AI assistant is not configured (missing API key).", { status: 500 });
