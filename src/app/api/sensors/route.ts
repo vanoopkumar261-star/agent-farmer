@@ -68,6 +68,25 @@ type ChannelCfg = {
   fields: Partial<Record<MetricKey, number>>;
 };
 
+/**
+ * The shared demo sensor rig.
+ *
+ * The ESP32 nodes for this project publish to one ThingSpeak channel, and the
+ * dashboard shows the same field readings to every farmer (there is no
+ * per-account sensor yet). When no THINGSPEAK_CHANNEL_* env var is set — e.g.
+ * on a deployment where they were never added — the route falls back to this so
+ * the panel still shows real data everywhere.
+ *
+ * Override per deployment with the env vars in `.env.example`. The key here is
+ * read-only for this one channel; regenerate it from the ThingSpeak dashboard
+ * if it ever needs to be rotated.
+ */
+const SHARED_DEMO_CHANNEL: ChannelCfg = {
+  id: "3469748",
+  readKey: "X8MKUPGQWRYSETTI",
+  fields: { temperature: 1, humidity: 2, soilMoisture: 3 },
+};
+
 /** Reads THINGSPEAK_CHANNEL_<tag>_* into a channel config, or null if unset. */
 function readChannel(tag: "A" | "B"): ChannelCfg | null {
   const id = process.env[`THINGSPEAK_CHANNEL_${tag}_ID`]?.trim();
@@ -131,25 +150,13 @@ export async function GET(req: Request) {
   const rl = await checkRateLimit(req, "sensors");
   if (!rl.ok) return rateLimited(rl);
 
-  const channels = [readChannel("A"), readChannel("B")].filter(
+  const envChannels = [readChannel("A"), readChannel("B")].filter(
     (c): c is ChannelCfg => c !== null
   );
 
-  const empty = (configured: boolean): SensorSnapshot => ({
-    configured,
-    updatedAt: null,
-    metrics: METRIC_KEYS.map((key) => ({
-      key,
-      configured: false,
-      unit: UNITS[key],
-      latest: null,
-      readings: [],
-    })),
-  });
-
-  if (channels.length === 0) {
-    return NextResponse.json(empty(false));
-  }
+  // No per-deployment channel configured → fall back to the shared demo rig so
+  // every account still sees the readings.
+  const channels = envChannels.length > 0 ? envChannels : [SHARED_DEMO_CHANNEL];
 
   // One fetch per configured channel, shared across whichever metrics map to it.
   const feedsByChannel = new Map<ChannelCfg, Feed[]>();
