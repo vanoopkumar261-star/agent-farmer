@@ -4,11 +4,14 @@ import { getExpensesData } from "@/lib/expenses-server";
 import { generateTasks, cropStageFor, harvestInfo, getCropProfile } from "@/lib/agronomy";
 import { computeFarmHealth } from "@/lib/health";
 import { deriveAlerts } from "@/lib/alerts";
-import { getMarket, extractStateFromAddress } from "@/lib/market";
+import { extractStateFromAddress } from "@/lib/market";
+import { getMarketForState } from "@/lib/market-server";
 import { syncNotifications } from "@/lib/notifications-server";
 import { getRecentDiagnoses } from "@/lib/history";
 import { recordDayTasks, tallyDayTasks, serverYesterday } from "@/lib/tasks-server";
 import WeatherCard from "@/components/dashboard/WeatherCard";
+import SensorPanel from "@/components/dashboard/SensorPanel";
+import LibraryCard from "@/components/dashboard/LibraryCard";
 import AiSummaryCard from "@/components/dashboard/AiSummaryCard";
 import FarmCard from "@/components/dashboard/FarmCard";
 import HealthRing from "@/components/dashboard/HealthRing";
@@ -46,13 +49,13 @@ export default async function DashboardPage() {
         <div className="w-12 h-12 rounded-2xl bg-af-sage mx-auto flex items-center justify-center">
           <Sprout className="w-6 h-6 text-af-secondary" />
         </div>
-        <h2 className="mt-4 text-[19px] font-semibold tracking-[-0.02em] text-af-ink">No farm registered yet</h2>
-        <p className="mt-2 text-sm text-af-ink-2">Complete onboarding to see your live farm dashboard.</p>
+        <h2 className="mt-4 text-[19px] font-semibold tracking-[-0.02em] text-af-ink"><T k="dashboard.home.noFarmTitle" /></h2>
+        <p className="mt-2 text-sm text-af-ink-2"><T k="dashboard.home.noFarmSubtitle" /></p>
         <Link
           href="/onboarding"
           className="mt-6 inline-flex items-center justify-center rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3 text-sm font-semibold transition"
         >
-          Start Onboarding
+          <T k="dashboard.home.startOnboarding" />
         </Link>
       </div>
     );
@@ -73,10 +76,7 @@ export default async function DashboardPage() {
   // object. Crops not arriving at a mandi today are dropped so the ticker never
   // scrolls a price that isn't real.
   const marketTicks = (
-    await getMarket(
-      extractStateFromAddress(farmer.house_address ?? ""),
-      process.env.DATA_GOV_API_KEY ?? null
-    )
+    await getMarketForState(extractStateFromAddress(farmer.house_address ?? ""))
   )
     .filter((c) => !c.notAvailable)
     .map((c) => ({
@@ -196,11 +196,21 @@ export default async function DashboardPage() {
 
   // AI summary bullets.
   const summary = [
-    `You have ${farms.length} active ${farms.length === 1 ? "farm" : "farms"} totalling ${totalArea} acres across ${soils.join(" & ")}.`,
-    weather
-      ? `It's ${weather.current.temp}°C and ${weather.current.label.toLowerCase()} at ${place.split(",")[0]} — ${rainSoon ? "rain is expected within 3 days, so hold irrigation." : "conditions are favourable for field work today."}`
-      : `Weather data is syncing for ${place.split(",")[0]}.`,
-    `Overall farm health is ${health}/100. ${health >= 75 ? "Everything looks healthy." : "A few items need attention — see tasks below."}`,
+    <T key="s1" k="dashboard.summary.farms" params={{ count: farms.length, area: totalArea, soils: soils.join(" & ") }} />,
+    weather ? (
+      <T
+        key="s2"
+        k={rainSoon ? "dashboard.summary.weatherRainSoon" : "dashboard.summary.weatherFavourable"}
+        params={{ temp: weather.current.temp, label: weather.current.label.toLowerCase(), place: place.split(",")[0] }}
+      />
+    ) : (
+      <T key="s2" k="dashboard.summary.weatherSyncing" params={{ place: place.split(",")[0] }} />
+    ),
+    <T
+      key="s3"
+      k={health >= 75 ? "dashboard.summary.healthGood" : "dashboard.summary.healthAttention"}
+      params={{ health }}
+    />,
   ];
 
   // Recent activity feed — timestamps derived from real records so they age with
@@ -213,15 +223,15 @@ export default async function DashboardPage() {
     .slice(0, 4)
     .map((f) => ({
       icon: "crop" as const,
-      title: `${f.crop!.chosen_crop} seeded on Farm ${f.farm_index}`,
+      title: <T k="dashboard.activity.seeded" params={{ crop: f.crop!.chosen_crop, n: f.farm_index }} />,
       time: relativeTime(f.crop!.seeding_date),
     }));
 
   const activity: ActivityItem[] = [
     ...seedingEntries,
-    { icon: "weather", title: "Weather forecast synced for your location", time: relativeTime(new Date(Date.now() - 2 * 3_600_000).toISOString()) },
-    { icon: "crop", title: "AI crop recommendations generated", time: relativeTime(seededFarm?.crop?.created_at ?? farmer.created_at) },
-    { icon: "expense", title: "Farm profile created", time: relativeTime(farmer.created_at) },
+    { icon: "weather", title: <T k="dashboard.activity.weatherSynced" />, time: relativeTime(new Date(Date.now() - 2 * 3_600_000).toISOString()) },
+    { icon: "crop", title: <T k="dashboard.activity.aiRecommendations" />, time: relativeTime(seededFarm?.crop?.created_at ?? farmer.created_at) },
+    { icon: "expense", title: <T k="dashboard.activity.profileCreated" />, time: relativeTime(farmer.created_at) },
   ];
 
   // Every cropped farm gets its own harvest countdown, soonest first.
@@ -262,21 +272,21 @@ export default async function DashboardPage() {
       {/* Stat tiles */}
       <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Reveal index={0}>
-          <StatTile icon={<Sprout className="w-[22px] h-[22px]" />} label="Active Farms" value={farms.length}
-            link={{ label: "View all farms", href: "/dashboard/crops" }} />
+          <StatTile icon={<Sprout className="w-[22px] h-[22px]" />} label={<T k="dashboard.stat.activeFarms" />} value={farms.length}
+            link={{ label: <T k="dashboard.stat.viewAllFarms" />, href: "/dashboard/crops" }} />
         </Reveal>
         <Reveal index={1}>
-          <StatTile icon={<Ruler className="w-[22px] h-[22px]" />} label="Total Area" value={totalArea} suffix=" ac"
-            meta={`Across ${farms.length} ${farms.length === 1 ? "farm" : "farms"}`} />
+          <StatTile icon={<Ruler className="w-[22px] h-[22px]" />} label={<T k="dashboard.stat.totalArea" />} value={totalArea} suffix=" ac"
+            meta={<T k="dashboard.stat.totalAreaMeta" params={{ n: farms.length }} />} />
         </Reveal>
         <Reveal index={2}>
-          <StatTile icon={<Layers className="w-[22px] h-[22px]" />} label="Active Crops" value={activeCrops}
-            meta={cropNames || "No crop selected yet"} />
+          <StatTile icon={<Layers className="w-[22px] h-[22px]" />} label={<T k="dashboard.stat.activeCrops" />} value={activeCrops}
+            meta={cropNames || <T k="dashboard.stat.noCropSelected" />} />
         </Reveal>
         <Reveal index={3}>
-          <StatTile icon={<Wallet className="w-[22px] h-[22px]" />} label="Season Profit"
+          <StatTile icon={<Wallet className="w-[22px] h-[22px]" />} label={<T k="dashboard.stat.seasonProfit" />}
             value={Math.round(expenses.profit / 1000)} prefix="₹" suffix="k"
-            delta={profitDelta} meta="This season" />
+            delta={profitDelta} meta={<T k="dashboard.stat.thisSeason" />} />
         </Reveal>
       </div>
 
@@ -304,11 +314,14 @@ export default async function DashboardPage() {
           <Reveal>
             <WeatherCard weather={weather} place={place} />
           </Reveal>
+          <Reveal>
+            <SensorPanel />
+          </Reveal>
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Your Farms</h2>
-              <AddFarmButton label="+ Add farm" />
+              <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink"><T k="dashboard.home.yourFarms" /></h2>
+              <AddFarmButton label={<T k="common.addFarm" />} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {farms.map((f, i) => (
@@ -324,7 +337,7 @@ export default async function DashboardPage() {
         <div className="space-y-6">
           <Reveal>
             <Card className="p-6 flex flex-col items-center">
-              <h2 className="self-start text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Farm Health</h2>
+              <h2 className="self-start text-[17px] font-semibold tracking-[-0.02em] text-af-ink"><T k="dashboard.home.farmHealth" /></h2>
               <div className="my-4">
                 <HealthRing value={health} label="/100" />
               </div>
@@ -355,7 +368,7 @@ export default async function DashboardPage() {
                 href="/dashboard/crops"
                 className="mt-3 inline-flex items-center gap-1.5 text-meta font-semibold text-af-primary-deep hover:gap-2.5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40 rounded"
               >
-                View details
+                <T k="dashboard.home.viewDetails" />
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </Card>
@@ -372,6 +385,9 @@ export default async function DashboardPage() {
           </Reveal>
           <Reveal>
             <AlertsCard alerts={alerts} />
+          </Reveal>
+          <Reveal>
+            <LibraryCard from="/dashboard" />
           </Reveal>
         </div>
       </div>

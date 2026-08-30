@@ -13,12 +13,28 @@ import {
   Plus,
   User,
   Leaf,
+  Newspaper,
+  Library,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useT } from "@/components/i18n/LanguageProvider";
 import AddFarmButton from "@/components/dashboard/AddFarmButton";
 
-const navGroups: { titleKey: string; items: { icon: any; labelKey: string; href: string }[] }[] = [
+const navGroups: {
+  titleKey: string;
+  items: {
+    icon: any;
+    labelKey: string;
+    href: string;
+    /**
+     * Set for destinations outside the dashboard shell (the Jaivik Sathi
+     * eLibrary). They get `?from=<current path>` appended so their back button
+     * returns the farmer to the page they left, rather than to the public
+     * Jaivik Sathi landing page.
+     */
+    carryFrom?: boolean;
+  }[];
+}[] = [
   {
     titleKey: "nav.overview",
     items: [
@@ -33,7 +49,9 @@ const navGroups: { titleKey: string; items: { icon: any; labelKey: string; href:
     items: [
       { icon: Microscope, labelKey: "nav.disease", href: "/dashboard/disease" },
       { icon: ShoppingCart, labelKey: "nav.market", href: "/dashboard/market" },
+      { icon: Newspaper, labelKey: "nav.news", href: "/dashboard/news" },
       { icon: MapPin, labelKey: "nav.storeLocator", href: "/dashboard/store-locator" },
+      { icon: Library, labelKey: "nav.library", href: "/jaivik-sathi/library", carryFrom: true },
     ],
   },
   {
@@ -84,7 +102,13 @@ export default function Sidebar() {
                 return (
                   <button
                     key={item.href}
-                    onClick={() => router.push(item.href)}
+                    onClick={() =>
+                      router.push(
+                        item.carryFrom
+                          ? `${item.href}?from=${encodeURIComponent(pathname)}`
+                          : item.href
+                      )
+                    }
                     aria-current={isActive ? "page" : undefined}
                     className={`group w-full flex items-center gap-3 pl-3 pr-3 py-2.5 rounded-[12px] text-sm font-semibold transition-all duration-150 text-left relative
                       outline-none focus-visible:ring-2 focus-visible:ring-af-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-af-card

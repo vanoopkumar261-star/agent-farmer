@@ -14,6 +14,11 @@ export async function createFarmerProfile(profile: any) {
       ? { oilseed_ack: profile.oilseedAck, oilseed_ack_at: new Date().toISOString() }
       : null;
 
+  // The house-location PIN code, when the map picker could resolve one. Kept in
+  // the existing preferences jsonb alongside oilseed_ack — no schema change.
+  const pincode: string | undefined =
+    typeof profile.location?.pincode === "string" ? profile.location.pincode : undefined;
+
   // One profile per account. If onboarding runs again (e.g. "add a farm"),
   // reuse the existing profile instead of creating a duplicate farmer.
   const { data: existing } = await supabase
@@ -45,7 +50,10 @@ export async function createFarmerProfile(profile: any) {
       house_lat: profile.location?.lat,
       house_lng: profile.location?.lng,
       house_address: profile.locationAddress,
-      preferences: prefsPatch ?? {}
+      preferences: {
+        ...(prefsPatch ?? {}),
+        ...(pincode ? { house_pincode: pincode } : {}),
+      },
     }])
     .select()
     .single();
