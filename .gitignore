@@ -24,6 +24,12 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+
+# local build/run captures and device diagnostics — never commit
+/bugreport-*.zip
+/*.zip
+vercel_*.log
 
 # local env files
 .env*.local
@@ -60,3 +66,4 @@ scripts/.cache/
 # Source photographs superseded by their optimised .webp in public/images.
 /public/images/Mustard feild.png
 /public/images/Sunflower field.png
+.env*

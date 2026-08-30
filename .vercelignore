@@ -18,6 +18,15 @@
 # whose output is already committed.
 /scripts/
 
+# Supabase config + SQL migrations — applied out of band, never read at runtime.
+/supabase/
+
+# Internal concept documents (also gitignored).
+*.docx
+
+# Security notes — read on GitHub, not served by the app.
+/SECURITY.md
+
 # Working material (also gitignored — listed here in case a clone still has it).
 /Screenshots/
 /team images/
