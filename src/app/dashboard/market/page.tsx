@@ -1,4 +1,5 @@
-import { getMarket, getMandiRows, extractStateFromAddress, MandiRow } from "@/lib/market";
+import { extractStateFromAddress, MandiRow } from "@/lib/market";
+import { getMarketForState, getMandiRowsForState, hasMarketKey } from "@/lib/market-server";
 import { getDashboardData } from "@/lib/dashboard";
 import MarketBoard from "@/components/dashboard/MarketBoard";
 import MarketAdvice from "@/components/dashboard/MarketAdvice";
@@ -13,10 +14,10 @@ export default async function MarketPage() {
   // each farmer sees their own state and crops instead of Meghalaya.
   const { farmer, farms } = await getDashboardData();
 
-  const apiKey = process.env.DATA_GOV_API_KEY ?? null;
   const state = extractStateFromAddress(farmer?.house_address ?? "");
+  const marketKeyConfigured = hasMarketKey();
 
-  const crops = await getMarket(state, apiKey);
+  const crops = await getMarketForState(state);
 
   // Derived from what actually returned. getMarket falls back to generated
   // series on any API failure, so keying the badge off apiKey && state alone
@@ -44,7 +45,7 @@ export default async function MarketPage() {
         mandisByFocus[c.name] = [];
         return;
       }
-      mandisByFocus[c.name] = await getMandiRows(c.name, state, apiKey);
+      mandisByFocus[c.name] = await getMandiRowsForState(c.name, state);
     })
   );
 
@@ -70,7 +71,7 @@ export default async function MarketPage() {
               <T k="title.market" />
             </h1>
             <p className="mt-0.5 text-sm text-af-ink-2">
-              Live mandi prices, trends, and AI-powered selling windows.
+              <T k="market.subtitle" />
             </p>
           </div>
         </div>
@@ -85,16 +86,18 @@ export default async function MarketPage() {
           {isRealData ? (
             <>
               <Wifi className="w-3.5 h-3.5" />
-              Live · {state} · Agmarknet
+              <T k="market.live" params={{ state: state ?? "" }} />
             </>
           ) : (
             <>
               <WifiOff className="w-3.5 h-3.5" />
-              {!apiKey
-                ? "Demo mode · Add DATA_GOV_API_KEY"
-                : !state
-                ? "Demo mode · State not detected"
-                : `Demo mode · Agmarknet unavailable for ${state}`}
+              {!marketKeyConfigured ? (
+                <T k="market.demoNoKey" />
+              ) : !state ? (
+                <T k="market.demoNoState" />
+              ) : (
+                <T k="market.demoNoAgmarknet" params={{ state }} />
+              )}
             </>
           )}
         </div>
@@ -103,7 +106,7 @@ export default async function MarketPage() {
       {isRealData && state && (
         <div className="mb-4 flex items-center gap-2 rounded-[14px] bg-af-primary/6 border border-af-primary/15 px-4 py-2.5">
           <span className="text-[13px] text-af-primary-deep font-semibold">
-            📍 Showing mandi prices for <strong>{state}</strong> from AGMARKNET (data.gov.in)
+            <T k="market.showingFor" params={{ state }} />
           </span>
         </div>
       )}

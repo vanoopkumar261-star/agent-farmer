@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { aiLanguageName } from "@/lib/i18n/config";
 import { fetchWithRetry, readGroqContent, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { clampArr, clampStr, payloadTooLarge, PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 
 export const dynamic = "force-dynamic";
 
@@ -26,16 +27,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "AI not configured" }, { status: 500 });
 
   try {
-    const { prices, farmerCrops, locale, unavailableCrops, state } =
-      await req.json();
+    let input: any;
+    try {
+      input = await readJsonBounded(req, 16_000);
+    } catch (e) {
+      if (e instanceof PayloadTooLargeError) return payloadTooLarge();
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    }
 
-    const language = aiLanguageName(locale ?? "en");
+    const language = aiLanguageName(typeof input?.locale === "string" ? input.locale : "en");
+    const state = clampStr(input?.state, 40);
+    const farmerCrops = clampArr<unknown>(input?.farmerCrops, 20).map((c) => clampStr(c, 40)).filter(Boolean);
+    const unavailableNames = clampArr<unknown>(input?.unavailableCrops, 20).map((c) => clampStr(c, 40)).filter(Boolean);
 
-    const availablePrices = (prices ?? []).filter(
-      (p: any) => !p.notAvailable && p.price > 0
-    );
-
-    const unavailableNames: string[] = unavailableCrops ?? [];
+    // Price rows: keep only the fields the prompt reads, and cap the count.
+    const availablePrices = clampArr<any>(input?.prices, 40)
+      .filter((p) => p && !p.notAvailable && Number(p.price) > 0)
+      .map((p) => ({
+        name: clampStr(p.name, 40),
+        price: Number(p.price) || 0,
+        change: Number(p.change) || 0,
+        demand: clampStr(p.demand, 20),
+      }));
 
     const shape = `{
   "headline": "one short sentence overview",

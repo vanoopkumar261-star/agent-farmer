@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { aiLanguageName } from "@/lib/i18n/config";
 import { fetchWithRetry, readGroqContent, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { clampArr, clampStr, payloadTooLarge, PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 
 export const dynamic = "force-dynamic";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -24,8 +25,21 @@ export async function POST(req: Request) {
   if (!apiKey) return NextResponse.json({ error: "AI not configured" }, { status: 500 });
 
   try {
-    const { profile, schemes, locale } = await req.json();
-    const language = aiLanguageName(locale ?? "en");
+    let input: any;
+    try {
+      input = await readJsonBounded(req, 16_000);
+    } catch (e) {
+      if (e instanceof PayloadTooLargeError) return payloadTooLarge();
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    }
+
+    const language = aiLanguageName(typeof input?.locale === "string" ? input.locale : "en");
+    const profile = clampStr(input?.profile, 2000);
+    const schemes = clampArr<any>(input?.schemes, 40).map((s) => ({
+      id: clampStr(s?.id, 60),
+      name: clampStr(s?.name, 120),
+      short: clampStr(s?.short, 300),
+    }));
 
     const shape = `{
   "headline": "one short sentence",

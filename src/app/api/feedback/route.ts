@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServer } from "@/lib/supabase-server";
 import { normalizeEmail, validateEmail } from "@/lib/validation";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { isSameOrigin, payloadTooLarge, PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,12 @@ export async function POST(req: Request) {
   const rl = await checkRateLimit(req, "feedback");
   if (!rl.ok) return rateLimited(rl);
 
+  // CSRF backstop: this route writes with the service-role key and takes no
+  // session, so a cross-site POST must not reach the insert.
+  if (!isSameOrigin(req)) {
+    return Response.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {
@@ -39,11 +46,12 @@ export async function POST(req: Request) {
   let message = "";
   let honeypot = "";
   try {
-    const body = await req.json();
+    const body = await readJsonBounded(req, 12_000);
     email = normalizeEmail(String(body?.email ?? "")).slice(0, MAX_EMAIL);
     message = String(body?.message ?? "").trim().slice(0, MAX_MESSAGE);
     honeypot = String(body?.company ?? "").trim();
-  } catch {
+  } catch (e) {
+    if (e instanceof PayloadTooLargeError) return payloadTooLarge();
     return Response.json({ error: "Invalid request." }, { status: 400 });
   }
 

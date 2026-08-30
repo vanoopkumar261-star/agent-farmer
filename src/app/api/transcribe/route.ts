@@ -8,6 +8,28 @@ export const dynamic = "force-dynamic";
 /** Groq rejects large uploads anyway; refuse early rather than proxy 40 MB. */
 const MAX_BYTES = 10 * 1024 * 1024;
 
+/** Container magic bytes we accept — the declared MIME is not trusted. */
+function sniffAudio(head: Uint8Array): boolean {
+  const ascii = (o: number, s: string) => {
+    for (let i = 0; i < s.length; i++) {
+      if (head[o + i] !== s.charCodeAt(i)) return false;
+    }
+    return true;
+  };
+  // WebM / Matroska (EBML)
+  if (head[0] === 0x1a && head[1] === 0x45 && head[2] === 0xdf && head[3] === 0xa3) return true;
+  // Ogg
+  if (ascii(0, "OggS")) return true;
+  // WAV (RIFF....WAVE)
+  if (ascii(0, "RIFF") && ascii(8, "WAVE")) return true;
+  // MP3 (ID3 tag, or a frame sync)
+  if (ascii(0, "ID3")) return true;
+  if (head[0] === 0xff && (head[1] & 0xe0) === 0xe0) return true;
+  // MP4 / M4A (....ftyp)
+  if (ascii(4, "ftyp")) return true;
+  return false;
+}
+
 /**
  * Speech-to-text fallback.
  *
@@ -54,6 +76,14 @@ export async function POST(req: Request) {
   }
   if (audio.size > MAX_BYTES) {
     return Response.json({ error: "Recording is too long." }, { status: 413 });
+  }
+
+  // The declared type is whatever the client wrote into the multipart body.
+  // Check the container magic bytes instead so this can't be used as a generic
+  // "post bytes to Groq" proxy.
+  const head = new Uint8Array(await audio.slice(0, 16).arrayBuffer());
+  if (!sniffAudio(head)) {
+    return Response.json({ error: "That doesn't look like an audio recording." }, { status: 415 });
   }
 
   const upstream = new FormData();

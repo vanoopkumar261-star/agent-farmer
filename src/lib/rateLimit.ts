@@ -43,6 +43,11 @@ export const LIMITS = {
   transcribe: { limit: 30, windowSec: 60 },
   tts: { limit: 30, windowSec: 60 },
   feedback: { limit: 5, windowSec: 60 },
+  market: { limit: 30, windowSec: 60 },
+  news: { limit: 15, windowSec: 60 },
+  sensors: { limit: 60, windowSec: 60 },
+  geocode: { limit: 30, windowSec: 60 },
+  img: { limit: 120, windowSec: 60 },
 } as const;
 
 export type Endpoint = keyof typeof LIMITS;

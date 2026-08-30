@@ -1,15 +1,69 @@
 import "server-only";
+import sharp from "sharp";
 
 /**
- * Image inspection and metadata stripping for uploaded leaf photographs.
+ * Image inspection and normalisation for uploaded leaf photographs.
  *
- * Dependency-free on purpose. Re-encoding through `sharp` would strip metadata
- * as a side effect, but `sharp` is not installed on Vercel by default (the build
- * already warns about this) and pulling in a native binary to delete a few bytes
- * is a poor trade. Both functions here work directly on the byte stream.
+ * `sniffImageType` decides whether the bytes are an image at all (the declared
+ * MIME is not trusted). `normalizeImage` then re-encodes through `sharp`, which
+ * in one pass: strips every metadata segment (EXIF/GPS, XMP, IPTC, colour
+ * profiles), applies EXIF orientation, caps the dimensions, and — via
+ * `limitInputPixels` — refuses a decompression bomb before it is decoded.
+ *
+ * `stripImageMetadata` is the dependency-free fallback, kept for the case where
+ * `sharp` itself throws on an odd-but-valid file: dropping metadata by walking
+ * the byte stream is better than storing the original.
  */
 
 export type AllowedMime = "image/jpeg" | "image/png" | "image/webp";
+
+/** ~25 megapixels. Anything larger is refused rather than decoded. */
+const MAX_INPUT_PIXELS = 25_000_000;
+/** Longest edge of the stored image. A leaf photo needs nothing bigger. */
+const MAX_DIMENSION = 2048;
+
+export class ImageRejectedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ImageRejectedError";
+  }
+}
+
+/**
+ * Re-encodes an uploaded image into a clean, bounded JPEG (or PNG for PNG
+ * input). Throws `ImageRejectedError` if the source is a decompression bomb or
+ * `sharp` cannot decode it.
+ */
+export async function normalizeImage(
+  buf: Buffer,
+  mime: AllowedMime
+): Promise<{ bytes: Buffer; mime: "image/jpeg" | "image/png" }> {
+  let pipeline: sharp.Sharp;
+  try {
+    pipeline = sharp(buf, { limitInputPixels: MAX_INPUT_PIXELS })
+      .rotate() // bake in EXIF orientation before metadata is dropped
+      .resize({
+        width: MAX_DIMENSION,
+        height: MAX_DIMENSION,
+        fit: "inside",
+        withoutEnlargement: true,
+      });
+    // No .withMetadata() — the default drops everything, which is the point.
+    if (mime === "image/png") {
+      return { bytes: await pipeline.png({ compressionLevel: 8 }).toBuffer(), mime: "image/png" };
+    }
+    return {
+      bytes: await pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer(),
+      mime: "image/jpeg",
+    };
+  } catch (e) {
+    throw new ImageRejectedError(
+      e instanceof Error && /pixel|limitInputPixels/i.test(e.message)
+        ? "That image is too large to process."
+        : "That image could not be read."
+    );
+  }
+}
 
 /**
  * Identifies an image by its actual bytes, ignoring the declared type.

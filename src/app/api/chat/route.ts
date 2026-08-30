@@ -4,6 +4,7 @@ import { getSessionFarmer } from "@/lib/auth";
 import { saveChatTurn } from "@/lib/history";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,17 @@ export async function POST(req: Request) {
   let messages: ChatMessage[] = [];
   let locale = "en";
   try {
-    const body = await req.json();
+    const body = await readJsonBounded(req, 48_000);
     locale = typeof body?.locale === "string" ? body.locale : "en";
-    messages = (body?.messages ?? []).filter(
-      (m: any) => (m?.role === "user" || m?.role === "assistant") && typeof m?.content === "string"
-    );
-  } catch {
+    messages = (body?.messages ?? [])
+      .filter(
+        (m: any) => (m?.role === "user" || m?.role === "assistant") && typeof m?.content === "string"
+      )
+      // Cap each turn at the same length history.ts truncates to before storage,
+      // so a caller can't pad the prompt (token burn) past what we'd ever keep.
+      .map((m: any) => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
+  } catch (e) {
+    if (e instanceof PayloadTooLargeError) return new Response("Request body too large.", { status: 413 });
     return new Response("Invalid request.", { status: 400 });
   }
 

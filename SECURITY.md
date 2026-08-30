@@ -1,0 +1,97 @@
+# Security posture
+
+This documents what protects Agent Farmer beyond Postgres row-level security, and
+the manual (dashboard / platform) steps that back the in-repo configuration.
+
+## In place
+
+### Data isolation
+- **RLS on every owner table** — `farmer_profiles`, `farms`, `crop_cycles`,
+  `farm_expenses`, `farm_tasks`, `health_snapshots`, `crop_health_records`,
+  `chat_messages`, `notifications`, and `storage.objects` for the `leaf-scans`
+  bucket. Each policy resolves to `owner_id = auth.uid()` (directly or through an
+  `EXISTS` walk). `feedback`, `api_rate_limits` and `security_audit` are
+  RLS-enabled with **no policy** — reachable only via the service role.
+- `scripts/sql/015_reapply_owner_rls.sql` re-applies the owner-scoped policies
+  that `007` had temporarily reverted, so replaying the migration history now
+  produces a secured database. Verified: the anon key gets `42501` on all owner
+  tables.
+- **Access audit** (`016_access_audit.sql`) — an `AFTER` trigger on
+  `farmer_profiles` writes every INSERT/UPDATE/DELETE (actor `auth.uid()`,
+  changed columns, timestamp) to an append-only `security_audit` table that no
+  API role can read.
+- `bump_rate_limit` runs `SECURITY INVOKER` with a pinned `search_path`.
+
+### Transport / browser
+- `next.config.mjs` sets, on every response: **CSP** (`script-src 'self'
+  'unsafe-inline'`; `frame-ancestors 'none'`; `object-src 'none'`; Google Fonts
+  and `*.supabase.co` allow-listed; YouTube allow-listed for `frame-src`),
+  **HSTS** (2 years, preload), `X-Frame-Options: DENY`, `X-Content-Type-Options:
+  nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
+  `Permissions-Policy` (camera off, mic/geo self only). `X-Powered-By` disabled.
+- **No XSS sinks** — no `dangerouslySetInnerHTML`, `eval`, or markdown-to-HTML
+  anywhere. All user and LLM text renders as React children (auto-escaped).
+- **Image proxy** (`/api/img`) — third-party article images are fetched
+  server-side (https-only, 5 MB cap, `image/*` check) so the browser never
+  contacts arbitrary hosts and the CSP stays tight. Article links are
+  scheme-validated before they reach an `href`.
+
+### API routes
+- **Fixed-window rate limiting** (`src/lib/rateLimit.ts`, Postgres-backed) on
+  every LLM/data/upload route including `/api/news` and `/api/img`. Caller keyed
+  server-side (session id, else IP) — never from the body.
+- **Bounded, clamped input** (`src/lib/apiInput.ts`) — `/api/chat`,
+  `/api/market-advice`, `/api/scheme-match`, `/api/recommendations`, `/api/news`,
+  `/api/feedback` reject an over-size body before parsing and clamp every string
+  / array field that reaches a Groq prompt.
+- **CSRF backstop** — `/api/feedback` (the only unauthenticated writer) checks
+  the request `Origin`/`Referer` against its host.
+- **Uploads** (`/api/disease`) — size checked before buffering, container
+  identified by magic bytes (declared MIME ignored), then re-encoded through
+  `sharp`: strips all metadata (EXIF/GPS), applies orientation, caps dimensions
+  to 2048 px, and refuses > 25 MP (decompression-bomb guard). `/api/transcribe`
+  sniffs the audio container.
+- **Secrets** — `SUPABASE_SERVICE_ROLE_KEY` and every API key are server-only and
+  absent from any `"use client"` module. `DATA_GOV_API_KEY` is read only inside
+  `src/lib/market-server.ts` (`import "server-only"`).
+- Auth intent is version-controlled in `supabase/config.toml`.
+
+## Manual steps (apply in the Supabase / Vercel dashboards)
+
+`supabase/config.toml` records the target; the hosted project is dashboard-managed
+so these must also be set there:
+
+- [ ] **Auth → Providers → Email:** turn ON "Confirm email" and configure SMTP
+      (reuse the Resend account already wired for feedback). This also enables
+      password reset, which does not currently exist.
+- [ ] **Auth → Policies:** enable "Prevent use of leaked passwords" (HIBP);
+      set minimum password length to 8 and require mixed character classes.
+- [ ] **Auth → Sessions:** confirm refresh-token rotation + reuse detection are ON.
+- [ ] **Auth → Bot & Abuse Protection:** enable CAPTCHA (Cloudflare Turnstile),
+      set `TURNSTILE_SECRET_KEY` / `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, and add the
+      widget to the login and feedback forms.
+- [ ] **Database → Backups:** enable Point-in-Time Recovery.
+- [ ] **Vercel → Firewall:** enable the WAF / Attack Challenge Mode.
+- [ ] **Vercel → Deployment Protection:** require auth for preview deployments.
+- [ ] Set `NEXT_PUBLIC_SITE_URL` and the Supabase `site_url` to the production
+      domain.
+- [ ] Rotate `SUPABASE_SERVICE_ROLE_KEY` and the personal access token in
+      `.env.admin.local` if either has ever been shared.
+
+## Known trade-offs
+
+- **Signup enumeration:** the onboarding "this email is already registered"
+  modal is a deliberate UX choice for a low-sensitivity consumer app. Supabase
+  rate-limits the endpoint; enabling Turnstile makes automated enumeration
+  expensive. Making the response uniform is only coherent once email
+  confirmation is ON.
+- **Rate limiter fails open** on a Postgres/env outage — an in-process fallback
+  bucket is a planned follow-up.
+- **CSP `script-src` keeps `'unsafe-inline'`** — Next's App Router injects inline
+  bootstrap and this build has no nonce plumbing yet. External script origins
+  are still blocked. Nonce-based CSP is a planned follow-up.
+- **`next@14.2.35`** closes CVE-2025-29927 (the middleware auth-bypass that is
+  load-bearing here) and the other 14.x advisories. `npm audit` still flags
+  Next-bundled issues whose only fix is Next 16 (a major migration); the
+  remaining ones are DoS / SSRF that require server configurations this app does
+  not use (custom server, attacker-controlled rewrites).

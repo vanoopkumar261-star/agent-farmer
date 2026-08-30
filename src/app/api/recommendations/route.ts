@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCropRecommendations, FarmInput } from "@/lib/gemini";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { clampArr, clampStr, payloadTooLarge, PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 
 export async function POST(req: Request) {
   // Counted before any work is done — the point is to refuse the expensive
@@ -9,13 +10,23 @@ export async function POST(req: Request) {
   if (!rl.ok) return rateLimited(rl);
 
   try {
-    const body = await req.json();
+    let body: any;
+    try {
+      body = await readJsonBounded(req, 16_000);
+    } catch (e) {
+      if (e instanceof PayloadTooLargeError) return payloadTooLarge();
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    }
 
-    const locationAddress = String(body?.locationAddress ?? "");
-    const farms = (body?.farms ?? []) as FarmInput[];
+    const locationAddress = clampStr(body?.locationAddress, 200);
+    const farms: FarmInput[] = clampArr<any>(body?.farms, 20).map((f) => ({
+      area: Number(f?.area) || 0,
+      soilType: clampStr(f?.soilType, 40),
+      irrigation: clampStr(f?.irrigation, 40),
+    }));
     const preferOilseed = body?.preferOilseed === true;
 
-    if (!locationAddress || !Array.isArray(farms) || farms.length === 0) {
+    if (!locationAddress || farms.length === 0) {
       return NextResponse.json(
         { error: "Missing locationAddress or farms[]" },
         { status: 400 }

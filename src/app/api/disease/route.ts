@@ -4,7 +4,7 @@ import { getSessionFarmer } from "@/lib/auth";
 import { saveDiagnosis, uploadLeafImage } from "@/lib/history";
 import { inferenceBaseUrl } from "@/lib/inference";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
-import { sniffImageType, stripImageMetadata } from "@/lib/image";
+import { sniffImageType, normalizeImage, ImageRejectedError } from "@/lib/image";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -66,17 +66,29 @@ export async function POST(req: Request) {
     // The declared type is whatever the client wrote in the multipart body, so
     // it is not evidence of anything — a text file renamed .jpg arrives claiming
     // image/jpeg. Trust the magic bytes instead.
-    const mime = sniffImageType(bytes);
-    if (!mime) {
+    const sniffed = sniffImageType(bytes);
+    if (!sniffed) {
       return NextResponse.json(
         { error: "That file isn't a JPEG, PNG or WebP image. Please upload a photo of the leaf." },
         { status: 415 }
       );
     }
 
-    // Phone cameras write the GPS coordinates of the field into EXIF. Strip
-    // metadata before the image is stored or sent anywhere.
-    const clean = stripImageMetadata(bytes, mime);
+    // Re-encode through sharp: strips EXIF/GPS and every other metadata segment
+    // (phone cameras write the field's coordinates into EXIF), applies EXIF
+    // orientation, caps the dimensions, and refuses a decompression bomb.
+    let clean: Buffer;
+    let mime: "image/jpeg" | "image/png";
+    try {
+      const norm = await normalizeImage(bytes, sniffed);
+      clean = norm.bytes;
+      mime = norm.mime;
+    } catch (e) {
+      if (e instanceof ImageRejectedError) {
+        return NextResponse.json({ error: e.message }, { status: 415 });
+      }
+      throw e;
+    }
     const dataUrl = `data:${mime};base64,${clean.toString("base64")}`;
 
     // 1) Try the local trained classifier.

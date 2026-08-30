@@ -1,0 +1,68 @@
+# Supabase project configuration — version-controlled so the auth hardening is
+# reviewable and reproducible, not just a set of clicks in the dashboard.
+#
+# This project was created in the dashboard and is not (yet) fully CLI-managed,
+# so some of these settings must ALSO be applied in the dashboard to take effect
+# on the hosted project. The checklist in SECURITY.md tracks which.
+
+project_id = "agent-farmer"
+
+[auth]
+# The site users are sent back to after an auth email link.
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+
+# Access token lifetime. 1 hour keeps a stolen token's window short; the client
+# refreshes silently.
+jwt_expiry = 3600
+
+# Rotate refresh tokens on every use and detect re-use of a spent token
+# (a signal the token was stolen) — revoke the whole family when that happens.
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+# No anonymous sign-ins — every session is a real account.
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+# Turn ON in the dashboard once SMTP is configured (Resend is already wired for
+# the feedback route). This also unlocks the password-reset flow, which does not
+# exist while confirmations are disabled.
+enable_confirmations = true
+# Do not leak, in the signup response, whether an address is already registered.
+# (The onboarding "already registered" modal is a deliberate UX trade-off — see
+# SECURITY.md — flip this if enumeration protection is prioritised.)
+secure_password_change = true
+
+[auth.email.smtp]
+# Configure in the dashboard (Auth → SMTP) using the existing Resend account.
+# host = "smtp.resend.com"
+# port = 465
+# sender_name = "Agent Farmer"
+
+# Password rules. Supabase enforces server-side; the client check in AuthPanel is
+# only a courtesy and must be raised to match.
+[auth.password]
+min_length = 8
+# Require lower + upper + digit. Set to "lower_upper_letters_digits_symbols" for
+# the strictest option.
+required_characters = "lower_upper_letters_digits"
+
+# Reject passwords found in the HaveIBeenPwned breach corpus. Dashboard:
+# Auth → Policies → "Prevent use of leaked passwords".
+[auth.password.hibp]
+enabled = true
+
+# Bot protection on the auth endpoints. Get keys from Cloudflare Turnstile
+# (free) and set them in the dashboard + as env vars for the client widget.
+[auth.captcha]
+enabled = true
+provider = "turnstile"
+# secret = "env(TURNSTILE_SECRET_KEY)"
+
+[auth.rate_limit]
+# Per-hour caps, per IP. Defaults are generous; tighten for a public deploy.
+email_sent = 10
+sign_in_sign_ups = 30
+token_refresh = 150
