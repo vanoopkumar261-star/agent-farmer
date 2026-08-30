@@ -19,11 +19,15 @@ export async function POST(req: Request) {
     }
 
     const locationAddress = clampStr(body?.locationAddress, 200);
-    const farms: FarmInput[] = clampArr<any>(body?.farms, 20).map((f) => ({
-      area: Number(f?.area) || 0,
-      soilType: clampStr(f?.soilType, 40),
-      irrigation: clampStr(f?.irrigation, 40),
-    }));
+    const farms: FarmInput[] = clampArr<any>(body?.farms, 20).map((f) => {
+      const ph = Number(f?.soilPh);
+      return {
+        area: Number(f?.area) || 0,
+        soilType: clampStr(f?.soilType, 40),
+        irrigation: clampStr(f?.irrigation, 40),
+        soilPh: Number.isFinite(ph) && ph >= 0 && ph <= 14 ? ph : undefined,
+      };
+    });
     const preferOilseed = body?.preferOilseed === true;
 
     if (!locationAddress || farms.length === 0) {

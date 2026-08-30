@@ -11,6 +11,7 @@ import { getRecentDiagnoses } from "@/lib/history";
 import { recordDayTasks, tallyDayTasks, serverYesterday } from "@/lib/tasks-server";
 import WeatherCard from "@/components/dashboard/WeatherCard";
 import SensorPanel from "@/components/dashboard/SensorPanel";
+import SoilPhCard from "@/components/dashboard/SoilPhCard";
 import LibraryCard from "@/components/dashboard/LibraryCard";
 import AiSummaryCard from "@/components/dashboard/AiSummaryCard";
 import FarmCard from "@/components/dashboard/FarmCard";
@@ -316,6 +317,9 @@ export default async function DashboardPage() {
           </Reveal>
           <Reveal>
             <SensorPanel />
+          </Reveal>
+          <Reveal>
+            <SoilPhCard farmerId={farmer.id} />
           </Reveal>
 
           <div>

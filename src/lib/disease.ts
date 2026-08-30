@@ -1,5 +1,6 @@
 import "server-only";
-import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
+import { GROQ_TEXT_MODEL } from "@/lib/http";
+import { groqFetch, safeParseJson, VISION_MODEL } from "@/lib/groqVision";
 
 export type DiseaseResult = {
   source: "model" | "vision";
@@ -15,44 +16,6 @@ export type DiseaseResult = {
   prevention: string[];
   note?: string;
 };
-
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-
-/** The only multimodal model on the current Groq tier. Override if that changes. */
-const VISION_MODEL = process.env.GROQ_VISION_MODEL ?? "qwen/qwen3.6-27b";
-
-/**
- * POST to Groq and return the parsed body. Surfaces the API's own error text instead
- * of letting a missing `choices` array turn into a meaningless "empty response", and
- * rides out the 429/503 the on-demand tier hands back under load.
- */
-async function groqFetch(apiKey: string, body: unknown, label: string): Promise<any> {
-  let lastErr = "";
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetchWithRetry(GROQ_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify(body),
-    }, { label: "groq/disease" });
-    if (res.ok) return res.json();
-
-    lastErr = (await res.text()).slice(0, 300);
-    if (res.status !== 429 && res.status !== 503) {
-      throw new Error(`Groq ${label} ${res.status}: ${lastErr}`);
-    }
-    const retryAfter = Number(res.headers.get("retry-after")) || 2 * (attempt + 1);
-    await new Promise((r) => setTimeout(r, Math.min(retryAfter, 10) * 1000));
-  }
-  throw new Error(`Groq ${label} unavailable after retries: ${lastErr}`);
-}
-
-function safeParseJson(raw: string): any {
-  const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
-  const a = cleaned.indexOf("{");
-  const b = cleaned.lastIndexOf("}");
-  if (a === -1 || b === -1) throw new Error("No JSON in model output");
-  return JSON.parse(cleaned.slice(a, b + 1));
-}
 
 const NARRATIVE_SHAPE = `{
   "severity": "Low" | "Medium" | "High",

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Wallet, ScanLine, MessageSquare, TrendingUp } from "lucide-react";
+import { Wallet, ScanLine, MessageSquare, TrendingUp, FlaskConical } from "lucide-react";
 import { useT } from "@/components/i18n/LanguageProvider";
 
 export default function QuickActions() {
@@ -9,11 +9,12 @@ export default function QuickActions() {
   const actions = [
     { icon: Wallet, label: t("quickActions.addExpense"), sub: t("quickActions.addExpenseSub"), href: "/dashboard/expenses", tint: "bg-af-primary/10 text-af-primary-deep" },
     { icon: ScanLine, label: t("quickActions.scanDisease"), sub: t("quickActions.scanDiseaseSub"), href: "/dashboard/disease", tint: "bg-af-amber/10 text-af-amber-ink" },
+    { icon: FlaskConical, label: t("quickActions.readPh"), sub: t("quickActions.readPhSub"), href: "/dashboard/soil", tint: "bg-af-sage text-af-secondary" },
     { icon: MessageSquare, label: t("quickActions.askAI"), sub: t("quickActions.askAISub"), href: "/dashboard/assistant", tint: "bg-af-ai/10 text-af-ai" },
     { icon: TrendingUp, label: t("quickActions.marketPrices"), sub: t("quickActions.marketPricesSub"), href: "/dashboard/market", tint: "bg-af-sage text-af-secondary" },
   ];
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {actions.map((a) => (
         <Link
           key={a.label}

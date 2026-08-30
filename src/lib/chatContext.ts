@@ -2,7 +2,8 @@ import "server-only";
 import { getDashboardData, cropStage, daysSince } from "./dashboard";
 import { harvestInfo } from "./agronomy";
 import { getWeather } from "./weather";
-import { getRecentDiagnoses } from "./history";
+import { getRecentDiagnoses, getLatestSoilReading } from "./history";
+import { phBand } from "./soilPh";
 
 /**
  * Builds the "memory" the AI assistant is given on every turn — farmer profile,
@@ -47,6 +48,15 @@ export async function buildAssistantContext(): Promise<string> {
         .join(", ")}.`
     : "Weather data is currently unavailable.";
 
+  // Latest manual soil-pH reading, so "what should I plant / add" answers can
+  // account for acidity.
+  const soil = await getLatestSoilReading(farmer.id);
+  const soilLine = soil
+    ? `Latest soil pH: ${soil.ph} (measured ${new Date(soil.created_at).toLocaleDateString(
+        "en-IN"
+      )}) — ${phBand(soil.ph).labelEn}. ${phBand(soil.ph).adviceEn}`
+    : "";
+
   // Memory: recent disease scans, so the assistant can reference past diagnoses.
   const diagnoses = await getRecentDiagnoses(farmer.id, 5);
   const diagnosisLines = diagnoses.length
@@ -67,6 +77,7 @@ export async function buildAssistantContext(): Promise<string> {
     `Farms (${farms.length}):`,
     ...farmLines,
     weatherLine,
+    ...(soilLine ? [soilLine] : []),
     ...diagnosisLines,
   ].join("\n");
 }

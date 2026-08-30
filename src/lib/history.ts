@@ -23,6 +23,16 @@ export type DiagnosisRecord = {
 
 export type ChatRow = { role: "user" | "assistant"; content: string };
 
+export type SoilReading = {
+  id: string;
+  ph: number;
+  source: "photo" | "manual";
+  ai_confidence: number | null;
+  farm_id: string | null;
+  note: string | null;
+  created_at: string;
+};
+
 const LEAF_BUCKET = "leaf-scans";
 
 /**
@@ -169,4 +179,28 @@ export async function getRecentChat(farmerId: string, limit = 20): Promise<ChatR
   } catch {
     return [];
   }
+}
+
+/**
+ * Manual soil-pH readings, newest first. Empty until migration 017 is applied.
+ */
+export async function getRecentSoilReadings(farmerId: string, limit = 20): Promise<SoilReading[]> {
+  try {
+    const supabase = createSupabaseServer();
+    const { data, error } = await supabase
+      .from("soil_readings")
+      .select("id, ph, source, ai_confidence, farm_id, note, created_at")
+      .eq("farmer_id", farmerId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error || !data) return [];
+    return (data as any[]).map((r) => ({ ...r, ph: Number(r.ph) })) as SoilReading[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getLatestSoilReading(farmerId: string): Promise<SoilReading | null> {
+  const rows = await getRecentSoilReadings(farmerId, 1);
+  return rows[0] ?? null;
 }

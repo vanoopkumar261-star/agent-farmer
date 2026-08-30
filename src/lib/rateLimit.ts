@@ -48,6 +48,7 @@ export const LIMITS = {
   sensors: { limit: 60, windowSec: 60 },
   geocode: { limit: 30, windowSec: 60 },
   img: { limit: 120, windowSec: 60 },
+  "soil-reading": { limit: 10, windowSec: 60 },
 } as const;
 
 export type Endpoint = keyof typeof LIMITS;

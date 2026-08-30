@@ -15,6 +15,7 @@ import {
   Leaf,
   Newspaper,
   Library,
+  FlaskConical,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useT } from "@/components/i18n/LanguageProvider";
@@ -48,6 +49,7 @@ const navGroups: {
     titleKey: "nav.intelligence",
     items: [
       { icon: Microscope, labelKey: "nav.disease", href: "/dashboard/disease" },
+      { icon: FlaskConical, labelKey: "nav.soilPh", href: "/dashboard/soil" },
       { icon: ShoppingCart, labelKey: "nav.market", href: "/dashboard/market" },
       { icon: Newspaper, labelKey: "nav.news", href: "/dashboard/news" },
       { icon: MapPin, labelKey: "nav.storeLocator", href: "/dashboard/store-locator" },

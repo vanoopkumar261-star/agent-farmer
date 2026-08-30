@@ -6,6 +6,8 @@ export type FarmInput = {
   area: number;
   soilType: string;
   irrigation: string;
+  /** Latest measured soil pH for this farm, when the farmer has logged one. */
+  soilPh?: number;
 };
 
 export type CropRec = {
@@ -68,6 +70,10 @@ You MUST choose cropName from this list, spelled exactly as written:
 ${allowed}
 Never invent a crop outside this list. If an ideal crop is missing, pick the
 closest suitable one that IS listed.
+
+Where a farm includes "soilPh", weight crop suitability by soil acidity /
+alkalinity — e.g. avoid acid-sensitive crops below pH 6.0, and salt/alkali-
+sensitive crops above pH 8.0 — and mention the pH fit in the pros/cons.
 ${oilseedDirective}
 
 Return JSON strictly in this format:
