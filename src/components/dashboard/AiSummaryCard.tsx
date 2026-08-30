@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Card from "@/components/ui/Card";
+import { T } from "@/components/i18n/LanguageProvider";
 
 /**
  * Daily Farm Summary — light card with the field photograph bleeding in from
  * the right and fading out under the text via a horizontal mask, so the copy
  * stays fully legible without an overlay scrim.
  */
-export default function AiSummaryCard({ points }: { points: string[] }) {
+export default function AiSummaryCard({ points }: { points: React.ReactNode[] }) {
   return (
     <Card className="overflow-hidden min-h-[230px]">
       {/* Photograph, masked so it dissolves into the card before reaching the copy. */}
@@ -29,7 +30,7 @@ export default function AiSummaryCard({ points }: { points: string[] }) {
       />
 
       <div className="relative z-10 p-6 max-w-[58%]">
-        <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Daily Farm Summary</h2>
+        <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink"><T k="aiSummaryCard.title" /></h2>
 
         <ul className="mt-4 space-y-2.5">
           {points.map((p, i) => (
@@ -44,7 +45,7 @@ export default function AiSummaryCard({ points }: { points: string[] }) {
           href="/dashboard/assistant"
           className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-af-primary-deep hover:gap-2.5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40 rounded"
         >
-          Ask the AI Assistant
+          <T k="aiSummaryCard.cta" />
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

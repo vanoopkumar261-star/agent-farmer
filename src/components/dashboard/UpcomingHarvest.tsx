@@ -1,6 +1,7 @@
 import { Wheat, Sprout } from "lucide-react";
 import { harvestInfo } from "@/lib/agronomy";
 import Card from "@/components/ui/Card";
+import { T } from "@/components/i18n/LanguageProvider";
 
 export type HarvestItem = {
   id: string;
@@ -27,7 +28,7 @@ export default function UpcomingHarvest({ items }: { items: HarvestItem[] }) {
 
   return (
     <Card className="p-6">
-      <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Upcoming Harvest</h2>
+      <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink"><T k="upcomingHarvest.title" /></h2>
 
       <ul className="mt-4 space-y-4">
         {rows.map((r) => {
@@ -39,13 +40,13 @@ export default function UpcomingHarvest({ items }: { items: HarvestItem[] }) {
               </span>
               <div className="min-w-0">
                 <div className="text-[15px] font-semibold text-af-ink leading-tight">
-                  {r.crop} <span className="text-af-muted font-semibold">– Farm {String(r.farmIndex).padStart(2, "0")}</span>
+                  {r.crop} <span className="text-af-muted font-semibold"><T k="upcomingHarvest.farmSuffix" params={{ n: String(r.farmIndex).padStart(2, "0") }} /></span>
                 </div>
                 <div className="mt-0.5 text-meta text-af-ink-2">
-                  {r.daysLeft > 0 ? `In ${r.daysLeft} days` : "Ready to harvest"}
+                  {r.daysLeft > 0 ? <T k="upcomingHarvest.inDays" params={{ n: r.daysLeft }} /> : <T k="dashboard.readyToHarvest" />}
                   <span className="text-af-muted">
                     {" "}
-                    · {r.estimated ? "Est." : "Planned"} {r.harvestLabel}
+                    · <T k={r.estimated ? "dashboard.est" : "dashboard.planned"} /> {r.harvestLabel}
                   </span>
                 </div>
                 <div className="mt-2 h-1.5 w-full rounded-full bg-af-sage overflow-hidden">

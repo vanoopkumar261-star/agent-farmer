@@ -20,7 +20,7 @@ export default async function SchemesPage() {
       <div className="mb-6">
         <h1 className="text-heading font-semibold text-af-ink"><T k="title.schemes" /></h1>
         <p className="mt-1 text-sm text-af-ink-2">
-          Central and state subsidies, insurance and credit — matched to your farm details.
+          <T k="schemes.subtitle" />
         </p>
       </div>
 

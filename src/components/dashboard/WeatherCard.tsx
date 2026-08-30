@@ -1,5 +1,6 @@
 import { Droplets, Wind, ThermometerSun, MapPin } from "lucide-react";
 import type { WeatherData } from "@/lib/weather";
+import { T } from "@/components/i18n/LanguageProvider";
 
 export default function WeatherCard({
   weather,
@@ -11,7 +12,7 @@ export default function WeatherCard({
   if (!weather) {
     return (
       <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm p-6">
-        <div className="text-sm text-af-muted">Weather unavailable right now.</div>
+        <div className="text-sm text-af-muted"><T k="weatherCard.unavailable" /></div>
       </div>
     );
   }
@@ -22,7 +23,7 @@ export default function WeatherCard({
     <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm p-6 overflow-hidden">
       <div className="flex items-center justify-between mb-1">
         <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-af-muted">
-          Live Weather
+          <T k="weatherCard.liveWeather" />
         </span>
         <span className="inline-flex items-center gap-1 text-[11px] text-af-muted max-w-[55%] truncate">
           <MapPin className="w-3 h-3 shrink-0" />
@@ -46,9 +47,9 @@ export default function WeatherCard({
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mt-5">
-        <Stat icon={<ThermometerSun className="w-4 h-4" />} label="Feels" value={`${current.apparent}°`} />
-        <Stat icon={<Droplets className="w-4 h-4" />} label="Humidity" value={`${current.humidity}%`} />
-        <Stat icon={<Wind className="w-4 h-4" />} label="Wind" value={`${current.windKph} km/h`} />
+        <Stat icon={<ThermometerSun className="w-4 h-4" />} label={<T k="weatherCard.feels" />} value={`${current.apparent}°`} />
+        <Stat icon={<Droplets className="w-4 h-4" />} label={<T k="weatherCard.humidity" />} value={`${current.humidity}%`} />
+        <Stat icon={<Wind className="w-4 h-4" />} label={<T k="weatherCard.wind" />} value={`${current.windKph} km/h`} />
       </div>
 
       {/* 7-day */}
@@ -62,7 +63,7 @@ export default function WeatherCard({
               }`}
             >
               <span className="text-[10px] font-semibold text-af-muted uppercase">
-                {i === 0 ? "Today" : d.weekday}
+                {i === 0 ? <T k="weatherCard.today" /> : d.weekday}
               </span>
               <span className="text-lg leading-none">{d.icon}</span>
               <span className="font-mono text-[11px] font-semibold text-af-ink">{d.tMax}°</span>
@@ -78,7 +79,7 @@ export default function WeatherCard({
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Stat({ icon, label, value }: { icon: React.ReactNode; label: React.ReactNode; value: string }) {
   return (
     <div className="rounded-xl bg-af-bg border border-af-border px-3 py-2.5">
       <div className="flex items-center gap-1.5 text-af-muted">{icon}</div>

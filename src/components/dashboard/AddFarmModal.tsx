@@ -20,6 +20,7 @@ import { createFarms, createCropCycles } from "@/lib/db";
 import { suggestHarvestDate } from "@/lib/agronomy";
 import { supabase } from "@/lib/supabase";
 import { validateArea } from "@/lib/validation";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 const SOIL_TYPES = ["Alluvial Soil", "Black Soil", "Red Soil", "Sandy Soil", "Clayey Soil"];
 const IRRIGATION_TYPES = ["Borewell", "Canal", "River", "Rain-fed", "Drip Irrigation", "Sprinkler"];
@@ -46,6 +47,7 @@ type Profile = { id: string; house_address: string | null; preferences: Record<s
  */
 export default function AddFarmModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
+  const { t } = useT();
 
   const [stage, setStage] = useState<"field" | "crop">("field");
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -95,7 +97,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        if (alive) setProfileError("You are signed out. Please sign in again.");
+        if (alive) setProfileError(t("addFarmModal.signedOut"));
         return;
       }
       const { data, error } = await supabase
@@ -106,7 +108,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
 
       if (!alive) return;
       if (error || !data) {
-        setProfileError("Could not load your profile. Please reload the page.");
+        setProfileError(t("addFarmModal.loadProfileError"));
         return;
       }
       setProfile(data as Profile);
@@ -156,7 +158,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
         // Not fatal — the farmer can still type a crop by hand, so the stage
         // advances either way rather than trapping them behind a failed call.
         setRecs([]);
-        setAiNote(data?.error ?? "AI recommendations are unavailable right now.");
+        setAiNote(data?.error ?? t("addFarmModal.aiUnavailable"));
       } else {
         setRecs(data.farms[0]);
         setChosenCrop(data.farms[0][0].cropName);
@@ -164,7 +166,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
       setStage("crop");
     } catch {
       setRecs([]);
-      setAiNote("Network error while calling the AI engine.");
+      setAiNote(t("addFarmModal.networkError"));
       setStage("crop");
     } finally {
       setLoadingAI(false);
@@ -204,7 +206,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
       onClose();
     } catch (e) {
       console.error(e);
-      setSaveError("Could not save this farm. Please try again.");
+      setSaveError(t("addFarmModal.saveError"));
       setSaving(false);
     }
   };
@@ -215,7 +217,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Add a farm"
+      aria-label={t("addFarmModal.title")}
       className="fixed inset-0 z-[70] flex items-center justify-center p-4"
     >
       <div className="absolute inset-0 bg-af-ink/50" onClick={() => !saving && onClose()} />
@@ -228,15 +230,15 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               <Sprout className="h-5 w-5" />
             </span>
             <div>
-              <h2 className="font-sans text-lg font-semibold text-af-ink">Add a farm</h2>
+              <h2 className="font-sans text-lg font-semibold text-af-ink">{t("addFarmModal.title")}</h2>
               <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-af-muted">
-                {stage === "field" ? "Step 1 · Field profile" : "Step 2 · Crop selection"}
+                {stage === "field" ? t("addFarmModal.step1") : t("addFarmModal.step2")}
               </p>
             </div>
           </div>
           <button
             onClick={() => !saving && onClose()}
-            aria-label="Close"
+            aria-label={t("addFarmModal.close")}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-af-border bg-af-bg text-af-muted transition hover:border-af-primary/40 hover:text-af-ink"
           >
             <X className="h-4 w-4" />
@@ -252,24 +254,24 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
           ) : !profile ? (
             <div className="flex items-center gap-2 py-6 text-sm text-af-muted">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Loading your profile…
+              {t("addFarmModal.loadingProfile")}
             </div>
           ) : stage === "field" ? (
             <div className="space-y-5">
               <p className="text-sm text-af-ink-2">
-                Same details as onboarding — this field is analysed on its own for the best crop fit.
+                {t("addFarmModal.fieldIntro")}
               </p>
 
               <div className="space-y-1.5">
                 <label className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
-                  Farm Area (Acres)
+                  {t("addFarmModal.farmArea")}
                 </label>
                 <input
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
                   onBlur={() => setAreaTouched(true)}
                   inputMode="decimal"
-                  placeholder="e.g. 3.5"
+                  placeholder={t("addFarmModal.areaPlaceholder")}
                   aria-invalid={Boolean(areaError)}
                   className={`w-full rounded-[14px] border bg-af-bg px-4 py-3 text-sm text-af-ink outline-none transition placeholder:text-af-muted focus:ring-2 ${
                     areaError
@@ -282,13 +284,13 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <TerraSelect
-                  label="Soil Type"
+                  label={t("addFarmModal.soilType")}
                   value={soilType}
                   onValueChange={setSoilType}
                   options={SOIL_TYPES.map((s) => ({ label: s, value: s }))}
                 />
                 <TerraSelect
-                  label="Irrigation"
+                  label={t("addFarmModal.irrigation")}
                   value={irrigation}
                   onValueChange={setIrrigation}
                   options={IRRIGATION_TYPES.map((s) => ({ label: s, value: s }))}
@@ -298,14 +300,14 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
           ) : (
             <div className="space-y-5">
               <div className="rounded-[16px] border border-af-border bg-af-bg px-4 py-3 text-xs text-af-ink-2">
-                {soilType} · {irrigation} · {area} acres
+                {t("addFarmModal.summaryLine", { soil: soilType, irrigation, area })}
               </div>
 
               {aiNote && (
                 <div className="flex items-start gap-2 rounded-[16px] border border-af-amber/20 bg-af-amber/10 px-4 py-3">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-af-amber-ink" />
                   <div className="text-sm text-af-ink-2">
-                    {aiNote} You can still type a crop below.
+                    {aiNote} {t("addFarmModal.aiNoteSuffix")}
                   </div>
                 </div>
               )}
@@ -329,23 +331,23 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
 
               <div className="space-y-1.5">
                 <label className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
-                  Custom Crop (optional)
+                  {t("addFarmModal.customCrop")}
                 </label>
                 <input
                   value={customCrop}
                   onChange={(e) => setCustomCrop(e.target.value)}
-                  placeholder="Type your own crop…"
+                  placeholder={t("addFarmModal.customCropPlaceholder")}
                   className="w-full rounded-[14px] border border-af-border bg-af-bg px-4 py-3 text-sm text-af-ink outline-none transition placeholder:text-af-muted focus:border-af-primary/40 focus:ring-2 focus:ring-af-primary/25"
                 />
                 <div className="text-[11px] text-af-muted">
-                  If you type here, it overrides the AI selection.
+                  {t("addFarmModal.customCropHint")}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <label className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
-                    Seeding Date
+                    {t("addFarmModal.seedingDate")}
                   </label>
                   <input
                     type="date"
@@ -356,7 +358,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
                 </div>
                 <div className="space-y-1.5">
                   <label className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
-                    Estimated Harvest Date
+                    {t("addFarmModal.estHarvestDate")}
                   </label>
                   <input
                     type="date"
@@ -370,8 +372,8 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
                   />
                   <div className="text-[11px] text-af-muted">
                     {harvestTouched
-                      ? "Your date — used for harvest countdowns."
-                      : "Suggested from the crop cycle. Edit if you plan differently."}
+                      ? t("addFarmModal.harvestHintCustom")
+                      : t("addFarmModal.harvestHintSuggested")}
                   </div>
                 </div>
               </div>
@@ -391,7 +393,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] border border-af-border bg-af-card px-6 py-3 text-sm font-bold text-af-ink transition hover:bg-af-bg active:scale-[0.98] disabled:opacity-50 sm:w-auto"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                {t("addFarmModal.back")}
               </button>
             )}
 
@@ -404,12 +406,12 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
                 {loadingAI ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Analysing this field…
+                    {t("addFarmModal.analysing")}
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    Choose a crop
+                    {t("addFarmModal.chooseCrop")}
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -423,12 +425,12 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
                 {saving ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Adding farm…
+                    {t("addFarmModal.addingFarm")}
                   </>
                 ) : (
                   <>
                     <Check className="h-4 w-4" />
-                    Apply
+                    {t("addFarmModal.apply")}
                   </>
                 )}
               </button>

@@ -7,8 +7,8 @@ export default function EmptyState({
   action,
 }: {
   icon: React.ReactNode;
-  title: string;
-  body?: string;
+  title: React.ReactNode;
+  body?: React.ReactNode;
   action?: React.ReactNode;
 }) {
   return (

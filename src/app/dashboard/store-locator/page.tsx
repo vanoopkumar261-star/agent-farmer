@@ -17,15 +17,15 @@ export default async function StoreLocatorPage() {
         <div className="w-12 h-12 rounded-2xl bg-af-sage mx-auto flex items-center justify-center">
           <MapPin className="w-6 h-6 text-af-secondary" />
         </div>
-        <h2 className="mt-4 text-[19px] font-semibold tracking-[-0.02em] text-af-ink">No location set</h2>
+        <h2 className="mt-4 text-[19px] font-semibold tracking-[-0.02em] text-af-ink"><T k="stores.noLocationTitle" /></h2>
         <p className="mt-2 text-sm text-af-ink-2">
-          Set your house location during onboarding to find nearby stores.
+          <T k="stores.noLocationBody" />
         </p>
         <Link
           href="/onboarding"
           className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold"
         >
-          Set Location
+          <T k="stores.setLocation" />
         </Link>
       </div>
     );
@@ -43,7 +43,7 @@ export default async function StoreLocatorPage() {
         <div>
           <h1 className="text-heading font-semibold text-af-ink"><T k="title.stores" /></h1>
           <p className="mt-0.5 text-sm text-af-ink-2">
-            Fertilizer, seed &amp; agri shops near {place.split(",")[0]}.
+            <T k="stores.subtitle" params={{ place: place.split(",")[0] }} />
           </p>
         </div>
       </div>

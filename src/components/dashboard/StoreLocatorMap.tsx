@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Circle, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import { MapPin, Star, Navigation, Store as StoreIcon, Home } from "lucide-react";
 import type { Store } from "@/lib/stores";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 const houseIcon = L.divIcon({
   className: "",
@@ -41,6 +42,7 @@ export default function StoreLocatorMap({
   house: { lat: number; lng: number; address?: string | null };
   stores: Store[];
 }) {
+  const { t } = useT();
   const [selected, setSelected] = useState<string | null>(stores[0]?.id ?? null);
   const active = stores.find((s) => s.id === selected);
   const center = active ?? house;
@@ -54,9 +56,9 @@ export default function StoreLocatorMap({
             <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
               <StoreIcon className="w-4 h-4" />
             </span>
-            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Nearby Stores</h2>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">{t("storeLocatorMap.nearbyStores")}</h2>
           </div>
-          <span className="font-mono text-[11px] font-semibold text-af-muted">{stores.length} found</span>
+          <span className="font-mono text-[11px] font-semibold text-af-muted">{t("storeLocatorMap.found", { n: stores.length })}</span>
         </div>
 
         <ul className="space-y-2 max-h-[460px] overflow-auto -mr-1 pr-1">
@@ -83,7 +85,7 @@ export default function StoreLocatorMap({
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-af-ink-2">
-                      <MapPin className="w-3.5 h-3.5 text-af-primary" /> {s.distanceKm} km away
+                      <MapPin className="w-3.5 h-3.5 text-af-primary" /> {t("storeLocatorMap.kmAway", { n: s.distanceKm })}
                     </span>
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`}
@@ -92,7 +94,7 @@ export default function StoreLocatorMap({
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 rounded-lg bg-af-primary/10 text-af-primary-deep px-2.5 py-1 text-[11px] font-semibold hover:bg-af-primary/15 transition"
                     >
-                      <Navigation className="w-3 h-3" /> Directions
+                      <Navigation className="w-3 h-3" /> {t("storeLocatorMap.directions")}
                     </a>
                   </div>
                 </button>
@@ -134,12 +136,12 @@ export default function StoreLocatorMap({
         </div>
         <div className="flex items-center gap-4 px-2 py-2 text-[11px] text-af-muted">
           <span className="inline-flex items-center gap-1.5">
-            <Home className="w-3.5 h-3.5 text-af-secondary" /> Your farm
+            <Home className="w-3.5 h-3.5 text-af-secondary" /> {t("storeLocatorMap.yourFarm")}
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-af-primary" /> Store
+            <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-af-primary" /> {t("storeLocatorMap.store")}
           </span>
-          <span className="ml-auto">20 km radius</span>
+          <span className="ml-auto">{t("storeLocatorMap.radius", { n: 20 })}</span>
         </div>
       </div>
     </div>

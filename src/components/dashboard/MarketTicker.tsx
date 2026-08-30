@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { T } from "@/components/i18n/LanguageProvider";
 
 type Tick = { crop: string; price: number; change: number };
 
@@ -35,7 +36,7 @@ export default function MarketTicker({ ticks }: { ticks?: Tick[] }) {
     <div className="relative overflow-hidden rounded-2xl bg-af-card border border-af-border shadow-af-sm">
       <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center gap-2 bg-af-secondary text-white px-4 font-mono text-[10px] font-semibold tracking-[0.16em] uppercase">
         <span className="w-1.5 h-1.5 rounded-full bg-af-primary animate-pulse" />
-        Mandi
+        <T k="marketTicker.label" />
       </div>
       <div className="py-3 pl-[92px] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         <div className="flex w-max animate-af-ticker whitespace-nowrap">

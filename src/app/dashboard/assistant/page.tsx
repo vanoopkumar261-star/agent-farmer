@@ -16,7 +16,7 @@ export default function AssistantPage() {
           <T k="title.assistant" />
         </h1>
         <p className="mt-1 text-sm text-af-ink-2">
-          Your memory-aware farming co-pilot — grounded in your live farm data.
+          <T k="assistant.subtitle" />
         </p>
       </div>
       <AssistantChat variant="page" />

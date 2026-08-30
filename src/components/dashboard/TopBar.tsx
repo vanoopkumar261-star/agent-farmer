@@ -150,7 +150,7 @@ export default function TopBar({ farmerName, farmerId }: { farmerName: string; f
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-af-danger hover:bg-af-danger/10 transition disabled:opacity-50"
               >
                 <LogOut className="w-4 h-4" />
-                {signingOut ? "Signing out..." : "Sign out"}
+                {signingOut ? t("topBar.signingOut") : t("topBar.signOut")}
               </button>
             </div>
           )}

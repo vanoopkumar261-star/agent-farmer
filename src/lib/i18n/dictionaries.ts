@@ -2,6 +2,14 @@ import type { Locale } from "./config";
 import { LANDING } from "./landing";
 import { LANDING_HOME } from "./landing-home";
 import { ABOUT } from "./about";
+import { DASHBOARD } from "./dashboard";
+import { ONBOARDING } from "./onboarding";
+import { LOGIN } from "./login";
+import { TEAM } from "./team";
+import { ARCHITECTURE } from "./architecture";
+import { OILSEEDS } from "./oilseeds";
+import { JAIVIK_SATHI } from "./jaivik-sathi";
+import { LIBRARY } from "./library";
 
 type Dict = Record<string, string>;
 
@@ -33,6 +41,8 @@ const en: Dict = {
   "nav.assistant": "AI Assistant",
   "nav.disease": "Disease Detection",
   "nav.market": "Market",
+  "nav.news": "News",
+  "nav.library": "Library",
   "nav.storeLocator": "Store Locator",
   "nav.expenses": "Expenses",
   "nav.schemes": "Gov. Schemes",
@@ -85,6 +95,8 @@ const hi: Dict = {
   "nav.assistant": "एआई सहायक",
   "nav.disease": "रोग पहचान",
   "nav.market": "बाज़ार",
+  "nav.news": "समाचार",
+  "nav.library": "लाइब्रेरी",
   "nav.storeLocator": "दुकान खोजक",
   "nav.expenses": "खर्च",
   "nav.schemes": "सरकारी योजनाएँ",
@@ -137,6 +149,8 @@ const kn: Dict = {
   "nav.assistant": "ಎಐ ಸಹಾಯಕ",
   "nav.disease": "ರೋಗ ಪತ್ತೆ",
   "nav.market": "ಮಾರುಕಟ್ಟೆ",
+  "nav.news": "ಸುದ್ದಿ",
+  "nav.library": "ಗ್ರಂಥಾಲಯ",
   "nav.storeLocator": "ಅಂಗಡಿ ಹುಡುಕಾಟ",
   "nav.expenses": "ವೆಚ್ಚಗಳು",
   "nav.schemes": "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",
@@ -189,6 +203,8 @@ const ta: Dict = {
   "nav.assistant": "ஏஐ உதவியாளர்",
   "nav.disease": "நோய் கண்டறிதல்",
   "nav.market": "சந்தை",
+  "nav.news": "செய்திகள்",
+  "nav.library": "நூலகம்",
   "nav.storeLocator": "கடை தேடல்",
   "nav.expenses": "செலவுகள்",
   "nav.schemes": "அரசு திட்டங்கள்",
@@ -241,6 +257,8 @@ const te: Dict = {
   "nav.assistant": "ఏఐ సహాయకుడు",
   "nav.disease": "వ్యాధి గుర్తింపు",
   "nav.market": "మార్కెట్",
+  "nav.news": "వార్తలు",
+  "nav.library": "గ్రంథాలయం",
   "nav.storeLocator": "దుకాణ శోధన",
   "nav.expenses": "ఖర్చులు",
   "nav.schemes": "ప్రభుత్వ పథకాలు",
@@ -293,6 +311,8 @@ const ml: Dict = {
   "nav.assistant": "എഐ അസിസ്റ്റന്റ്",
   "nav.disease": "രോഗനിർണയം",
   "nav.market": "മാർക്കറ്റ്",
+  "nav.news": "വാർത്തകൾ",
+  "nav.library": "ലൈബ്രറി",
   "nav.storeLocator": "സ്റ്റോർ ലൊക്കേറ്റർ",
   "nav.expenses": "ചെലവുകൾ",
   "nav.schemes": "സർക്കാർ പദ്ധതികൾ",
@@ -345,6 +365,8 @@ const mr: Dict = {
   "nav.assistant": "एआय सहाय्यक",
   "nav.disease": "रोग शोध",
   "nav.market": "बाजार",
+  "nav.news": "बातम्या",
+  "nav.library": "लायब्ररी",
   "nav.storeLocator": "दुकान शोधक",
   "nav.expenses": "खर्च",
   "nav.schemes": "सरकारी योजना",
@@ -397,6 +419,8 @@ const bn: Dict = {
   "nav.assistant": "এআই সহায়ক",
   "nav.disease": "রোগ শনাক্তকরণ",
   "nav.market": "বাজার",
+  "nav.news": "সংবাদ",
+  "nav.library": "লাইব্রেরি",
   "nav.storeLocator": "দোকান সন্ধানকারী",
   "nav.expenses": "খরচ",
   "nav.schemes": "সরকারি প্রকল্প",
@@ -449,6 +473,8 @@ const pa: Dict = {
   "nav.assistant": "ਏਆਈ ਸਹਾਇਕ",
   "nav.disease": "ਰੋਗ ਪਛਾਣ",
   "nav.market": "ਬਾਜ਼ਾਰ",
+  "nav.news": "ਖ਼ਬਰਾਂ",
+  "nav.library": "ਲਾਇਬ੍ਰੇਰੀ",
   "nav.storeLocator": "ਸਟੋਰ ਖੋਜਕ",
   "nav.expenses": "ਖਰਚੇ",
   "nav.schemes": "ਸਰਕਾਰੀ ਯੋਜਨਾਵਾਂ",
@@ -476,17 +502,26 @@ const pa: Dict = {
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = {
-  en: { ...en, ...LANDING.en, ...LANDING_HOME.en, ...ABOUT.en },
-  hi: { ...hi, ...LANDING.hi, ...LANDING_HOME.hi, ...ABOUT.hi },
-  kn: { ...kn, ...LANDING.kn, ...LANDING_HOME.kn, ...ABOUT.kn },
-  ta: { ...ta, ...LANDING.ta, ...LANDING_HOME.ta, ...ABOUT.ta },
-  te: { ...te, ...LANDING.te, ...LANDING_HOME.te, ...ABOUT.te },
-  ml: { ...ml, ...LANDING.ml, ...LANDING_HOME.ml, ...ABOUT.ml },
-  mr: { ...mr, ...LANDING.mr, ...LANDING_HOME.mr, ...ABOUT.mr },
-  bn: { ...bn, ...LANDING.bn, ...LANDING_HOME.bn, ...ABOUT.bn },
-  pa: { ...pa, ...LANDING.pa, ...LANDING_HOME.pa, ...ABOUT.pa },
+  en: { ...en, ...LANDING.en, ...LANDING_HOME.en, ...ABOUT.en, ...DASHBOARD.en, ...ONBOARDING.en, ...LOGIN.en, ...TEAM.en, ...ARCHITECTURE.en, ...OILSEEDS.en, ...JAIVIK_SATHI.en, ...LIBRARY.en },
+  hi: { ...hi, ...LANDING.hi, ...LANDING_HOME.hi, ...ABOUT.hi, ...DASHBOARD.hi, ...ONBOARDING.hi, ...LOGIN.hi, ...TEAM.hi, ...ARCHITECTURE.hi, ...OILSEEDS.hi, ...JAIVIK_SATHI.hi, ...LIBRARY.hi },
+  kn: { ...kn, ...LANDING.kn, ...LANDING_HOME.kn, ...ABOUT.kn, ...DASHBOARD.kn, ...ONBOARDING.kn, ...LOGIN.kn, ...TEAM.kn, ...ARCHITECTURE.kn, ...OILSEEDS.kn, ...JAIVIK_SATHI.kn, ...LIBRARY.kn },
+  ta: { ...ta, ...LANDING.ta, ...LANDING_HOME.ta, ...ABOUT.ta, ...DASHBOARD.ta, ...ONBOARDING.ta, ...LOGIN.ta, ...TEAM.ta, ...ARCHITECTURE.ta, ...OILSEEDS.ta, ...JAIVIK_SATHI.ta, ...LIBRARY.ta },
+  te: { ...te, ...LANDING.te, ...LANDING_HOME.te, ...ABOUT.te, ...DASHBOARD.te, ...ONBOARDING.te, ...LOGIN.te, ...TEAM.te, ...ARCHITECTURE.te, ...OILSEEDS.te, ...JAIVIK_SATHI.te, ...LIBRARY.te },
+  ml: { ...ml, ...LANDING.ml, ...LANDING_HOME.ml, ...ABOUT.ml, ...DASHBOARD.ml, ...ONBOARDING.ml, ...LOGIN.ml, ...TEAM.ml, ...ARCHITECTURE.ml, ...OILSEEDS.ml, ...JAIVIK_SATHI.ml, ...LIBRARY.ml },
+  mr: { ...mr, ...LANDING.mr, ...LANDING_HOME.mr, ...ABOUT.mr, ...DASHBOARD.mr, ...ONBOARDING.mr, ...LOGIN.mr, ...TEAM.mr, ...ARCHITECTURE.mr, ...OILSEEDS.mr, ...JAIVIK_SATHI.mr, ...LIBRARY.mr },
+  bn: { ...bn, ...LANDING.bn, ...LANDING_HOME.bn, ...ABOUT.bn, ...DASHBOARD.bn, ...ONBOARDING.bn, ...LOGIN.bn, ...TEAM.bn, ...ARCHITECTURE.bn, ...OILSEEDS.bn, ...JAIVIK_SATHI.bn, ...LIBRARY.bn },
+  pa: { ...pa, ...LANDING.pa, ...LANDING_HOME.pa, ...ABOUT.pa, ...DASHBOARD.pa, ...ONBOARDING.pa, ...LOGIN.pa, ...TEAM.pa, ...ARCHITECTURE.pa, ...OILSEEDS.pa, ...JAIVIK_SATHI.pa, ...LIBRARY.pa },
 };
 
-export function translate(locale: Locale, key: string): string {
-  return DICTIONARIES[locale]?.[key] ?? en[key] ?? key;
+/** Replaces `{token}` placeholders in a translated string with `params` values. */
+function interpolate(str: string, params?: Record<string, string | number>): string {
+  if (!params) return str;
+  return str.replace(/\{(\w+)\}/g, (match, token) =>
+    token in params ? String(params[token]) : match
+  );
+}
+
+export function translate(locale: Locale, key: string, params?: Record<string, string | number>): string {
+  const raw = DICTIONARIES[locale]?.[key] ?? en[key] ?? key;
+  return interpolate(raw, params);
 }

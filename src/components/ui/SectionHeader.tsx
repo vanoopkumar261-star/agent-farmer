@@ -6,8 +6,8 @@ export default function SectionHeader({
   action,
   icon,
 }: {
-  title: string;
-  subtitle?: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
   action?: React.ReactNode;
   icon?: React.ReactNode;
 }) {

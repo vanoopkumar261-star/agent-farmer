@@ -11,58 +11,55 @@ import SiteHeader, { LeafMark } from "@/components/landing/SiteHeader";
    ──────────────────────────────────────────────────────────────────────────── */
 
 type Member = {
+  slug: string;
   name: string;
   img: string;
   glow: string;
-  role: string;
-  desc: string;
   offset: string;
 };
 
 const MEMBERS: Member[] = [
   {
+    slug: "anoopkumar",
     name: "Anoopkumar V",
     img: "/team/anoopkumar-v.png",
     glow: "rgba(16,185,129,0.25)",
-    role: "Team Lead · LLM Developer & 3-D Designer",
-    desc: "Never settle.",
     offset: "md:mt-16",
   },
   {
+    slug: "barsha",
     name: "Barsha Sharma",
     img: "/team/barsha-sharma.png",
     glow: "rgba(59,130,246,0.22)",
-    role: "Content Researcher & Tester",
-    desc: "Curious mind exploring AI and software to solve real-world challenges. Thriving on innovation, teamwork, and continuous learning.",
     offset: "md:mt-40",
   },
   {
+    slug: "manan",
     name: "Manan Agrawal",
     img: "/team/manan-agrawal.png",
     glow: "rgba(16,185,129,0.25)",
-    role: "Database Manager & Backend Developer",
-    desc: "Gamble with the knowledge or be poor.",
     offset: "md:mt-6",
   },
   {
+    slug: "sahajtha",
     name: "Sahajtha Singh",
     img: "/team/sahajtha-singh.png",
     glow: "rgba(59,130,246,0.22)",
-    role: "UI Designer & Curator",
-    desc: "Fueled by creativity and curiosity. Building skills, chasing ideas, and enjoying the process.",
     offset: "md:mt-28",
   },
   {
+    slug: "shiven",
     name: "Shiven Chopra",
     img: "/team/shiven-chopra.png",
     glow: "rgba(16,185,129,0.25)",
-    role: "i18n Architect & Designer",
-    desc: "Working with passion.",
     offset: "md:mt-12",
   },
 ];
 
 function MemberCard({ m }: { m: Member }) {
+  const { t } = useT();
+  const role = t(`team.member.${m.slug}.role`);
+  const desc = t(`team.member.${m.slug}.desc`);
   return (
     <div className={`group relative ${m.offset}`}>
       {/* soft gradient glow backing — depth without a hard shadow */}
@@ -93,9 +90,9 @@ function MemberCard({ m }: { m: Member }) {
         />
         <h3 className="mt-5 font-sans text-[20px] font-bold leading-tight text-white">{m.name}</h3>
         <p className="mt-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-of-primary">
-          {m.role}
+          {role}
         </p>
-        <p className="mt-3 font-sans text-[13px] font-normal leading-[1.5] text-white/75">{m.desc}</p>
+        <p className="mt-3 font-sans text-[13px] font-normal leading-[1.5] text-white/75">{desc}</p>
       </div>
     </div>
   );

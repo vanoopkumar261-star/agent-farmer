@@ -9,14 +9,14 @@ import { voiceEnabledFor } from "@/lib/speech";
 import SpeakButton from "./SpeakButton";
 
 const MEMORY_CHIPS = [
-  { icon: User, label: "Profile" },
-  { icon: Sprout, label: "Farms & crops" },
-  { icon: CloudSun, label: "Live weather" },
-  { icon: Brain, label: "Chat history" },
+  { icon: User, labelKey: "assistant.memoryChip.profile" },
+  { icon: Sprout, labelKey: "assistant.memoryChip.farms" },
+  { icon: CloudSun, labelKey: "assistant.memoryChip.weather" },
+  { icon: Brain, labelKey: "assistant.memoryChip.history" },
 ];
 
 /** Follow-up shortcuts shown once a conversation is under way. */
-const QUICK_CHIPS = ["Irrigation advice", "Fertilizer suggestion", "Weather forecast"];
+const QUICK_CHIP_KEYS = ["assistant.quickChip.irrigation", "assistant.quickChip.fertilizer", "assistant.quickChip.weather"];
 
 /**
  * The Agent Farmer AI surface. Purely presentational — every message, the
@@ -62,17 +62,17 @@ export default function AssistantChat({
         <div className="flex items-center gap-3 px-5 py-4 border-b border-af-border shrink-0">
           <AssistantAvatar />
           <div className="min-w-0">
-            <div className="text-[16px] font-semibold text-af-ink leading-tight">AI Assistant</div>
-            <div className="text-[12px] text-af-muted">Your intelligent farming assistant</div>
+            <div className="text-[16px] font-semibold text-af-ink leading-tight">{t("assistant.title")}</div>
+            <div className="text-[12px] text-af-muted">{t("assistant.tagline")}</div>
           </div>
           <div className="ml-auto hidden md:flex items-center gap-1.5">
             {MEMORY_CHIPS.map((c) => (
               <span
-                key={c.label}
+                key={c.labelKey}
                 className="inline-flex items-center gap-1 rounded-full bg-af-bg border border-af-border px-2.5 py-1 text-[10px] font-semibold text-af-ink-2"
               >
                 <c.icon className="w-3 h-3 text-af-primary" />
-                {c.label}
+                {t(c.labelKey)}
               </span>
             ))}
           </div>
@@ -87,11 +87,10 @@ export default function AssistantChat({
               <Leaf className="w-7 h-7 text-af-primary-deep" />
             </span>
             <h3 className="mt-4 text-[19px] font-semibold tracking-[-0.02em] text-af-ink">
-              Hi {farmerName.split(" ")[0]}, how can I help?
+              {t("assistant.greeting", { name: farmerName.split(" ")[0] })}
             </h3>
             <p className="mt-1.5 text-sm text-af-ink-2 max-w-sm">
-              Ask me anything about your farms, crops, weather or expenses — I already know your
-              full context.
+              {t("assistant.greetingBody")}
             </p>
             {!hideSuggestions && (
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-md">
@@ -124,7 +123,7 @@ export default function AssistantChat({
                   <div className="rounded-2xl rounded-bl-md bg-af-bg border border-af-border px-4 py-2.5 text-[14px] text-af-ink leading-relaxed whitespace-pre-wrap min-w-0">
                     {waitingFirstToken && i === messages.length - 1 ? (
                       <span className="inline-flex items-center gap-1 text-af-muted">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Thinking…
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("assistant.thinking")}
                       </span>
                     ) : (
                       m.content
@@ -142,14 +141,14 @@ export default function AssistantChat({
       {/* Follow-up chips — only once there's something to follow up on. */}
       {!empty && (
         <div className="px-5 pb-1 flex flex-wrap gap-2 shrink-0">
-          {QUICK_CHIPS.map((c) => (
+          {QUICK_CHIP_KEYS.map((k) => (
             <button
-              key={c}
-              onClick={() => send(c)}
+              key={k}
+              onClick={() => send(t(k))}
               disabled={streaming}
               className="rounded-full bg-af-card border border-af-border px-3.5 py-1.5 text-[12px] font-semibold text-af-ink-2 hover:border-af-primary/45 hover:text-af-secondary transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40 disabled:opacity-50"
             >
-              {c}
+              {t(k)}
             </button>
           ))}
         </div>
@@ -167,7 +166,7 @@ export default function AssistantChat({
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your question here…"
+            placeholder={t("assistant.inputPlaceholder")}
             className="flex-1 bg-transparent py-2.5 text-sm text-af-ink placeholder:text-af-muted outline-none"
           />
           <DictateButton
@@ -191,14 +190,14 @@ export default function AssistantChat({
           <button
             type="submit"
             disabled={!input.trim() || streaming}
-            aria-label="Send message"
+            aria-label={t("assistant.sendAria")}
             className="flex items-center justify-center w-10 h-10 rounded-full bg-af-secondary hover:bg-af-primary-deep text-white shrink-0 transition active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none"
           >
             {streaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
         </form>
         <p className="mt-2 text-center text-[11px] text-af-muted">
-          AI can make mistakes. Verify important actions.
+          {t("assistant.disclaimer")}
         </p>
       </div>
     </div>

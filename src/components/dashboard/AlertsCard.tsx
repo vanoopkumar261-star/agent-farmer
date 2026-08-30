@@ -1,4 +1,5 @@
 import { AlertTriangle, CloudRain, Bug, Sparkles, ListChecks } from "lucide-react";
+import { T } from "@/components/i18n/LanguageProvider";
 
 export type Alert = {
   kind: "weather" | "disease" | "ai" | "critical" | "task";
@@ -20,12 +21,12 @@ export default function AlertsCard({ alerts }: { alerts: Alert[] }) {
   return (
     <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm p-6">
       <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-af-muted">
-        Alerts
+        <T k="alertsCard.title" />
       </span>
 
       <div className="mt-4 space-y-3">
         {alerts.length === 0 && (
-          <div className="text-sm text-af-muted">All clear — no active alerts.</div>
+          <div className="text-sm text-af-muted"><T k="alertsCard.allClear" /></div>
         )}
         {alerts.map((a, i) => {
           const c = config[a.kind];

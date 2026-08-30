@@ -6,6 +6,7 @@ import {
   CheckCircle, AlertTriangle, TrendingUp,
 } from "lucide-react";
 import type { MandiRow } from "@/lib/market";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 const rupee = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
 
@@ -16,7 +17,7 @@ const VEHICLES = [
     capacity: 8,
     ratePerKm: 15,
     minCharge: 400,
-    desc: "Best for small harvests & narrow village roads.",
+    descKey: "transportPlanner.vehicle.tata_ace.desc",
     icon: "🛻",
   },
   {
@@ -25,7 +26,7 @@ const VEHICLES = [
     capacity: 15,
     ratePerKm: 22,
     minCharge: 700,
-    desc: "Popular choice, excellent rural traction & speed.",
+    descKey: "transportPlanner.vehicle.bolero_pickup.desc",
     icon: "🚐",
   },
   {
@@ -34,7 +35,7 @@ const VEHICLES = [
     capacity: 35,
     ratePerKm: 35,
     minCharge: 1500,
-    desc: "Perfect for mid-sized harvests to secondary markets.",
+    descKey: "transportPlanner.vehicle.tata_407.desc",
     icon: "🚚",
   },
   {
@@ -43,7 +44,7 @@ const VEHICLES = [
     capacity: 100,
     ratePerKm: 60,
     minCharge: 3500,
-    desc: "Heavy commercial truck for high-yield grains.",
+    descKey: "transportPlanner.vehicle.eicher_pro.desc",
     icon: "🚛",
   },
   {
@@ -52,7 +53,7 @@ const VEHICLES = [
     capacity: 250,
     ratePerKm: 110,
     minCharge: 7000,
-    desc: "Long haul freighter. Maximum efficiency for huge volume.",
+    descKey: "transportPlanner.vehicle.ashok_leyland.desc",
     icon: "🚜",
   },
 ];
@@ -76,6 +77,7 @@ export default function TransportPlanner({
   cropName: string;
   onClose: () => void;
 }) {
+  const { t } = useT();
   const [weight, setWeight] = useState(50);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
 
@@ -124,7 +126,7 @@ export default function TransportPlanner({
             </div>
             <div>
               <h2 className="font-sans text-lg font-extrabold text-af-ink">
-                Transport Logistics Planner
+                {t("transportPlanner.title")}
               </h2>
               <p className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
                 {cropName} · {mandi.mandi}
@@ -147,12 +149,12 @@ export default function TransportPlanner({
             <div>
               <div className="text-sm font-bold text-af-ink">{mandi.mandi}</div>
               <div className="text-[12px] text-af-muted mt-0.5">
-                {mandi.distanceKm} km away · AGMARKNET verified
+                {t("transportPlanner.distanceVerified", { km: mandi.distanceKm })}
               </div>
             </div>
             <div className="text-right">
               <div className="font-mono text-[11px] text-af-muted uppercase tracking-wide">
-                Net at Gate
+                {t("transportPlanner.netAtGate")}
               </div>
               <div className="font-mono text-lg font-extrabold text-af-primary">
                 {rupee(mandi.netPrice)}/qtl
@@ -163,7 +165,7 @@ export default function TransportPlanner({
           {/* Harvest weight input */}
           <div className="space-y-2">
             <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-              Harvest Quantity
+              {t("transportPlanner.harvestQty")}
             </label>
             <div className="flex items-center gap-3">
               <input
@@ -178,21 +180,21 @@ export default function TransportPlanner({
                 className="w-full rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm font-bold text-af-ink outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition font-mono"
               />
               <div className="shrink-0 rounded-[14px] bg-af-sage border border-af-border px-4 py-3 text-sm font-bold text-af-secondary">
-                Quintals
+                {t("transportPlanner.quintals")}
               </div>
             </div>
             <p className="text-[11px] text-af-muted">
-              1 Quintal = 100 kg · {weight} qtl = {(weight / 10).toFixed(1)} tonnes
+              {t("transportPlanner.qtlNote", { qtl: weight, tonnes: (weight / 10).toFixed(1) })}
             </p>
           </div>
 
           {/* Vehicle selection */}
           <div className="space-y-2">
             <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-              Select Vehicle
+              {t("transportPlanner.selectVehicle")}
             </label>
             <p className="text-[11px] text-af-muted -mt-1">
-              AI recommends the most cost-effective option for your load.
+              {t("transportPlanner.aiRecommends")}
             </p>
             <div className="space-y-2">
               {vehiclesWithCost.map((v) => {
@@ -213,7 +215,7 @@ export default function TransportPlanner({
                     {/* Recommended badge */}
                     {isRec && (
                       <span className="absolute top-0 right-0 rounded-bl-[12px] bg-af-secondary px-2 py-0.5 text-[9px] font-bold font-mono tracking-[0.15em] uppercase text-af-bg">
-                        Recommended
+                        {t("transportPlanner.recommended")}
                       </span>
                     )}
 
@@ -221,21 +223,21 @@ export default function TransportPlanner({
                       <span className="text-2xl">{v.icon}</span>
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-bold text-af-ink">{v.name}</div>
-                        <div className="text-[11px] text-af-muted">{v.desc}</div>
+                        <div className="text-[11px] text-af-muted">{t(v.descKey)}</div>
                       </div>
                     </div>
 
                     <div className="mt-2.5 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="inline-flex items-center rounded-full bg-af-bg border border-af-border px-2 py-0.5 text-[10px] font-bold text-af-muted">
-                          Cap: {v.capacity} qtl
+                          {t("transportPlanner.cap", { n: v.capacity })}
                         </span>
                         <span className="inline-flex items-center rounded-full bg-af-bg border border-af-border px-2 py-0.5 text-[10px] font-bold text-af-muted">
                           ₹{v.ratePerKm}/km
                         </span>
                         {v.tripsNeeded > 1 && (
                           <span className="inline-flex items-center rounded-full bg-af-amber/10 border border-af-amber/20 px-2 py-0.5 text-[10px] font-bold text-af-amber">
-                            {v.tripsNeeded} trips
+                            {t("transportPlanner.trips", { n: v.tripsNeeded })}
                           </span>
                         )}
                       </div>
@@ -254,10 +256,12 @@ export default function TransportPlanner({
             <div className="flex items-start gap-2.5 rounded-[14px] bg-af-amber/8 border border-af-amber/20 px-4 py-3">
               <AlertTriangle className="w-4 h-4 text-af-amber shrink-0 mt-0.5" />
               <p className="text-[12px] text-af-ink-2">
-                {weight} qtl exceeds single-trip capacity of{" "}
-                <strong>{activeVehicle.name}</strong> ({activeVehicle.capacity} qtl).
-                Needs <strong>{activeVehicle.tripsNeeded} trips</strong> to transport
-                full harvest.
+                {t("transportPlanner.overloadWarning", {
+                  weight,
+                  vehicle: activeVehicle.name,
+                  capacity: activeVehicle.capacity,
+                  trips: activeVehicle.tripsNeeded,
+                })}
               </p>
             </div>
           )}
@@ -268,22 +272,22 @@ export default function TransportPlanner({
               <div className="flex items-center gap-2">
                 <Calculator className="w-4 h-4 text-af-primary" />
                 <span className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-                  Logistics Financial Invoice
+                  {t("transportPlanner.invoice")}
                 </span>
               </div>
             </div>
 
             <div className="px-4 py-3 space-y-2.5">
               <InvoiceRow
-                label={`Crop Gross Revenue (${weight} qtl × ${rupee(mandi.netPrice)})`}
+                label={t("transportPlanner.grossRevenue", { qty: weight, price: rupee(mandi.netPrice) })}
                 value={rupee(grossRevenue)}
               />
               <InvoiceRow
-                label="Distance to Mandi"
-                value={`${mandi.distanceKm} km${IS_ROUND_TRIP ? " (round trip)" : ""}`}
+                label={t("transportPlanner.distanceToMandi")}
+                value={`${mandi.distanceKm} km${IS_ROUND_TRIP ? t("transportPlanner.roundTripSuffix") : ""}`}
               />
               <InvoiceRow
-                label={`Transport (${activeVehicle.name} · ${activeVehicle.tripsNeeded} trip${activeVehicle.tripsNeeded > 1 ? "s" : ""})`}
+                label={t("transportPlanner.transportRow", { vehicle: activeVehicle.name, trips: activeVehicle.tripsNeeded })}
                 value={`-${rupee(activeVehicle.totalCost)}`}
                 danger
               />
@@ -296,7 +300,7 @@ export default function TransportPlanner({
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-af-primary" />
                   <span className="text-sm font-bold text-af-ink">
-                    Estimated Adjusted Earnings
+                    {t("transportPlanner.estimatedEarnings")}
                   </span>
                 </div>
                 <span className="font-mono text-lg font-extrabold text-af-primary">
@@ -312,11 +316,11 @@ export default function TransportPlanner({
             className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-bold transition active:scale-[0.98] shadow-af-md"
           >
             <CheckCircle className="w-4 h-4" />
-            Confirm & Book Vehicle
+            {t("transportPlanner.confirmBook")}
           </button>
 
           <p className="text-center text-[11px] text-af-muted">
-            Transport booking is advisory. Contact local transporters for exact rates.
+            {t("transportPlanner.advisory")}
           </p>
         </div>
       </div>

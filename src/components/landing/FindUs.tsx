@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AlertTriangle, Check, Loader2 } from "lucide-react";
 import IndiaMap, { Branch } from "./IndiaMap";
 import { validateEmail } from "@/lib/validation";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 /**
  * Bengaluru only, because Bengaluru is the only office there is.
@@ -42,6 +43,7 @@ type Status = "idle" | "sending" | "sent" | "error";
  *   see; if real spam starts arriving, that is the moment to add a challenge.
  */
 export default function FindUs() {
+  const { t } = useT();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [company, setCompany] = useState(""); // honeypot
@@ -73,7 +75,7 @@ export default function FindUs() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data?.error ?? "Something went wrong. Please try again.");
+        setError(data?.error ?? t("l.find.errorGeneric"));
         setStatus("error");
         return;
       }
@@ -83,7 +85,7 @@ export default function FindUs() {
       setMessage("");
       setConsent(false);
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("l.find.errorNetwork"));
       setStatus("error");
     }
   };
@@ -95,10 +97,10 @@ export default function FindUs() {
           {/* ── Feedback form ───────────────────────────────────────────── */}
           <div>
             <h2 className="font-sans text-[15px] font-medium uppercase tracking-[0.06em] text-white">
-              Feedback
+              {t("l.find.feedback")}
             </h2>
             <p className="mt-1.5 font-sans text-[16px] font-light text-white/75">
-              Tell us what would make Agent Farmer more useful on your farm.
+              {t("l.find.feedbackSub")}
             </p>
 
             {status === "sent" ? (
@@ -106,18 +108,16 @@ export default function FindUs() {
                 <Check className="mt-0.5 h-5 w-5 shrink-0 text-vivid-lime" />
                 <div>
                   <p className="font-sans text-[15px] font-semibold text-white">
-                    Thank you — we have it.
+                    {t("l.find.sentTitle")}
                   </p>
                   <p className="mt-1 font-sans text-[14px] font-light text-white/75">
-                    {notified
-                      ? "Your feedback is saved and the team has been notified."
-                      : "Your feedback is saved. We'll read it as soon as we can."}
+                    {notified ? t("l.find.sentNotified") : t("l.find.sentUnnotified")}
                   </p>
                   <button
                     onClick={() => setStatus("idle")}
                     className="mt-3 font-sans text-[14px] font-semibold text-vivid-lime underline underline-offset-4"
                   >
-                    Send another
+                    {t("l.find.sendAnother")}
                   </button>
                 </div>
               </div>
@@ -127,8 +127,8 @@ export default function FindUs() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Your email*"
-                  aria-label="Your email"
+                  placeholder={t("l.find.emailPlaceholder")}
+                  aria-label={t("l.find.emailLabel")}
                   className="w-full rounded-arva-input border border-white/25 bg-transparent px-6 py-4 font-sans text-[15px] text-white outline-none transition placeholder:text-white/45 focus:border-vivid-lime/70"
                 />
 
@@ -136,8 +136,8 @@ export default function FindUs() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
-                  placeholder="Your feedback*"
-                  aria-label="Your feedback"
+                  placeholder={t("l.find.messagePlaceholder")}
+                  aria-label={t("l.find.messageLabel")}
                   className="w-full resize-y rounded-[24px] border border-white/25 bg-transparent px-6 py-4 font-sans text-[15px] text-white outline-none transition placeholder:text-white/45 focus:border-vivid-lime/70"
                 />
 
@@ -164,8 +164,7 @@ export default function FindUs() {
                     className="mt-0.5 h-4 w-4 shrink-0 accent-vivid-lime"
                   />
                   <span className="font-sans text-[14px] font-light leading-relaxed text-white/80">
-                    I agree that Agent Farmer may store my email and message in order to
-                    respond to this feedback.
+                    {t("l.find.consent")}
                   </span>
                 </label>
 
@@ -187,15 +186,15 @@ export default function FindUs() {
                   {status === "sending" ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Sending
+                      {t("l.find.sending")}
                     </>
                   ) : (
-                    "Submit"
+                    t("l.find.submit")
                   )}
                 </button>
 
                 <p className="pt-1 font-sans text-[13px] font-light text-white/55">
-                  Agent Farmer stores your information only to respond to your request.
+                  {t("l.find.disclaimer")}
                 </p>
               </div>
             )}
@@ -204,7 +203,7 @@ export default function FindUs() {
           {/* ── Map ─────────────────────────────────────────────────────── */}
           <div className="lg:pl-6">
             <h2 className="font-sans text-[15px] font-medium uppercase tracking-[0.06em] text-white">
-              Where you can find us
+              {t("l.find.mapHeading")}
             </h2>
             <IndiaMap
               branches={BRANCHES}

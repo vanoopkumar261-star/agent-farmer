@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AddFarmModal from "@/components/dashboard/AddFarmModal";
+import { T } from "@/components/i18n/LanguageProvider";
 
 /**
  * Opens the "Add a farm" popup.
@@ -18,7 +19,7 @@ export default function AddFarmButton({
   children,
 }: {
   variant?: "link" | "custom";
-  label?: string;
+  label?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
 }) {
@@ -36,7 +37,7 @@ export default function AddFarmButton({
             : undefined)
         }
       >
-        {children ?? label ?? "+ Add farm"}
+        {children ?? label ?? <T k="common.addFarm" />}
       </button>
 
       {open && <AddFarmModal onClose={() => setOpen(false)} />}

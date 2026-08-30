@@ -16,6 +16,7 @@ import {
 import Card from "@/components/ui/Card";
 import { PieChart as PieIcon, BarChart3 } from "lucide-react";
 import { SERIES, SEQUENTIAL_GREEN, GRID, AXIS, tooltipStyle } from "@/lib/chartTheme";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 const EMERALD = SERIES.income;
 const AMBER = SERIES.expense;
@@ -37,6 +38,7 @@ export default function ExpenseCharts({
   byCategory: { category: string; amount: number }[];
   byMonth: { month: string; income: number; expense: number }[];
 }) {
+  const { t } = useT();
   const total = byCategory.reduce((s, c) => s + c.amount, 0);
 
   return (
@@ -48,14 +50,14 @@ export default function ExpenseCharts({
             <PieIcon className="w-4 h-4" />
           </span>
           <div>
-            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">Where money goes</h2>
-            <p className="text-meta text-af-muted">Expenses by category</p>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">{t("expenseCharts.whereMoneyGoes")}</h2>
+            <p className="text-meta text-af-muted">{t("expenseCharts.byCategory")}</p>
           </div>
         </div>
 
         {byCategory.length === 0 ? (
           <div className="h-[240px] flex items-center justify-center text-sm text-af-muted">
-            No expenses logged yet.
+            {t("expenseCharts.noExpenses")}
           </div>
         ) : (
           <div className="flex items-center gap-4">
@@ -103,8 +105,8 @@ export default function ExpenseCharts({
             <BarChart3 className="w-4 h-4" />
           </span>
           <div>
-            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">Monthly cash flow</h2>
-            <p className="text-meta text-af-muted">Income vs expense</p>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">{t("expenseCharts.monthlyCashFlow")}</h2>
+            <p className="text-meta text-af-muted">{t("expenseCharts.incomeVsExpense")}</p>
           </div>
         </div>
         <div className="h-[200px] w-full">

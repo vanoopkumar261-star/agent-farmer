@@ -91,7 +91,7 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
       .eq("id", profile.id);
     setSaving(false);
     if (error) {
-      alert("Could not save profile.");
+      alert(t("settings.saveError"));
       return;
     }
     setSaved(true);
@@ -103,16 +103,16 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Profile */}
       <Card className="p-6">
-        <SectionTitle icon={<User className="w-4 h-4" />} title="Profile" subtitle="Your personal details" />
+        <SectionTitle icon={<User className="w-4 h-4" />} title={t("settings.section.profile")} subtitle={t("settings.section.profileSub")} />
         <div className="mt-5 space-y-4">
-          <Field label="Full Name" value={name} onChange={setName} />
+          <Field label={t("settings.field.fullName")} value={name} onChange={setName} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Phone" value={phone} onChange={setPhone} />
-            <Field label="Email" value={email} onChange={setEmail} placeholder="name@example.com" />
+            <Field label={t("settings.field.phone")} value={phone} onChange={setPhone} />
+            <Field label={t("settings.field.email")} value={email} onChange={setEmail} placeholder="name@example.com" />
           </div>
           <div className="flex items-start gap-2 rounded-[12px] bg-af-bg border border-af-border px-4 py-3">
             <MapPin className="w-4 h-4 text-af-primary mt-0.5 shrink-0" />
-            <div className="text-meta text-af-ink-2">{profile.house_address ?? "No location set"}</div>
+            <div className="text-meta text-af-ink-2">{profile.house_address ?? t("settings.noLocationSet")}</div>
           </div>
           <button
             onClick={save}
@@ -127,7 +127,7 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
 
       {/* Language */}
       <Card className="p-6">
-        <SectionTitle icon={<Globe className="w-4 h-4" />} title="Language" subtitle="Choose your preferred language" />
+        <SectionTitle icon={<Globe className="w-4 h-4" />} title={t("settings.section.language")} subtitle={t("settings.section.languageSub")} />
         <div className="mt-5 grid grid-cols-3 gap-2">
           {LOCALES.map((l) => (
             <button
@@ -144,21 +144,21 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
           ))}
         </div>
         <p className="mt-3 text-[12px] text-af-muted">
-          The interface switches instantly. Farm data stays in your language of choice.
+          {t("settings.languageNote")}
         </p>
       </Card>
 
       {/* Notifications */}
       <Card className="p-6">
-        <SectionTitle icon={<Bell className="w-4 h-4" />} title="Notifications" subtitle="What you'll be alerted about" />
+        <SectionTitle icon={<Bell className="w-4 h-4" />} title={t("settings.section.notifications")} subtitle={t("settings.section.notificationsSub")} />
         <div className="mt-5 space-y-1">
-          <Toggle icon={<CloudSun className="w-4 h-4 text-af-ai" />} label="Weather alerts" desc="Rain, heat & storm warnings"
+          <Toggle icon={<CloudSun className="w-4 h-4 text-af-ai" />} label={t("settings.toggle.weather")} desc={t("settings.toggle.weatherDesc")}
             on={notif.weather} onToggle={() => toggleNotif("weather")} />
-          <Toggle icon={<Bug className="w-4 h-4 text-af-amber" />} label="Disease alerts" desc="Scan reminders & outbreaks"
+          <Toggle icon={<Bug className="w-4 h-4 text-af-amber" />} label={t("settings.toggle.disease")} desc={t("settings.toggle.diseaseDesc")}
             on={notif.disease} onToggle={() => toggleNotif("disease")} />
-          <Toggle icon={<TrendingUp className="w-4 h-4 text-af-primary-deep" />} label="Market prices" desc="Selling-window signals"
+          <Toggle icon={<TrendingUp className="w-4 h-4 text-af-primary-deep" />} label={t("settings.toggle.market")} desc={t("settings.toggle.marketDesc")}
             on={notif.market} onToggle={() => toggleNotif("market")} />
-          <Toggle icon={<Sparkles className="w-4 h-4 text-af-ai" />} label="Daily summary" desc="Farm briefing & tips"
+          <Toggle icon={<Sparkles className="w-4 h-4 text-af-ai" />} label={t("settings.toggle.daily")} desc={t("settings.toggle.dailyDesc")}
             on={notif.ai} onToggle={() => toggleNotif("ai")} />
         </div>
       </Card>
@@ -166,15 +166,15 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
 
       {/* Account */}
       <Card className="p-6">
-        <SectionTitle icon={<Shield className="w-4 h-4" />} title="Account" subtitle="Your login & session" />
+        <SectionTitle icon={<Shield className="w-4 h-4" />} title={t("settings.section.account")} subtitle={t("settings.section.accountSub")} />
         <div className="mt-5 space-y-3">
           <div className="flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3">
-            <span className="text-sm font-semibold text-af-ink">Signed in as</span>
+            <span className="text-sm font-semibold text-af-ink">{t("settings.signedInAs")}</span>
             <span className="text-meta font-semibold text-af-primary-deep">{username ?? "—"}</span>
           </div>
           {profile.phone && (
             <div className="flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3">
-              <span className="text-sm font-semibold text-af-ink">Phone</span>
+              <span className="text-sm font-semibold text-af-ink">{t("settings.field.phone")}</span>
               <span className="text-meta font-semibold text-af-ink-2">{profile.phone}</span>
             </div>
           )}
@@ -182,8 +182,8 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
             onClick={() => setShowDataPrivacy(true)}
             className="w-full flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3 hover:border-af-primary/30 transition"
           >
-            <span className="text-sm font-semibold text-af-ink">Data &amp; privacy</span>
-            <span className="text-meta font-semibold text-af-primary-deep">Manage &rarr;</span>
+            <span className="text-sm font-semibold text-af-ink">{t("settings.dataPrivacy")}</span>
+            <span className="text-meta font-semibold text-af-primary-deep">{t("settings.manageArrow")}</span>
           </button>
           <button
             onClick={signOut}
@@ -191,7 +191,7 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
             className="w-full flex items-center justify-center gap-2 rounded-[12px] bg-af-danger/10 border border-af-danger/20 px-4 py-3 text-sm font-semibold text-af-danger hover:bg-af-danger/15 transition disabled:opacity-50"
           >
             {signingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-            {signingOut ? "Signing out…" : "Sign out"}
+            {signingOut ? t("settings.signingOut") : t("settings.signOut")}
           </button>
         </div>
       </Card>

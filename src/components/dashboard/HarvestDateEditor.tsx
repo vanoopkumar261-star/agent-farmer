@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { CalendarClock, Check, Loader2, RotateCcw } from "lucide-react";
 import { updateEstimatedHarvestDate } from "@/lib/db";
 import { suggestHarvestDate } from "@/lib/agronomy";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 type Props = {
   cropCycleId: string;
@@ -31,6 +32,7 @@ export default function HarvestDateEditor({
   estimatedHarvestDate,
 }: Props) {
   const router = useRouter();
+  const { t } = useT();
   const suggested = suggestHarvestDate(cropName, seedingDate);
 
   const [value, setValue] = useState(estimatedHarvestDate ?? suggested);
@@ -41,7 +43,7 @@ export default function HarvestDateEditor({
   const save = async (next: string | null) => {
     // A harvest before seeding would invert every countdown that reads this date.
     if (next && next <= seedingDate) {
-      setError("Harvest date must be after the seeding date.");
+      setError(t("harvestDateEditor.invalidDate"));
       setStatus("error");
       return;
     }
@@ -52,7 +54,7 @@ export default function HarvestDateEditor({
 
     if (!ok) {
       setStatus("error");
-      setError("Couldn't save. Please try again.");
+      setError(t("harvestDateEditor.saveError"));
       return;
     }
 
@@ -71,7 +73,7 @@ export default function HarvestDateEditor({
             htmlFor={`harvest-${cropCycleId}`}
             className="block font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted"
           >
-            Estimated Harvest Date
+            {t("addFarmModal.estHarvestDate")}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -101,7 +103,7 @@ export default function HarvestDateEditor({
                 className="inline-flex items-center gap-1.5 rounded-[12px] border border-af-border bg-af-bg px-2.5 py-2 text-[11px] font-semibold text-af-ink-2 hover:text-af-ink transition"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                Reset
+                {t("harvestDateEditor.reset")}
               </button>
             )}
           </div>
@@ -110,18 +112,18 @@ export default function HarvestDateEditor({
         <div className="pb-1 text-[11px]">
           {status === "saving" ? (
             <span className="inline-flex items-center gap-1.5 text-af-ink-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("harvestDateEditor.saving")}
             </span>
           ) : status === "saved" ? (
             <span className="inline-flex items-center gap-1.5 font-semibold text-af-primary-deep">
-              <Check className="w-3.5 h-3.5" /> Saved
+              <Check className="w-3.5 h-3.5" /> {t("harvestDateEditor.saved")}
             </span>
           ) : error ? (
             <span className="font-semibold text-af-danger">{error}</span>
           ) : (
             <span className="inline-flex items-center gap-1.5 text-af-muted">
               <CalendarClock className="w-3.5 h-3.5" />
-              {isCustom ? "Your date" : `Estimated from the ${cropName} cycle`}
+              {isCustom ? t("harvestDateEditor.yourDate") : t("harvestDateEditor.estimatedFrom", { crop: cropName })}
             </span>
           )}
         </div>

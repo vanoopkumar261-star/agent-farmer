@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -15,6 +15,7 @@ import {
   ChevronDown, ChevronUp, Truck, Crown,
 } from "lucide-react";
 import type { CropMarket, MandiRow } from "@/lib/market";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 const GRID = "#E4E9E3";
 const AXIS = "#8A8A8A";
@@ -40,6 +41,7 @@ function MandiItem({
   isBest: boolean;
   cropName: string;
 }) {
+  const { t } = useT();
   const [expanded, setExpanded] = useState(false);
   const [showTransport, setShowTransport] = useState(false);
 
@@ -84,7 +86,7 @@ function MandiItem({
               </div>
               {isBest && (
                 <span className="shrink-0 inline-flex items-center rounded-full bg-af-primary/10 text-af-primary-deep px-1.5 py-0.5 text-[9px] font-bold font-mono uppercase tracking-wide">
-                  Best
+                  {t("marketBoard.best")}
                 </span>
               )}
             </div>
@@ -94,7 +96,7 @@ function MandiItem({
                 {mandi.distanceKm} km
               </div>
               <div className="text-[11px] text-af-muted">
-                Net: <span className="font-bold text-af-primary">{rupee(mandi.netPrice)}</span>
+                {t("marketBoard.net")} <span className="font-bold text-af-primary">{rupee(mandi.netPrice)}</span>
               </div>
             </div>
           </div>
@@ -103,7 +105,7 @@ function MandiItem({
             <div className="font-mono text-sm font-bold text-af-ink">
               {rupee(mandi.price)}
             </div>
-            <div className="text-[10px] text-af-muted">quoted</div>
+            <div className="text-[10px] text-af-muted">{t("marketBoard.quoted")}</div>
           </div>
 
           <span className="text-af-muted ml-1 shrink-0">
@@ -122,20 +124,20 @@ function MandiItem({
             <div className="grid grid-cols-2 gap-2 mb-1">
               <div className="rounded-[12px] bg-af-card border border-af-border px-3 py-2">
                 <div className="font-mono text-[9px] font-bold tracking-[0.16em] uppercase text-af-muted">
-                  Quoted Price
+                  {t("marketBoard.quotedPrice")}
                 </div>
                 <div className="mt-1 font-mono text-base font-extrabold text-af-ink">
                   {rupee(mandi.price)}
-                  <span className="text-[10px] font-normal text-af-muted"> /qtl</span>
+                  <span className="text-[10px] font-normal text-af-muted">{t("marketBoard.perQtl")}</span>
                 </div>
               </div>
               <div className="rounded-[12px] bg-af-primary/8 border border-af-primary/20 px-3 py-2">
                 <div className="font-mono text-[9px] font-bold tracking-[0.16em] uppercase text-af-primary-deep">
-                  Net to You
+                  {t("marketBoard.netToYou")}
                 </div>
                 <div className="mt-1 font-mono text-base font-extrabold text-af-primary">
                   {rupee(mandi.netPrice)}
-                  <span className="text-[10px] font-normal text-af-muted"> /qtl</span>
+                  <span className="text-[10px] font-normal text-af-muted">{t("marketBoard.perQtl")}</span>
                 </div>
               </div>
             </div>
@@ -144,48 +146,48 @@ function MandiItem({
             <div className="rounded-[12px] bg-af-card border border-af-border overflow-hidden">
               <div className="px-3 py-2 border-b border-af-border">
                 <span className="font-mono text-[9px] font-bold tracking-[0.16em] uppercase text-af-muted">
-                  APMC Fee Breakdown
+                  {t("marketBoard.apmcBreakdown")}
                 </span>
               </div>
               <div className="px-3 py-2 space-y-1.5">
                 <FeeRow
-                  label={`Quoted Commodity Price`}
+                  label={t("marketBoard.quotedCommodityPrice")}
                   value={rupee(mandi.price)}
                   bold
                 />
                 <FeeRow
-                  label={`Market Entry Fee (APMC @ ${FEES.marketFeePercent}%)`}
+                  label={t("marketBoard.marketEntryFee", { pct: FEES.marketFeePercent })}
                   value={`-₹${mandi.fees.marketFee.toFixed(2)}`}
                   deduction
                 />
                 <FeeRow
-                  label={`Development Cess (@ ${FEES.cessPercent}%)`}
+                  label={t("marketBoard.developmentCess", { pct: FEES.cessPercent })}
                   value={`-₹${mandi.fees.cess.toFixed(2)}`}
                   deduction
                 />
                 <FeeRow
-                  label={`Commission Agent (Arhatiya @ ${FEES.commissionPercent}%)`}
+                  label={t("marketBoard.commissionAgent", { pct: FEES.commissionPercent })}
                   value={`-₹${mandi.fees.commission.toFixed(2)}`}
                   deduction
                 />
                 <FeeRow
-                  label="Loading & Unloading (Hamali)"
+                  label={t("marketBoard.loadingUnloading")}
                   value={`-₹${mandi.fees.loading.toFixed(2)}`}
                   deduction
                 />
                 <FeeRow
-                  label="Gunny Bags (Bardana)"
+                  label={t("marketBoard.gunnyBags")}
                   value={`-₹${mandi.fees.gunnyBag.toFixed(2)}`}
                   deduction
                 />
                 <FeeRow
-                  label="Weighing Charges (Tolai)"
+                  label={t("marketBoard.weighingCharges")}
                   value={`-₹${mandi.fees.weighing.toFixed(2)}`}
                   deduction
                 />
                 <div className="h-px bg-af-border my-1" />
                 <FeeRow
-                  label="Net Price (After all APMC deductions)"
+                  label={t("marketBoard.netPriceAfter")}
                   value={rupee(mandi.netPrice)}
                   highlight
                 />
@@ -201,7 +203,7 @@ function MandiItem({
               className="w-full inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-primary hover:bg-af-primary-deep text-white px-4 py-2.5 text-sm font-bold transition active:scale-[0.98] shadow-af-sm"
             >
               <Truck className="w-4 h-4" />
-              Select &amp; Plan Transport
+              {t("marketBoard.selectPlanTransport")}
             </button>
           </div>
         )}
@@ -265,6 +267,7 @@ export default function MarketBoard({
   state?: string | null;
   isRealData?: boolean;
 }) {
+  const { t } = useT();
   const firstAvailable =
     crops.find((c) => !c.notAvailable)?.name ?? crops[0].name;
 
@@ -292,7 +295,7 @@ export default function MarketBoard({
             <div className="mb-3 flex items-center gap-2">
               <div className="h-px flex-1 bg-af-border" />
               <span className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-primary-deep">
-                Live Mandi Prices · {state}
+                {t("marketBoard.liveMandiPrices", { state: state ?? "" } )}
               </span>
               <div className="h-px flex-1 bg-af-border" />
             </div>
@@ -349,7 +352,7 @@ export default function MarketBoard({
           <div className="mb-3 flex items-center gap-2">
             <div className="h-px flex-1 bg-af-border" />
             <span className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-              Not Arriving at {state} Mandis Today
+              {t("marketBoard.notArriving", { state: state ?? "" } )}
             </span>
             <div className="h-px flex-1 bg-af-border" />
           </div>
@@ -364,11 +367,11 @@ export default function MarketBoard({
                   <PackageX className="w-3.5 h-3.5 text-af-muted" />
                 </div>
                 <div className="mt-2 text-[11px] text-af-muted leading-relaxed">
-                  No arrivals reported at {state} mandis today
+                  {t("marketBoard.noArrivals", { state: state ?? "" } )}
                 </div>
                 <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-af-bg border border-af-border px-2 py-0.5">
                   <span className="text-[9px] font-bold font-mono tracking-[0.15em] uppercase text-af-muted">
-                    Seasonal
+                    {t("marketBoard.seasonal")}
                   </span>
                 </div>
               </div>
@@ -377,11 +380,8 @@ export default function MarketBoard({
           <div className="mt-3 flex items-start gap-2.5 rounded-[14px] bg-af-amber/6 border border-af-amber/20 px-4 py-3">
             <AlertTriangle className="w-4 h-4 text-af-amber shrink-0 mt-0.5" />
             <p className="text-[12px] text-af-ink-2 leading-relaxed">
-              <strong className="text-af-ink">Why are some crops missing?</strong>{" "}
-              Mandi arrivals depend on harvest season and regional availability.
-              Crops not listed are not being traded at <strong>{state}</strong> mandis
-              today according to <strong>AGMARKNET (data.gov.in)</strong>.
-              Prices will appear automatically when arrivals are reported.
+              <strong className="text-af-ink">{t("marketBoard.whyMissingTitle")}</strong>{" "}
+              {t("marketBoard.whyMissingBody", { state: state ?? "" })}
             </p>
           </div>
         </div>
@@ -401,12 +401,12 @@ export default function MarketBoard({
                   {active.isReal && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-af-primary/10 text-af-primary-deep px-2 py-0.5 text-[9px] font-bold font-mono tracking-[0.15em] uppercase">
                       <span className="w-1.5 h-1.5 rounded-full bg-af-primary animate-pulse" />
-                      Live
+                      {t("marketBoard.live")}
                     </span>
                   )}
                 </div>
                 <p className="text-[13px] text-af-muted">
-                  21-day price trend · {active.unit}
+                  {t("marketBoard.priceTrend", { unit: active.unit })}
                   {active.isReal && state && (
                     <span className="ml-1 text-af-primary-deep font-semibold">· {state}</span>
                   )}
@@ -417,7 +417,7 @@ export default function MarketBoard({
                   {rupee(active.price)}
                 </div>
                 <div className={`text-[12px] font-bold ${up ? "text-af-primary-deep" : "text-af-danger"}`}>
-                  {up ? "▲" : "▼"} {up ? "+" : ""}{active.change}% today
+                  {up ? "▲" : "▼"} {up ? "+" : ""}{active.change}% {t("marketBoard.today")}
                 </div>
               </div>
             </div>
@@ -456,10 +456,10 @@ export default function MarketBoard({
             <div className="mt-3 flex items-center gap-1.5 text-[11px] text-af-muted">
               <RefreshCw className="w-3 h-3" />
               {active.isReal
-                ? `Prices from AGMARKNET · data.gov.in${
-                    active.reportedOn ? ` · reported ${active.reportedOn}` : ""
-                  } · refreshed every 6 hrs`
-                : "Demo prices · Add DATA_GOV_API_KEY for live data"}
+                ? t("marketBoard.pricesFrom", {
+                    reportedOn: active.reportedOn ? t("marketBoard.reportedOn", { date: active.reportedOn }) : "",
+                  })
+                : t("marketBoard.demoPrices")}
             </div>
           </Card>
 
@@ -471,10 +471,10 @@ export default function MarketBoard({
               </span>
               <div>
                 <h2 className="text-lg font-extrabold text-af-ink leading-tight">
-                  Nearby Mandis
+                  {t("marketBoard.nearbyMandis")}
                 </h2>
                 <p className="text-[13px] text-af-muted">
-                  {active.name} · click to see fee breakdown
+                  {t("marketBoard.clickForBreakdown", { crop: active.name })}
                   {active.isReal && state && (
                     <span className="text-af-primary-deep font-semibold"> · {state}</span>
                   )}
@@ -486,7 +486,7 @@ export default function MarketBoard({
               <div className="flex flex-col items-center justify-center h-32 text-center space-y-2">
                 <Store className="w-8 h-8 text-af-muted opacity-30" />
                 <p className="text-sm text-af-muted">
-                  No mandi data for {active.name} in {state ?? "your region"} today.
+                  {t("marketBoard.noMandiData", { crop: active.name, region: state ?? t("marketBoard.yourRegion") })}
                 </p>
               </div>
             ) : (

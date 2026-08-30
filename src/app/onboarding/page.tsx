@@ -34,7 +34,55 @@ import {
   validateArea,
   validateEmail,
   validatePhone,
+  INVALID_EMAIL_MSG,
+  INVALID_NUMBER_MSG,
 } from "@/lib/validation";
+import { LanguageProvider, useT } from "@/components/i18n/LanguageProvider";
+
+type Translator = (key: string, params?: Record<string, string | number>) => string;
+
+/** Maps the fixed set of English messages `validateEmail` can return to a translated string. */
+function translateEmailError(raw: string | null, t: Translator): string | null {
+  if (!raw) return null;
+  if (raw === "Email is required.") return t("login.error.emailRequired");
+  if (raw === INVALID_EMAIL_MSG) return t("login.error.invalidEmail");
+  return raw;
+}
+
+/** Maps the fixed set of English messages `validatePhone` can return to a translated string. */
+function translatePhoneError(raw: string | null, t: Translator): string | null {
+  if (!raw) return null;
+  if (raw === "Phone number is required.") return t("onboarding.error.phoneRequired");
+  if (raw === "Phone number must contain digits only.") return t("onboarding.error.phoneDigitsOnly");
+  if (raw === "Phone number must be exactly 10 digits.") return t("onboarding.error.phoneLength");
+  return raw;
+}
+
+/** Maps the fixed set of English messages `validateArea` can return to a translated string, with a translated field label. */
+function translateAreaError(raw: string | null, labelKey: string, t: Translator): string | null {
+  if (!raw) return null;
+  if (raw === INVALID_NUMBER_MSG) return t("onboarding.error.invalidNumber");
+  if (raw.endsWith("is required.")) return t("onboarding.error.areaRequired", { label: t(labelKey) });
+  if (raw.endsWith("must be greater than 0.")) return t("onboarding.error.areaMustBePositive", { label: t(labelKey) });
+  return raw;
+}
+
+const SOIL_TYPE_KEYS: Record<string, string> = {
+  "Alluvial Soil": "onboarding.soilType.alluvial",
+  "Black Soil": "onboarding.soilType.black",
+  "Red Soil": "onboarding.soilType.red",
+  "Sandy Soil": "onboarding.soilType.sandy",
+  "Clayey Soil": "onboarding.soilType.clayey",
+};
+
+const IRRIGATION_TYPE_KEYS: Record<string, string> = {
+  Borewell: "onboarding.irrigation.borewell",
+  Canal: "onboarding.irrigation.canal",
+  River: "onboarding.irrigation.river",
+  "Rain-fed": "onboarding.irrigation.rainfed",
+  "Drip Irrigation": "onboarding.irrigation.drip",
+  Sprinkler: "onboarding.irrigation.sprinkler",
+};
 
 type Farm = {
   area: string;
@@ -68,9 +116,9 @@ const SOIL_TYPES = ["Alluvial Soil", "Black Soil", "Red Soil", "Sandy Soil", "Cl
 const IRRIGATION_TYPES = ["Borewell", "Canal", "River", "Rain-fed", "Drip Irrigation", "Sprinkler"];
 
 const STEPS = [
-  { n: 1, label: "Profile" },
-  { n: 2, label: "Farms" },
-  { n: 3, label: "Crops" },
+  { n: 1, labelKey: "onboarding.step.profile" },
+  { n: 2, labelKey: "onboarding.step.farms" },
+  { n: 3, labelKey: "onboarding.step.crops" },
 ] as const;
 
 type Selection = {
@@ -105,8 +153,9 @@ function effectiveCrop(sel: Selection): string {
   return (sel.customCrop.trim() || sel.chosenCrop).trim();
 }
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter();
+  const { t } = useT();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   const [form, setForm] = useState<FarmerForm>({
@@ -213,10 +262,13 @@ export default function OnboardingPage() {
     setAuthed(true);
   };
 
-  const soilOptions = useMemo(() => SOIL_TYPES.map((s) => ({ label: s, value: s })), []);
+  const soilOptions = useMemo(
+    () => SOIL_TYPES.map((s) => ({ label: t(SOIL_TYPE_KEYS[s]), value: s })),
+    [t]
+  );
   const irrigationOptions = useMemo(
-    () => IRRIGATION_TYPES.map((s) => ({ label: s, value: s })),
-    []
+    () => IRRIGATION_TYPES.map((s) => ({ label: t(IRRIGATION_TYPE_KEYS[s]), value: s })),
+    [t]
   );
 
   /**
@@ -226,10 +278,16 @@ export default function OnboardingPage() {
    * surfaced per field only once that field has been blurred (see `touched`) —
    * otherwise an untouched form greets the farmer covered in red.
    */
-  const phoneError = validatePhone(form.phone);
-  const emailError = validateEmail(form.email);
-  const totalAreaError = validateArea(form.totalArea, "Total farm area");
-  const farmAreaErrors = form.farms.map((f) => validateArea(f.area, "Farm area"));
+  const phoneError = translatePhoneError(validatePhone(form.phone), t);
+  const emailError = translateEmailError(validateEmail(form.email), t);
+  const totalAreaError = translateAreaError(
+    validateArea(form.totalArea, "Total farm area"),
+    "onboarding.label.totalFarmArea",
+    t
+  );
+  const farmAreaErrors = form.farms.map((f) =>
+    translateAreaError(validateArea(f.area, "Farm area"), "onboarding.label.farmArea", t)
+  );
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const markTouched = (key: string) => setTouched((p) => ({ ...p, [key]: true }));
@@ -343,7 +401,7 @@ export default function OnboardingPage() {
       const data = (await res.json()) as { farms: CropRec[][]; error?: string };
 
       if (!res.ok) {
-        alert(data?.error ?? "AI engine failed. Please try again.");
+        alert(data?.error ?? t("onboarding.error.aiEngineFailed"));
         setLoadingAI(false);
         return;
       }
@@ -370,7 +428,7 @@ export default function OnboardingPage() {
 
       setStep(3);
     } catch (e) {
-      alert("Network error while calling AI engine.");
+      alert(t("onboarding.error.networkError"));
     } finally {
       setLoadingAI(false);
     }
@@ -423,7 +481,7 @@ export default function OnboardingPage() {
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Failed to save data to database.");
+      alert(t("onboarding.error.saveFailed"));
     }
   };
 
@@ -466,42 +524,46 @@ export default function OnboardingPage() {
             <div className="inline-flex items-center gap-2 self-start rounded-full bg-white/15 backdrop-blur border border-white/25 px-4 py-2">
               <Leaf className="w-4 h-4 text-white" />
               <span className="font-mono text-[10px] font-bold tracking-[0.22em] uppercase text-white/90">
-                Agent Farmer · Onboarding
+                {t("onboarding.badge.onboarding")}
               </span>
             </div>
 
             <div className="max-w-md space-y-4">
               <h1 className="font-sans text-4xl font-extrabold tracking-tight text-white leading-[1.05]">
                 {step === 1
-                  ? "Create your Farmer Profile."
+                  ? t("onboarding.hero.title.step1")
                   : step === 2
-                  ? "Register your Farms."
-                  : "AI Crop Selection."}
+                  ? t("onboarding.hero.title.step2")
+                  : t("onboarding.hero.title.step3")}
               </h1>
               <p className="text-white/80 text-base leading-relaxed">
                 {step === 1
-                  ? "Pin your house on the map — it powers hyper-local weather intelligence and the nearest-store locator."
+                  ? t("onboarding.hero.sub.step1")
                   : step === 2
-                  ? "Add up to 6 farms. Each field gets its own AI crop recommendations based on soil and irrigation."
-                  : "Review 3 AI recommendations per farm, choose crops, set seeding dates, and launch your dashboard."}
+                  ? t("onboarding.hero.sub.step2")
+                  : t("onboarding.hero.sub.step3")}
               </p>
 
               {/* Reassurance chips */}
               <div className="flex flex-wrap gap-2 pt-2">
-                {["Free to start", "AI-personalised", "Takes ~2 min"].map((t) => (
+                {[
+                  t("onboarding.chip.free"),
+                  t("onboarding.chip.aiPersonalised"),
+                  t("onboarding.chip.time"),
+                ].map((label) => (
                   <span
-                    key={t}
+                    key={label}
                     className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1.5 text-[11px] font-semibold text-white/85"
                   >
                     <Check className="w-3 h-3" />
-                    {t}
+                    {label}
                   </span>
                 ))}
               </div>
             </div>
 
             <div className="text-white/55 font-mono text-[10px] tracking-[0.22em] uppercase">
-              0-cost stack · fast setup · production-grade demo
+              {t("onboarding.footer.tag")}
             </div>
           </div>
         </div>
@@ -519,7 +581,7 @@ export default function OnboardingPage() {
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-af-ink-2 hover:text-af-primary transition"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back to Home
+                {t("login.backHome")}
               </Link>
               <div className="flex items-center gap-3">
                 {/* Without this a signed-in farmer has no way back to the
@@ -530,14 +592,14 @@ export default function OnboardingPage() {
                     type="button"
                     onClick={signOutToAuth}
                     className="text-[11px] text-af-muted hover:text-af-ink transition"
-                    title={`Signed in as ${accountEmail}`}
+                    title={t("onboarding.signedInAs", { email: accountEmail })}
                   >
                     <span className="hidden sm:inline">{accountEmail} · </span>
-                    <span className="font-semibold underline underline-offset-2">Not you?</span>
+                    <span className="font-semibold underline underline-offset-2">{t("onboarding.notYou")}</span>
                   </button>
                 )}
                 <span className="font-mono text-[11px] font-semibold text-af-muted">
-                  Step {step} of 3
+                  {t("onboarding.stepOf", { n: step })}
                 </span>
               </div>
             </div>
@@ -553,22 +615,22 @@ export default function OnboardingPage() {
                   <>
                     <HeaderBlock
                       step="01"
-                      title="Farmer Registration"
-                      subtitle="Personal Details"
-                      hint="Tell us who you are and where your farm is."
+                      title={t("onboarding.step1.title")}
+                      subtitle={t("onboarding.step1.subtitle")}
+                      hint={t("onboarding.step1.hint")}
                     />
 
                     <div className="mt-7 space-y-5">
                       <Field
-                        label="Full Name"
-                        placeholder="Your name"
+                        label={t("onboarding.field.fullName")}
+                        placeholder={t("onboarding.field.fullNamePlaceholder")}
                         value={form.name}
                         onChange={(v) => setForm((p) => ({ ...p, name: v }))}
                       />
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <Field
-                          label="Phone Number"
-                          placeholder="10-digit mobile number"
+                          label={t("onboarding.field.phone")}
+                          placeholder={t("onboarding.field.phonePlaceholder")}
                           value={form.phone}
                           onChange={(v) => setForm((p) => ({ ...p, phone: v }))}
                           onBlur={() => markTouched("phone")}
@@ -581,8 +643,8 @@ export default function OnboardingPage() {
                           maxLength={18}
                         />
                         <Field
-                          label="Email"
-                          placeholder="name@domain.com"
+                          label={t("onboarding.field.email")}
+                          placeholder={t("onboarding.field.emailPlaceholder")}
                           value={form.email}
                           onChange={(v) => setForm((p) => ({ ...p, email: v }))}
                           onBlur={() => markTouched("email")}
@@ -593,7 +655,7 @@ export default function OnboardingPage() {
 
                       <div className="space-y-2 pt-1">
                         <div className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-                          House Location (Map)
+                          {t("onboarding.field.houseLocation")}
                         </div>
                         <MapSelector
                           value={form.location}
@@ -606,7 +668,7 @@ export default function OnboardingPage() {
                         onClick={() => setStep(2)}
                         className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-bold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                       >
-                        Continue <ArrowRight className="w-4 h-4" />
+                        {t("onboarding.continue")} <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
                   </>
@@ -617,16 +679,16 @@ export default function OnboardingPage() {
                   <>
                     <HeaderBlock
                       step="02"
-                      title="Register Your Farms"
-                      subtitle="Farm Details"
-                      hint="Each field is analysed separately for the best crop fit."
+                      title={t("onboarding.step2.title")}
+                      subtitle={t("onboarding.step2.subtitle")}
+                      hint={t("onboarding.step2.hint")}
                     />
 
                     <div className="mt-7 space-y-5">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <Field
-                          label="Total Farm Area (Acres)"
-                          placeholder="e.g. 12"
+                          label={t("onboarding.field.totalArea")}
+                          placeholder={t("onboarding.field.totalAreaPlaceholder")}
                           value={form.totalArea}
                           onChange={(v) => setForm((p) => ({ ...p, totalArea: v }))}
                           onBlur={() => markTouched("totalArea")}
@@ -636,7 +698,7 @@ export default function OnboardingPage() {
 
                         <div className="space-y-1.5">
                           <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-                            Number of Farms
+                            {t("onboarding.field.numFarms")}
                           </label>
                           <div className="flex items-center gap-3">
                             <div className="inline-flex items-center rounded-[14px] border border-af-border bg-af-bg overflow-hidden">
@@ -645,7 +707,7 @@ export default function OnboardingPage() {
                                 onClick={() => setNumFarms(form.numFarms - 1)}
                                 disabled={form.numFarms <= 1}
                                 className="px-3.5 py-3 text-af-ink-2 hover:bg-af-sage hover:text-af-secondary disabled:opacity-40 transition"
-                                aria-label="Decrease farms"
+                                aria-label={t("onboarding.decreaseFarms")}
                               >
                                 <Minus className="w-4 h-4" />
                               </button>
@@ -657,12 +719,12 @@ export default function OnboardingPage() {
                                 onClick={() => setNumFarms(form.numFarms + 1)}
                                 disabled={form.numFarms >= 6}
                                 className="px-3.5 py-3 text-af-ink-2 hover:bg-af-sage hover:text-af-secondary disabled:opacity-40 transition"
-                                aria-label="Increase farms"
+                                aria-label={t("onboarding.increaseFarms")}
                               >
                                 <Plus className="w-4 h-4" />
                               </button>
                             </div>
-                            <span className="text-[11px] text-af-muted">Up to 6 farms</span>
+                            <span className="text-[11px] text-af-muted">{t("onboarding.upToSix")}</span>
                           </div>
                         </div>
                       </div>
@@ -678,23 +740,23 @@ export default function OnboardingPage() {
                                 <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-secondary text-xs font-bold">
                                   {idx + 1}
                                 </span>
-                                <div className="font-sans font-bold text-af-ink">Farm {idx + 1}</div>
+                                <div className="font-sans font-bold text-af-ink">{t("onboarding.farm.n", { n: idx + 1 })}</div>
                               </div>
                               <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-af-muted">
-                                Field Profile
+                                {t("onboarding.fieldProfile")}
                               </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <div className="space-y-1.5">
                                 <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-                                  Farm Area (Acres)
+                                  {t("onboarding.field.farmArea")}
                                 </label>
                                 <input
                                   value={f.area}
                                   onChange={(e) => updateFarm(idx, { area: e.target.value })}
                                   onBlur={() => markTouched(`farmArea-${idx}`)}
-                                  placeholder="e.g. 3.5"
+                                  placeholder={t("onboarding.field.farmAreaPlaceholder")}
                                   inputMode="decimal"
                                   aria-invalid={Boolean(shown(`farmArea-${idx}`, farmAreaErrors[idx]))}
                                   className={`w-full rounded-[14px] bg-af-card border px-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 transition ${
@@ -709,14 +771,14 @@ export default function OnboardingPage() {
                               </div>
 
                               <TerraSelect
-                                label="Soil Type"
+                                label={t("onboarding.field.soilType")}
                                 value={f.soilType}
                                 onValueChange={(v) => updateFarm(idx, { soilType: v })}
                                 options={soilOptions}
                               />
 
                               <TerraSelect
-                                label="Irrigation"
+                                label={t("onboarding.field.irrigation")}
                                 value={f.irrigation}
                                 onValueChange={(v) => updateFarm(idx, { irrigation: v })}
                                 options={irrigationOptions}
@@ -732,7 +794,7 @@ export default function OnboardingPage() {
                           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-6 py-3.5 text-sm font-bold text-af-ink transition active:scale-[0.98]"
                         >
                           <ArrowLeft className="w-4 h-4" />
-                          Back
+                          {t("onboarding.back")}
                         </button>
 
                         <button
@@ -743,12 +805,12 @@ export default function OnboardingPage() {
                           {loadingAI ? (
                             <>
                               <Loader2 className="w-4 h-4 animate-spin" />
-                              Analyzing farms...
+                              {t("onboarding.analyzingFarms")}
                             </>
                           ) : (
                             <>
                               <Sparkles className="w-4 h-4" />
-                              Proceed to Crop Selection
+                              {t("onboarding.proceedToCropSelection")}
                             </>
                           )}
                         </button>
@@ -762,16 +824,16 @@ export default function OnboardingPage() {
                   <>
                     <HeaderBlock
                       step="03"
-                      title="Crop Recommendations"
-                      subtitle="AI Crop Selection"
-                      hint="AI generated 3 options per farm — pick one or type your own."
+                      title={t("onboarding.step3.title")}
+                      subtitle={t("onboarding.step3.subtitle")}
+                      hint={t("onboarding.step3.hint")}
                       accent="ai"
                     />
 
                     <div className="mt-6 flex items-start gap-2 rounded-[16px] bg-af-ai-soft border border-af-ai/15 px-4 py-3">
                       <BadgeCheck className="w-4 h-4 text-af-ai mt-0.5 shrink-0" />
                       <div className="text-sm text-af-ink-2 leading-relaxed">
-                        Choose a crop for each farm, then set a seeding date. You can override with a custom crop anytime.
+                        {t("onboarding.step3.instructions")}
                       </div>
                     </div>
 
@@ -792,14 +854,15 @@ export default function OnboardingPage() {
                                     {idx + 1}
                                   </span>
                                   <div>
-                                    <div className="font-sans font-bold text-af-ink">Farm {idx + 1}</div>
+                                    <div className="font-sans font-bold text-af-ink">{t("onboarding.farm.n", { n: idx + 1 })}</div>
                                     <div className="text-xs text-af-muted">
-                                      {f.soilType} · {f.irrigation} · {f.area} acres
+                                      {(SOIL_TYPE_KEYS[f.soilType] ? t(SOIL_TYPE_KEYS[f.soilType]) : f.soilType)} ·{" "}
+                                      {(IRRIGATION_TYPE_KEYS[f.irrigation] ? t(IRRIGATION_TYPE_KEYS[f.irrigation]) : f.irrigation)} · {f.area} {t("onboarding.acresUnit")}
                                     </div>
                                   </div>
                                 </div>
                                 <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-af-muted">
-                                  3 AI Options
+                                  {t("onboarding.threeAiOptions")}
                                 </div>
                               </div>
 
@@ -807,7 +870,7 @@ export default function OnboardingPage() {
                                 <div className="flex items-start gap-2 rounded-[16px] bg-af-danger/8 border border-af-danger/20 px-4 py-3">
                                   <AlertTriangle className="w-4 h-4 text-af-danger mt-0.5 shrink-0" />
                                   <div className="text-sm text-af-ink-2">
-                                    AI recommendations not available for this farm. You can enter a custom crop below.
+                                    {t("onboarding.noAiRecs")}
                                   </div>
                                 </div>
                               ) : (
@@ -837,23 +900,23 @@ export default function OnboardingPage() {
                               <div className="space-y-4 pt-1">
                                 <div className="space-y-1.5">
                                   <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-                                    Custom Crop (optional)
+                                    {t("onboarding.field.customCrop")}
                                   </label>
                                   <input
                                     value={sel?.customCrop ?? ""}
                                     onChange={(e) => updateSelection(idx, { customCrop: e.target.value })}
-                                    placeholder="Type your own crop..."
+                                    placeholder={t("onboarding.field.customCropPlaceholder")}
                                     className="w-full rounded-[14px] bg-af-card border border-af-border px-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
                                   />
                                   <div className="text-[11px] text-af-muted">
-                                    If you type here, it overrides the AI selection.
+                                    {t("onboarding.customCropOverrideNote")}
                                   </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-1.5">
                                     <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-                                      Seeding Date
+                                      {t("onboarding.field.seedingDate")}
                                     </label>
                                     <input
                                       type="date"
@@ -865,7 +928,7 @@ export default function OnboardingPage() {
 
                                   <div className="space-y-1.5">
                                     <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-                                      Estimated Harvest Date
+                                      {t("onboarding.field.harvestDate")}
                                     </label>
                                     <input
                                       type="date"
@@ -878,8 +941,8 @@ export default function OnboardingPage() {
                                     />
                                     <div className="text-[11px] text-af-muted">
                                       {sel?.harvestTouched
-                                        ? "Your date — used for harvest countdowns."
-                                        : "Suggested from the crop cycle. Edit if you plan differently."}
+                                        ? t("onboarding.harvestDateTouchedNote")
+                                        : t("onboarding.harvestDateSuggestedNote")}
                                     </div>
                                   </div>
                                 </div>
@@ -899,23 +962,23 @@ export default function OnboardingPage() {
                           className="mt-1 h-4 w-4 accent-af-primary"
                         />
                         <div className="text-sm text-af-ink-2">
-                          I agree to the{" "}
+                          {t("onboarding.agreeToTerms")}{" "}
                           <button
                             type="button"
                             onClick={() => setShowTerms(true)}
                             className="font-semibold text-af-primary-deep underline underline-offset-2 hover:text-af-primary"
                           >
-                            Terms &amp; Conditions
+                            {t("onboarding.termsLink")}
                           </button>{" "}
-                          and the{" "}
+                          {t("onboarding.andThe")}{" "}
                           <button
                             type="button"
                             onClick={() => setShowPrivacy(true)}
                             className="font-semibold text-af-primary-deep underline underline-offset-2 hover:text-af-primary"
                           >
-                            Privacy Policy
+                            {t("onboarding.privacyLink")}
                           </button>
-                          , and consent to AI-assisted recommendations, alerts, and decision support.
+                          {t("onboarding.consentSuffix")}
                         </div>
                       </label>
 
@@ -925,7 +988,7 @@ export default function OnboardingPage() {
                           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-6 py-3.5 text-sm font-bold text-af-ink transition active:scale-[0.98]"
                         >
                           <ArrowLeft className="w-4 h-4" />
-                          Back
+                          {t("onboarding.back")}
                         </button>
 
                         <button
@@ -933,7 +996,7 @@ export default function OnboardingPage() {
                           onClick={handleContinueDashboard}
                           className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-bold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                         >
-                          Continue to Dashboard <ArrowRight className="w-4 h-4" />
+                          {t("onboarding.continueToDashboard")} <ArrowRight className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -941,7 +1004,7 @@ export default function OnboardingPage() {
                 )}
 
                 <div className="mt-6 text-center text-xs text-af-muted">
-                  Tip: You can always change crops later from the dashboard.
+                  {t("onboarding.tipChangeLater")}
                 </div>
               </div>
             </div>
@@ -953,6 +1016,14 @@ export default function OnboardingPage() {
   );
 }
 
+export default function OnboardingPage() {
+  return (
+    <LanguageProvider>
+      <OnboardingContent />
+    </LanguageProvider>
+  );
+}
+
 /**
  * Step 0 of onboarding — register or sign in.
  *
@@ -961,6 +1032,7 @@ export default function OnboardingPage() {
  * login product the farmer was bounced to.
  */
 function AuthStep({ onAuthed }: { onAuthed: () => void | Promise<void> }) {
+  const { t } = useT();
   return (
     <div className="min-h-screen bg-af-bg text-af-ink">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[0.85fr_1.15fr]">
@@ -977,23 +1049,21 @@ function AuthStep({ onAuthed }: { onAuthed: () => void | Promise<void> }) {
             <div className="inline-flex items-center gap-2 self-start rounded-full bg-white/15 backdrop-blur border border-white/25 px-4 py-2">
               <Leaf className="w-4 h-4 text-white" />
               <span className="font-mono text-[10px] font-semibold tracking-[0.22em] uppercase text-white/90">
-                Agent Farmer · Get started
+                {t("onboarding.badge.getStarted")}
               </span>
             </div>
 
             <div className="max-w-md space-y-4">
               <h1 className="font-sans text-4xl font-semibold tracking-[-0.03em] text-white leading-[1.05]">
-                Your farm, your account.
+                {t("onboarding.auth.title")}
               </h1>
               <p className="text-white/80 text-base leading-relaxed">
-                Create an account and set up your farms once. Everything after
-                that — crops, weather, expenses, disease scans — stays waiting
-                for you whenever you come back.
+                {t("onboarding.auth.sub")}
               </p>
             </div>
 
             <div className="text-white/55 font-mono text-[10px] tracking-[0.22em] uppercase">
-              private by design · one account per farmer
+              {t("login.footer.tag")}
             </div>
           </div>
         </div>
@@ -1008,15 +1078,14 @@ function AuthStep({ onAuthed }: { onAuthed: () => void | Promise<void> }) {
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-af-ink-2 hover:text-af-primary transition"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back to Home
+                {t("login.backHome")}
               </Link>
             </div>
 
             <div className="rounded-[28px] bg-af-card border border-af-border shadow-af-float p-7 sm:p-8">
               <AuthPanel onAuthed={onAuthed} />
               <p className="mt-6 text-center text-xs text-af-muted">
-                By continuing you agree to our Terms &amp; Conditions and consent
-                to AI-assisted decision support.
+                {t("login.legal")}
               </p>
             </div>
           </div>
@@ -1027,6 +1096,7 @@ function AuthStep({ onAuthed }: { onAuthed: () => void | Promise<void> }) {
 }
 
 function Stepper({ current }: { current: number }) {
+  const { t } = useT();
   return (
     <div className="flex items-center">
       {STEPS.map((s, i) => {
@@ -1052,7 +1122,7 @@ function Stepper({ current }: { current: number }) {
                   active || done ? "text-af-ink" : "text-af-muted"
                 }`}
               >
-                {s.label}
+                {t(s.labelKey)}
               </div>
             </div>
             {i < STEPS.length - 1 && (
@@ -1082,12 +1152,13 @@ function HeaderBlock({
   hint: string;
   accent?: "ai" | "primary";
 }) {
+  const { t } = useT();
   const accentText = accent === "ai" ? "text-af-ai" : "text-af-primary-deep";
   return (
     <div className="space-y-2">
       <div className="inline-flex items-center gap-2 rounded-full bg-af-bg border border-af-border px-3.5 py-1.5">
         <span className={`font-mono text-[10px] font-bold tracking-[0.2em] uppercase ${accentText}`}>
-          Step {step}
+          {t("onboarding.stepLabel")} {step}
         </span>
         <span className="text-sm text-af-ink-2">{subtitle}</span>
       </div>

@@ -26,6 +26,15 @@ const catTone: Record<string, "primary" | "ai" | "amber" | "sage"> = {
   Advisory: "sage",
 };
 
+const catLabelKey: Record<string, string> = {
+  All: "schemesBoard.category.all",
+  "Income Support": "schemesBoard.category.incomeSupport",
+  Insurance: "schemesBoard.category.insurance",
+  Credit: "schemesBoard.category.credit",
+  Subsidy: "schemesBoard.category.subsidy",
+  Advisory: "schemesBoard.category.advisory",
+};
+
 type Match = { headline: string; matches: { id: string; why: string }[] };
 
 export default function SchemesBoard({
@@ -35,7 +44,7 @@ export default function SchemesBoard({
   schemes: Scheme[];
   profile: string;
 }) {
-  const { locale } = useT();
+  const { locale, t } = useT();
   const [cat, setCat] = useState<(typeof CATS)[number]>("All");
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -98,7 +107,7 @@ export default function SchemesBoard({
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1.5">
             <Landmark className="w-3.5 h-3.5 text-af-sage" />
             <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-white/90">
-              Recommended schemes for your farm
+              {t("schemesBoard.recommendedFor")}
             </span>
           </div>
           {loadingMatch ? (
@@ -123,7 +132,7 @@ export default function SchemesBoard({
               </div>
             </>
           ) : (
-            <p className="mt-4 text-sm text-white/70">Match unavailable right now — browse all schemes below.</p>
+            <p className="mt-4 text-sm text-white/70">{t("schemesBoard.matchUnavailable")}</p>
           )}
         </div>
       </div>
@@ -138,7 +147,7 @@ export default function SchemesBoard({
               cat === c ? "bg-af-primary text-white shadow-af-sm" : "bg-af-card border border-af-border text-af-ink-2 hover:text-af-ink"
             }`}
           >
-            {c}
+            {t(catLabelKey[c])}
           </button>
         ))}
       </div>
@@ -159,7 +168,7 @@ export default function SchemesBoard({
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="text-[15px] font-semibold text-af-ink truncate">{s.name}</h3>
-                      {isMatch && <Badge tone="primary">Recommended</Badge>}
+                      {isMatch && <Badge tone="primary">{t("schemesBoard.recommended")}</Badge>}
                     </div>
                     <div className="text-[12px] text-af-muted truncate">{s.short}</div>
                   </div>
@@ -175,7 +184,7 @@ export default function SchemesBoard({
               </div>
 
               <div className="mt-3 flex items-center gap-2 flex-wrap">
-                <Badge tone={catTone[s.category]}>{s.category}</Badge>
+                <Badge tone={catTone[s.category]}>{catLabelKey[s.category] ? t(catLabelKey[s.category]) : s.category}</Badge>
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-af-ink-2">
                   <CalendarClock className="w-3.5 h-3.5 text-af-amber" /> {s.deadline}
                 </span>
@@ -193,14 +202,14 @@ export default function SchemesBoard({
               {isOpen && (
                 <div className="mt-3 rounded-[12px] bg-af-bg border border-af-border p-3">
                   <div className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted mb-1.5">
-                    Eligibility
+                    {t("schemesBoard.eligibility")}
                   </div>
                   <ul className="text-[12px] text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
                     {s.eligibility.map((e, i) => (
                       <li key={i}>{e}</li>
                     ))}
                   </ul>
-                  <div className="mt-2 text-[11px] text-af-muted">Authority: {s.authority}</div>
+                  <div className="mt-2 text-[11px] text-af-muted">{t("schemesBoard.authority", { authority: s.authority })}</div>
                 </div>
               )}
 
@@ -209,7 +218,7 @@ export default function SchemesBoard({
                   onClick={() => setExpanded(isOpen ? null : s.id)}
                   className="inline-flex items-center gap-1 text-meta font-semibold text-af-ink-2 hover:text-af-ink transition"
                 >
-                  {isOpen ? "Hide details" : "Eligibility"}
+                  {isOpen ? t("schemesBoard.hideDetails") : t("schemesBoard.eligibility")}
                   <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </button>
                 <a
@@ -218,7 +227,7 @@ export default function SchemesBoard({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-[10px] bg-af-primary hover:bg-af-primary-deep text-white px-3.5 py-2 text-meta font-semibold transition"
                 >
-                  Apply <ExternalLink className="w-3.5 h-3.5" />
+                  {t("schemesBoard.apply")} <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </Card>

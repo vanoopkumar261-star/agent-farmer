@@ -30,6 +30,7 @@ import {
 
 import { useState } from "react";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 type Profile = {
   id: string;
@@ -48,6 +49,7 @@ export default function DataPrivacyModal({
   profile: Profile;
   onClose: () => void;
 }) {
+  const { t } = useT();
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [deletionRequested, setDeletionRequested] = useState(false);
@@ -70,9 +72,9 @@ export default function DataPrivacyModal({
                 <ShieldCheck className="w-5 h-5 text-af-secondary" />
               </div>
               <div>
-                <h2 className="font-sans text-lg font-semibold text-af-ink">Data &amp; Privacy</h2>
+                <h2 className="font-sans text-lg font-semibold text-af-ink">{t("dataPrivacyModal.title")}</h2>
                 <p className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
-                  Manage your data &amp; review policies
+                  {t("dataPrivacyModal.subtitle")}
                 </p>
               </div>
             </div>
@@ -90,39 +92,39 @@ export default function DataPrivacyModal({
             {/* Your data summary */}
             <div className="space-y-2">
               <div className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
-                Your Data on Agent Farmer
+                {t("dataPrivacyModal.yourData")}
               </div>
 
               <div className="rounded-[16px] bg-af-bg border border-af-border overflow-hidden">
                 <DataRow
                   icon={<User className="w-4 h-4 text-af-primary" />}
-                  label="Profile Information"
+                  label={t("dataPrivacyModal.profileInfoLabel")}
                   value={profile.name}
-                  desc="Name, phone, email, location"
+                  desc={t("dataPrivacyModal.profileInfoDesc")}
                 />
                 <DataRow
                   icon={<MapPin className="w-4 h-4 text-af-primary" />}
-                  label="Farm & Location Data"
-                  value="Stored"
-                  desc="Farm coordinates, area, soil type, crops"
+                  label={t("dataPrivacyModal.farmDataLabel")}
+                  value={t("dataPrivacyModal.farmDataValue")}
+                  desc={t("dataPrivacyModal.farmDataDesc")}
                 />
                 <DataRow
                   icon={<Sparkles className="w-4 h-4 text-af-ai" />}
-                  label="AI Interaction History"
-                  value="Active"
-                  desc="Chat history, crop recommendations"
+                  label={t("dataPrivacyModal.aiHistoryLabel")}
+                  value={t("dataPrivacyModal.aiHistoryValue")}
+                  desc={t("dataPrivacyModal.aiHistoryDesc")}
                 />
                 <DataRow
                   icon={<TrendingUp className="w-4 h-4 text-af-primary-deep" />}
-                  label="Market & Expense Data"
-                  value="Tracked"
-                  desc="Expense entries, market queries"
+                  label={t("dataPrivacyModal.marketDataLabel")}
+                  value={t("dataPrivacyModal.marketDataValue")}
+                  desc={t("dataPrivacyModal.marketDataDesc")}
                 />
                 <DataRow
                   icon={<Bug className="w-4 h-4 text-af-amber" />}
-                  label="Disease Scan Images"
-                  value="Processed"
-                  desc="Uploaded leaf photos for AI analysis"
+                  label={t("dataPrivacyModal.diseaseDataLabel")}
+                  value={t("dataPrivacyModal.diseaseDataValue")}
+                  desc={t("dataPrivacyModal.diseaseDataDesc")}
                   last
                 />
               </div>
@@ -132,24 +134,24 @@ export default function DataPrivacyModal({
             <div className="rounded-[16px] bg-af-primary/5 border border-af-primary/15 px-4 py-3 space-y-2">
               <div className="flex items-center gap-2">
                 <Lock className="w-4 h-4 text-af-primary shrink-0" />
-                <span className="text-sm font-semibold text-af-ink">How we protect your data</span>
+                <span className="text-sm font-semibold text-af-ink">{t("dataPrivacyModal.protectTitle")}</span>
               </div>
               <ul className="text-[12px] text-af-ink-2 space-y-1.5 pl-6">
                 <li className="flex items-start gap-2">
                   <Server className="w-3 h-3 text-af-primary shrink-0 mt-0.5" />
-                  Stored securely via <strong>Supabase</strong> with row-level security (RLS)
+                  {t("dataPrivacyModal.protect1")}
                 </li>
                 <li className="flex items-start gap-2">
                   <ShieldCheck className="w-3 h-3 text-af-primary shrink-0 mt-0.5" />
-                  We <strong>never sell</strong> your personal data to third parties
+                  {t("dataPrivacyModal.protect2")}
                 </li>
                 <li className="flex items-start gap-2">
                   <Database className="w-3 h-3 text-af-primary shrink-0 mt-0.5" />
-                  Anonymized data may be used to improve AI model accuracy
+                  {t("dataPrivacyModal.protect3")}
                 </li>
                 <li className="flex items-start gap-2">
                   <Eye className="w-3 h-3 text-af-primary shrink-0 mt-0.5" />
-                  Location data used only for weather &amp; store locator features
+                  {t("dataPrivacyModal.protect4")}
                 </li>
               </ul>
             </div>
@@ -157,7 +159,7 @@ export default function DataPrivacyModal({
             {/* Policy documents */}
             <div className="space-y-2">
               <div className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
-                Legal Documents
+                {t("dataPrivacyModal.legalDocs")}
               </div>
               <div className="space-y-2">
                 <button
@@ -168,10 +170,10 @@ export default function DataPrivacyModal({
                     <FileText className="w-4 h-4 text-af-ai" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-af-ink">Terms &amp; Conditions</div>
-                    <div className="text-[11px] text-af-muted">21 sections · Last updated 08/08/2026</div>
+                    <div className="text-sm font-semibold text-af-ink">{t("dataPrivacyModal.terms")}</div>
+                    <div className="text-[11px] text-af-muted">{t("dataPrivacyModal.termsMeta")}</div>
                   </div>
-                  <span className="text-[12px] font-semibold text-af-primary">View →</span>
+                  <span className="text-[12px] font-semibold text-af-primary">{t("dataPrivacyModal.view")}</span>
                 </button>
 
                 <button
@@ -182,10 +184,10 @@ export default function DataPrivacyModal({
                     <ShieldCheck className="w-4 h-4 text-af-ai" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-af-ink">Privacy Policy</div>
-                    <div className="text-[11px] text-af-muted">23 sections · Last updated 08/08/2026</div>
+                    <div className="text-sm font-semibold text-af-ink">{t("dataPrivacyModal.privacy")}</div>
+                    <div className="text-[11px] text-af-muted">{t("dataPrivacyModal.privacyMeta")}</div>
                   </div>
-                  <span className="text-[12px] font-semibold text-af-primary">View →</span>
+                  <span className="text-[12px] font-semibold text-af-primary">{t("dataPrivacyModal.view")}</span>
                 </button>
               </div>
             </div>
@@ -193,7 +195,7 @@ export default function DataPrivacyModal({
             {/* Data deletion */}
             <div className="space-y-2">
               <div className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
-                Data Management
+                {t("dataPrivacyModal.dataManagement")}
               </div>
 
               {!deletionRequested ? (
@@ -207,9 +209,9 @@ export default function DataPrivacyModal({
                         <Trash2 className="w-4 h-4 text-af-danger" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold text-af-danger">Request Data Deletion</div>
+                        <div className="text-sm font-semibold text-af-danger">{t("dataPrivacyModal.requestDeletion")}</div>
                         <div className="text-[11px] text-af-muted">
-                          Permanently delete your account and all associated data
+                          {t("dataPrivacyModal.requestDeletionDesc")}
                         </div>
                       </div>
                     </button>
@@ -218,9 +220,8 @@ export default function DataPrivacyModal({
                       <div className="flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-af-danger shrink-0 mt-0.5" />
                         <div className="text-[13px] text-af-ink leading-relaxed">
-                          <strong className="text-af-danger">Are you sure?</strong> This will permanently
-                          delete your profile, all farms, crop data, expense records, chat history, and
-                          disease scan images. This action cannot be undone.
+                          <strong className="text-af-danger">{t("dataPrivacyModal.confirmQuestion")}</strong>{" "}
+                          {t("dataPrivacyModal.confirmBody")}
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -228,7 +229,7 @@ export default function DataPrivacyModal({
                           onClick={() => setShowDeleteConfirm(false)}
                           className="flex-1 inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-card border border-af-border px-4 py-2.5 text-sm font-semibold text-af-ink transition active:scale-[0.98]"
                         >
-                          Cancel
+                          {t("dashboard.cancel")}
                         </button>
                         <button
                           onClick={() => {
@@ -238,7 +239,7 @@ export default function DataPrivacyModal({
                           className="flex-1 inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-danger hover:bg-af-danger/90 text-white px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98]"
                         >
                           <Trash2 className="w-4 h-4" />
-                          Confirm Deletion
+                          {t("dataPrivacyModal.confirmDeletion")}
                         </button>
                       </div>
                     </div>
@@ -248,9 +249,8 @@ export default function DataPrivacyModal({
                 <div className="flex items-start gap-2.5 rounded-[14px] bg-af-primary/5 border border-af-primary/15 px-4 py-3">
                   <BadgeCheck className="w-4 h-4 text-af-primary shrink-0 mt-0.5" />
                   <div className="text-[13px] text-af-ink-2">
-                    <strong className="text-af-ink">Deletion request submitted.</strong>{" "}
-                    Your data will be reviewed and deleted within 30 days per our retention
-                    policy. You&apos;ll receive confirmation via email.
+                    <strong className="text-af-ink">{t("dataPrivacyModal.deletionSubmitted")}</strong>{" "}
+                    {t("dataPrivacyModal.deletionBody")}
                   </div>
                 </div>
               )}
@@ -265,7 +265,7 @@ export default function DataPrivacyModal({
               className="inline-flex items-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md"
             >
               <Check className="w-4 h-4" />
-              Done
+              {t("dashboard.done")}
             </button>
           </div>
         </div>
@@ -282,9 +282,9 @@ function DataRow({
   last,
 }: {
   icon: React.ReactNode;
-  label: string;
-  value: string;
-  desc: string;
+  label: React.ReactNode;
+  value: React.ReactNode;
+  desc: React.ReactNode;
   last?: boolean;
 }) {
   return (

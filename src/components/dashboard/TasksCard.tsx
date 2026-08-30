@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
 import { persistTaskDone, loadDoneKeys } from "@/lib/tasks";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 export type Task = {
   key?: string;
@@ -19,6 +20,7 @@ const toneMap = {
 };
 
 export default function TasksCard({ tasks, farmerId }: { tasks: Task[]; farmerId?: string }) {
+  const { t } = useT();
   const keyOf = (t: Task, i: number) => t.key ?? String(i);
 
   const [done, setDone] = useState<Record<string, boolean>>(() =>
@@ -60,7 +62,7 @@ export default function TasksCard({ tasks, farmerId }: { tasks: Task[]; farmerId
     <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-af-muted">
-          Today&apos;s Tasks
+          {t("tasksCard.title")}
         </span>
         <span className="font-mono text-[11px] font-semibold text-af-ink-2">
           {doneCount}/{tasks.length}
@@ -68,7 +70,7 @@ export default function TasksCard({ tasks, farmerId }: { tasks: Task[]; farmerId
       </div>
 
       {tasks.length === 0 ? (
-        <div className="text-sm text-af-muted">No tasks right now — you&apos;re all caught up.</div>
+        <div className="text-sm text-af-muted">{t("tasksCard.empty")}</div>
       ) : (
         <ul className="space-y-1">
           {tasks.map((t, i) => {

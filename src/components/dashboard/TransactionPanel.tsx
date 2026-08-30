@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, Txn } from "@/lib/expenses";
 import Card from "@/components/ui/Card";
 import { Plus, Trash2, ArrowDownRight, ArrowUpRight, Loader2, Receipt } from "lucide-react";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -21,6 +22,7 @@ export default function TransactionPanel({
   txns: Txn[];
 }) {
   const router = useRouter();
+  const { t } = useT();
   const [kind, setKind] = useState<"expense" | "income">("expense");
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
   const [desc, setDesc] = useState("");
@@ -53,7 +55,7 @@ export default function TransactionPanel({
     ]);
     setSaving(false);
     if (error) {
-      alert("Could not save transaction.");
+      alert(t("transactionPanel.saveError"));
       return;
     }
     setDesc("");
@@ -66,7 +68,7 @@ export default function TransactionPanel({
     const { error } = await supabase.from("farm_expenses").delete().eq("id", id);
     setDeletingId(null);
     if (error) {
-      alert("Could not delete.");
+      alert(t("transactionPanel.deleteError"));
       return;
     }
     router.refresh();
@@ -80,7 +82,7 @@ export default function TransactionPanel({
           <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
             <Plus className="w-4 h-4" />
           </span>
-          <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Add Transaction</h2>
+          <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">{t("transactionPanel.addTransaction")}</h2>
         </div>
 
         <form onSubmit={add} className="space-y-4">
@@ -93,7 +95,7 @@ export default function TransactionPanel({
                 kind === "expense" ? "bg-af-card text-af-danger shadow-af-sm" : "text-af-muted"
               }`}
             >
-              <ArrowDownRight className="w-4 h-4" /> Expense
+              <ArrowDownRight className="w-4 h-4" /> {t("transactionPanel.expense")}
             </button>
             <button
               type="button"
@@ -102,11 +104,11 @@ export default function TransactionPanel({
                 kind === "income" ? "bg-af-card text-af-primary-deep shadow-af-sm" : "text-af-muted"
               }`}
             >
-              <ArrowUpRight className="w-4 h-4" /> Income
+              <ArrowUpRight className="w-4 h-4" /> {t("transactionPanel.income")}
             </button>
           </div>
 
-          <Labeled label="Category">
+          <Labeled label={t("transactionPanel.category")}>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -118,17 +120,17 @@ export default function TransactionPanel({
             </select>
           </Labeled>
 
-          <Labeled label="Description">
+          <Labeled label={t("transactionPanel.description")}>
             <input
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
-              placeholder="e.g. DAP fertilizer"
+              placeholder={t("transactionPanel.descPlaceholder")}
               className="w-full rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
             />
           </Labeled>
 
           <div className="grid grid-cols-2 gap-3">
-            <Labeled label="Amount (₹)">
+            <Labeled label={t("transactionPanel.amount")}>
               <input
                 type="number"
                 value={amount}
@@ -137,7 +139,7 @@ export default function TransactionPanel({
                 className="w-full rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
               />
             </Labeled>
-            <Labeled label="Date">
+            <Labeled label={t("transactionPanel.date")}>
               <input
                 type="date"
                 value={date}
@@ -153,7 +155,7 @@ export default function TransactionPanel({
             className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            Add {kind === "expense" ? "Expense" : "Income"}
+            {kind === "expense" ? t("transactionPanel.addExpense") : t("transactionPanel.addIncome")}
           </button>
         </form>
       </Card>
@@ -165,14 +167,14 @@ export default function TransactionPanel({
             <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
               <Receipt className="w-4 h-4" />
             </span>
-            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Ledger</h2>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">{t("transactionPanel.ledger")}</h2>
           </div>
-          <span className="font-mono text-[11px] font-semibold text-af-muted">{txns.length} entries</span>
+          <span className="font-mono text-[11px] font-semibold text-af-muted">{t("transactionPanel.entries", { n: txns.length })}</span>
         </div>
 
         {txns.length === 0 ? (
           <div className="py-12 text-center text-sm text-af-muted">
-            No transactions yet — add your first on the left.
+            {t("transactionPanel.noTxns")}
           </div>
         ) : (
           <ul className="divide-y divide-af-border max-h-[460px] overflow-auto -mr-1 pr-1">

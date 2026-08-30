@@ -333,8 +333,8 @@ function Footer() {
     {
       head: t("l.foot.resources"),
       links: [
-        { label: "Terms & Conditions", onClick: () => setLegal("terms") },
-        { label: "Privacy Policy", onClick: () => setLegal("privacy") },
+        { label: t("onboarding.termsLink"), onClick: () => setLegal("terms") },
+        { label: t("onboarding.privacyLink"), onClick: () => setLegal("privacy") },
       ],
     },
   ];

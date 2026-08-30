@@ -22,11 +22,11 @@ export default async function CropsPage() {
         <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm">
           <EmptyState
             icon={<Sprout className="w-6 h-6" />}
-            title="No crops yet"
-            body="Register a farm and pick crops to see them here."
+            title={<T k="crops.empty.title" />}
+            body={<T k="crops.empty.body" />}
             action={
               <Link href="/onboarding" className="inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold">
-                Start Onboarding
+                <T k="dashboard.home.startOnboarding" />
               </Link>
             }
           />
@@ -60,22 +60,22 @@ export default async function CropsPage() {
         </span>
         <div>
           <h1 className="text-heading font-semibold text-af-ink"><T k="title.crops" /></h1>
-          <p className="mt-0.5 text-sm text-af-ink-2">Every field, its stage, and the road to harvest.</p>
+          <p className="mt-0.5 text-sm text-af-ink-2"><T k="crops.subtitle" /></p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Reveal index={0}>
-          <StatTile icon={<Sprout className="w-[18px] h-[18px]" />} label="Active Crops" value={withCrop.length} spark={Array(6).fill(withCrop.length)} />
+          <StatTile icon={<Sprout className="w-[18px] h-[18px]" />} label={<T k="crops.stat.activeCrops" />} value={withCrop.length} spark={Array(6).fill(withCrop.length)} />
         </Reveal>
         <Reveal index={1}>
-          <StatTile icon={<Ruler className="w-[18px] h-[18px]" />} label="Total Area" value={totalArea} suffix=" ac" spark={Array(6).fill(totalArea)} />
+          <StatTile icon={<Ruler className="w-[18px] h-[18px]" />} label={<T k="crops.stat.totalArea" />} value={totalArea} suffix=" ac" spark={Array(6).fill(totalArea)} />
         </Reveal>
         <Reveal index={2}>
-          <StatTile icon={<Layers className="w-[18px] h-[18px]" />} label="Farms" value={farms.length} sparkColor={SERIES.market} spark={Array(6).fill(farms.length)} />
+          <StatTile icon={<Layers className="w-[18px] h-[18px]" />} label={<T k="crops.stat.farms" />} value={farms.length} sparkColor={SERIES.market} spark={Array(6).fill(farms.length)} />
         </Reveal>
         <Reveal index={3}>
-          <StatTile icon={<CalendarClock className="w-[18px] h-[18px]" />} label="Next Harvest" value={nextHarvestDays} suffix=" d" sparkColor={SERIES.expense} spark={Array(6).fill(nextHarvestDays)} />
+          <StatTile icon={<CalendarClock className="w-[18px] h-[18px]" />} label={<T k="crops.stat.nextHarvest" />} value={nextHarvestDays} suffix=" d" sparkColor={SERIES.expense} spark={Array(6).fill(nextHarvestDays)} />
         </Reveal>
       </div>
 

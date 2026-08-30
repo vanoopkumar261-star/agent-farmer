@@ -51,6 +51,24 @@ const en: Dict = {
   "l.foot.company": "Company",
   "l.foot.resources": "Resources",
   "l.foot.rights": "All rights reserved.",
+  "l.find.feedback": "Feedback",
+  "l.find.feedbackSub": "Tell us what would make Agent Farmer more useful on your farm.",
+  "l.find.emailPlaceholder": "Your email*",
+  "l.find.emailLabel": "Your email",
+  "l.find.messagePlaceholder": "Your feedback*",
+  "l.find.messageLabel": "Your feedback",
+  "l.find.consent":
+    "I agree that Agent Farmer may store my email and message in order to respond to this feedback.",
+  "l.find.submit": "Submit",
+  "l.find.sending": "Sending",
+  "l.find.disclaimer": "Agent Farmer stores your information only to respond to your request.",
+  "l.find.sentTitle": "Thank you — we have it.",
+  "l.find.sentNotified": "Your feedback is saved and the team has been notified.",
+  "l.find.sentUnnotified": "Your feedback is saved. We'll read it as soon as we can.",
+  "l.find.sendAnother": "Send another",
+  "l.find.errorGeneric": "Something went wrong. Please try again.",
+  "l.find.errorNetwork": "Network error. Please try again.",
+  "l.find.mapHeading": "Where you can find us",
 };
 
 const hi: Dict = {
@@ -93,6 +111,24 @@ const hi: Dict = {
   "l.foot.company": "कंपनी",
   "l.foot.resources": "संसाधन",
   "l.foot.rights": "सर्वाधिकार सुरक्षित।",
+  "l.find.feedback": "प्रतिक्रिया",
+  "l.find.feedbackSub": "हमें बताएं कि एजेंट फार्मर आपके खेत पर और किस तरह उपयोगी हो सकता है।",
+  "l.find.emailPlaceholder": "आपका ईमेल*",
+  "l.find.emailLabel": "आपका ईमेल",
+  "l.find.messagePlaceholder": "आपकी प्रतिक्रिया*",
+  "l.find.messageLabel": "आपकी प्रतिक्रिया",
+  "l.find.consent":
+    "मैं सहमत हूँ कि इस प्रतिक्रिया का उत्तर देने के लिए एजेंट फार्मर मेरा ईमेल और संदेश सहेज सकता है।",
+  "l.find.submit": "भेजें",
+  "l.find.sending": "भेजा जा रहा है",
+  "l.find.disclaimer": "एजेंट फार्मर आपकी जानकारी केवल आपके अनुरोध का उत्तर देने के लिए रखता है।",
+  "l.find.sentTitle": "धन्यवाद — हमें आपकी बात मिल गई।",
+  "l.find.sentNotified": "आपकी प्रतिक्रिया सहेज ली गई है और टीम को सूचित कर दिया गया है।",
+  "l.find.sentUnnotified": "आपकी प्रतिक्रिया सहेज ली गई है। हम इसे जल्द से जल्द पढ़ेंगे।",
+  "l.find.sendAnother": "एक और भेजें",
+  "l.find.errorGeneric": "कुछ गड़बड़ हो गई। कृपया फिर से प्रयास करें।",
+  "l.find.errorNetwork": "नेटवर्क त्रुटि। कृपया फिर से प्रयास करें।",
+  "l.find.mapHeading": "हमें कहाँ पाएं",
 };
 
 const kn: Dict = {
@@ -135,6 +171,24 @@ const kn: Dict = {
   "l.foot.company": "ಕಂಪನಿ",
   "l.foot.resources": "ಸಂಪನ್ಮೂಲಗಳು",
   "l.foot.rights": "ಎಲ್ಲಾ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.",
+  "l.find.feedback": "ಪ್ರತಿಕ್ರಿಯೆ",
+  "l.find.feedbackSub": "ಏಜೆಂಟ್ ಫಾರ್ಮರ್ ನಿಮ್ಮ ಜಮೀನಿನಲ್ಲಿ ಇನ್ನಷ್ಟು ಉಪಯುಕ್ತವಾಗಲು ಏನು ಬೇಕು ಎಂದು ನಮಗೆ ತಿಳಿಸಿ.",
+  "l.find.emailPlaceholder": "ನಿಮ್ಮ ಇಮೇಲ್*",
+  "l.find.emailLabel": "ನಿಮ್ಮ ಇಮೇಲ್",
+  "l.find.messagePlaceholder": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ*",
+  "l.find.messageLabel": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ",
+  "l.find.consent":
+    "ಈ ಪ್ರತಿಕ್ರಿಯೆಗೆ ಉತ್ತರಿಸಲು ಏಜೆಂಟ್ ಫಾರ್ಮರ್ ನನ್ನ ಇಮೇಲ್ ಮತ್ತು ಸಂದೇಶವನ್ನು ಸಂಗ್ರಹಿಸಬಹುದು ಎಂಬುದಕ್ಕೆ ನಾನು ಒಪ್ಪುತ್ತೇನೆ.",
+  "l.find.submit": "ಸಲ್ಲಿಸಿ",
+  "l.find.sending": "ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ",
+  "l.find.disclaimer": "ಏಜೆಂಟ್ ಫಾರ್ಮರ್ ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ನಿಮ್ಮ ವಿನಂತಿಗೆ ಉತ್ತರಿಸಲು ಮಾತ್ರ ಇರಿಸಿಕೊಳ್ಳುತ್ತದೆ.",
+  "l.find.sentTitle": "ಧನ್ಯವಾದಗಳು — ನಮಗೆ ಸಿಕ್ಕಿದೆ.",
+  "l.find.sentNotified": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ ಉಳಿಸಲಾಗಿದೆ ಮತ್ತು ತಂಡಕ್ಕೆ ತಿಳಿಸಲಾಗಿದೆ.",
+  "l.find.sentUnnotified": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ ಉಳಿಸಲಾಗಿದೆ. ನಾವು ಸಾಧ್ಯವಾದಷ್ಟು ಬೇಗ ಓದುತ್ತೇವೆ.",
+  "l.find.sendAnother": "ಇನ್ನೊಂದು ಕಳುಹಿಸಿ",
+  "l.find.errorGeneric": "ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "l.find.errorNetwork": "ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "l.find.mapHeading": "ನಮ್ಮನ್ನು ಎಲ್ಲಿ ಕಾಣಬಹುದು",
 };
 
 const ta: Dict = {
@@ -177,6 +231,24 @@ const ta: Dict = {
   "l.foot.company": "நிறுவனம்",
   "l.foot.resources": "வளங்கள்",
   "l.foot.rights": "அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.",
+  "l.find.feedback": "கருத்து",
+  "l.find.feedbackSub": "ஏஜென்ட் ஃபார்மர் உங்கள் பண்ணையில் இன்னும் பயனுள்ளதாக இருக்க என்ன தேவை என்று எங்களிடம் சொல்லுங்கள்.",
+  "l.find.emailPlaceholder": "உங்கள் மின்னஞ்சல்*",
+  "l.find.emailLabel": "உங்கள் மின்னஞ்சல்",
+  "l.find.messagePlaceholder": "உங்கள் கருத்து*",
+  "l.find.messageLabel": "உங்கள் கருத்து",
+  "l.find.consent":
+    "இந்தக் கருத்துக்கு பதிலளிக்க ஏஜென்ட் ஃபார்மர் எனது மின்னஞ்சலையும் செய்தியையும் சேமிக்கலாம் என்பதை நான் ஒப்புக்கொள்கிறேன்.",
+  "l.find.submit": "சமர்ப்பிக்கவும்",
+  "l.find.sending": "அனுப்பப்படுகிறது",
+  "l.find.disclaimer": "ஏஜென்ட் ஃபார்மர் உங்கள் தகவலை உங்கள் கோரிக்கைக்கு பதிலளிக்க மட்டுமே வைத்திருக்கும்.",
+  "l.find.sentTitle": "நன்றி — எங்களுக்குக் கிடைத்தது.",
+  "l.find.sentNotified": "உங்கள் கருத்து சேமிக்கப்பட்டது, குழுவுக்கும் தெரிவிக்கப்பட்டது.",
+  "l.find.sentUnnotified": "உங்கள் கருத்து சேமிக்கப்பட்டது. முடிந்தவரை விரைவில் படிப்போம்.",
+  "l.find.sendAnother": "மற்றொன்று அனுப்பு",
+  "l.find.errorGeneric": "ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.",
+  "l.find.errorNetwork": "நெட்வொர்க் பிழை. மீண்டும் முயற்சிக்கவும்.",
+  "l.find.mapHeading": "எங்களை எங்கே காணலாம்",
 };
 
 const te: Dict = {
@@ -219,6 +291,24 @@ const te: Dict = {
   "l.foot.company": "కంపెనీ",
   "l.foot.resources": "వనరులు",
   "l.foot.rights": "అన్ని హక్కులు సురక్షితం.",
+  "l.find.feedback": "అభిప్రాయం",
+  "l.find.feedbackSub": "ఏజెంట్ ఫార్మర్ మీ పొలంలో మరింత ఉపయోగకరంగా ఉండాలంటే ఏమి కావాలో మాకు తెలియజేయండి.",
+  "l.find.emailPlaceholder": "మీ ఇమెయిల్*",
+  "l.find.emailLabel": "మీ ఇమెయిల్",
+  "l.find.messagePlaceholder": "మీ అభిప్రాయం*",
+  "l.find.messageLabel": "మీ అభిప్రాయం",
+  "l.find.consent":
+    "ఈ అభిప్రాయానికి స్పందించడానికి ఏజెంట్ ఫార్మర్ నా ఇమెయిల్ మరియు సందేశాన్ని నిల్వ చేయవచ్చని నేను అంగీకరిస్తున్నాను.",
+  "l.find.submit": "సమర్పించండి",
+  "l.find.sending": "పంపుతోంది",
+  "l.find.disclaimer": "ఏజెంట్ ఫార్మర్ మీ సమాచారాన్ని మీ అభ్యర్థనకు స్పందించడానికి మాత్రమే ఉంచుతుంది.",
+  "l.find.sentTitle": "ధన్యవాదాలు — మాకు అందింది.",
+  "l.find.sentNotified": "మీ అభిప్రాయం సేవ్ చేయబడింది మరియు బృందానికి తెలియజేయబడింది.",
+  "l.find.sentUnnotified": "మీ అభిప్రాయం సేవ్ చేయబడింది. మేము వీలైనంత త్వరగా చదువుతాము.",
+  "l.find.sendAnother": "మరొకటి పంపండి",
+  "l.find.errorGeneric": "ఏదో తప్పు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "l.find.errorNetwork": "నెట్‌వర్క్ లోపం. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  "l.find.mapHeading": "మమ్మల్ని ఎక్కడ కనుగొనవచ్చు",
 };
 
 const ml: Dict = {
@@ -261,6 +351,24 @@ const ml: Dict = {
   "l.foot.company": "കമ്പനി",
   "l.foot.resources": "വിഭവങ്ങൾ",
   "l.foot.rights": "എല്ലാ അവകാശങ്ങളും സംരക്ഷിതം.",
+  "l.find.feedback": "പ്രതികരണം",
+  "l.find.feedbackSub": "ഏജന്റ് ഫാർമർ നിങ്ങളുടെ കൃഷിയിടത്ത് കൂടുതൽ ഉപയോഗപ്രദമാകാൻ എന്താണ് വേണ്ടതെന്ന് ഞങ്ങളോട് പറയൂ.",
+  "l.find.emailPlaceholder": "നിങ്ങളുടെ ഇമെയിൽ*",
+  "l.find.emailLabel": "നിങ്ങളുടെ ഇമെയിൽ",
+  "l.find.messagePlaceholder": "നിങ്ങളുടെ പ്രതികരണം*",
+  "l.find.messageLabel": "നിങ്ങളുടെ പ്രതികരണം",
+  "l.find.consent":
+    "ഈ പ്രതികരണത്തിന് മറുപടി നൽകാൻ ഏജന്റ് ഫാർമറിന് എന്റെ ഇമെയിലും സന്ദേശവും സൂക്ഷിക്കാമെന്ന് ഞാൻ സമ്മതിക്കുന്നു.",
+  "l.find.submit": "സമർപ്പിക്കുക",
+  "l.find.sending": "അയയ്ക്കുന്നു",
+  "l.find.disclaimer": "ഏജന്റ് ഫാർമർ നിങ്ങളുടെ വിവരങ്ങൾ നിങ്ങളുടെ അഭ്യർത്ഥനയ്ക്ക് മറുപടി നൽകാൻ മാത്രമേ സൂക്ഷിക്കൂ.",
+  "l.find.sentTitle": "നന്ദി — ഞങ്ങൾക്ക് ലഭിച്ചു.",
+  "l.find.sentNotified": "നിങ്ങളുടെ പ്രതികരണം സംരക്ഷിച്ചു, ടീമിനെ അറിയിച്ചിട്ടുമുണ്ട്.",
+  "l.find.sentUnnotified": "നിങ്ങളുടെ പ്രതികരണം സംരക്ഷിച്ചു. കഴിയുന്നത്ര വേഗം ഞങ്ങൾ വായിക്കും.",
+  "l.find.sendAnother": "മറ്റൊന്ന് അയയ്ക്കുക",
+  "l.find.errorGeneric": "എന്തോ കുഴപ്പം സംഭവിച്ചു. വീണ്ടും ശ്രമിക്കുക.",
+  "l.find.errorNetwork": "നെറ്റ്‌വർക്ക് പിശക്. വീണ്ടും ശ്രമിക്കുക.",
+  "l.find.mapHeading": "ഞങ്ങളെ എവിടെ കണ്ടെത്താം",
 };
 
 const mr: Dict = {
@@ -303,6 +411,24 @@ const mr: Dict = {
   "l.foot.company": "कंपनी",
   "l.foot.resources": "संसाधने",
   "l.foot.rights": "सर्व हक्क राखीव.",
+  "l.find.feedback": "अभिप्राय",
+  "l.find.feedbackSub": "एजंट फार्मर तुमच्या शेतावर आणखी उपयुक्त होण्यासाठी काय हवे ते आम्हाला सांगा.",
+  "l.find.emailPlaceholder": "तुमचा ईमेल*",
+  "l.find.emailLabel": "तुमचा ईमेल",
+  "l.find.messagePlaceholder": "तुमचा अभिप्राय*",
+  "l.find.messageLabel": "तुमचा अभिप्राय",
+  "l.find.consent":
+    "या अभिप्रायाला उत्तर देण्यासाठी एजंट फार्मर माझा ईमेल आणि संदेश साठवू शकतो याला मी सहमती देतो.",
+  "l.find.submit": "पाठवा",
+  "l.find.sending": "पाठवत आहे",
+  "l.find.disclaimer": "एजंट फार्मर तुमची माहिती फक्त तुमच्या विनंतीला उत्तर देण्यासाठी ठेवतो.",
+  "l.find.sentTitle": "धन्यवाद — आम्हाला मिळाले.",
+  "l.find.sentNotified": "तुमचा अभिप्राय जतन झाला आहे आणि टीमला कळवले आहे.",
+  "l.find.sentUnnotified": "तुमचा अभिप्राय जतन झाला आहे. आम्ही तो लवकरात लवकर वाचू.",
+  "l.find.sendAnother": "आणखी एक पाठवा",
+  "l.find.errorGeneric": "काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.",
+  "l.find.errorNetwork": "नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.",
+  "l.find.mapHeading": "आम्हाला कुठे शोधाल",
 };
 
 const bn: Dict = {
@@ -345,6 +471,24 @@ const bn: Dict = {
   "l.foot.company": "কোম্পানি",
   "l.foot.resources": "রিসোর্স",
   "l.foot.rights": "সর্বস্বত্ব সংরক্ষিত।",
+  "l.find.feedback": "মতামত",
+  "l.find.feedbackSub": "এজেন্ট ফার্মার আপনার খামারে আরও কার্যকর করতে কী দরকার তা আমাদের জানান।",
+  "l.find.emailPlaceholder": "আপনার ইমেল*",
+  "l.find.emailLabel": "আপনার ইমেল",
+  "l.find.messagePlaceholder": "আপনার মতামত*",
+  "l.find.messageLabel": "আপনার মতামত",
+  "l.find.consent":
+    "এই মতামতের উত্তর দিতে এজেন্ট ফার্মার আমার ইমেল ও বার্তা সংরক্ষণ করতে পারে বলে আমি সম্মত।",
+  "l.find.submit": "জমা দিন",
+  "l.find.sending": "পাঠানো হচ্ছে",
+  "l.find.disclaimer": "এজেন্ট ফার্মার আপনার তথ্য শুধুমাত্র আপনার অনুরোধের উত্তর দিতে রাখে।",
+  "l.find.sentTitle": "ধন্যবাদ — আমরা পেয়েছি।",
+  "l.find.sentNotified": "আপনার মতামত সংরক্ষিত হয়েছে এবং দলকে জানানো হয়েছে।",
+  "l.find.sentUnnotified": "আপনার মতামত সংরক্ষিত হয়েছে। আমরা যত দ্রুত সম্ভব পড়ব।",
+  "l.find.sendAnother": "আরেকটি পাঠান",
+  "l.find.errorGeneric": "কিছু একটা ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
+  "l.find.errorNetwork": "নেটওয়ার্ক ত্রুটি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+  "l.find.mapHeading": "আমাদের কোথায় পাবেন",
 };
 
 const pa: Dict = {
@@ -387,6 +531,24 @@ const pa: Dict = {
   "l.foot.company": "ਕੰਪਨੀ",
   "l.foot.resources": "ਸਰੋਤ",
   "l.foot.rights": "ਸਾਰੇ ਹੱਕ ਰਾਖਵੇਂ।",
+  "l.find.feedback": "ਫੀਡਬੈਕ",
+  "l.find.feedbackSub": "ਸਾਨੂੰ ਦੱਸੋ ਕਿ ਏਜੰਟ ਫਾਰਮਰ ਤੁਹਾਡੇ ਖੇਤ ਵਿੱਚ ਹੋਰ ਲਾਭਦਾਇਕ ਕਿਵੇਂ ਬਣ ਸਕਦਾ ਹੈ।",
+  "l.find.emailPlaceholder": "ਤੁਹਾਡਾ ਈਮੇਲ*",
+  "l.find.emailLabel": "ਤੁਹਾਡਾ ਈਮੇਲ",
+  "l.find.messagePlaceholder": "ਤੁਹਾਡਾ ਫੀਡਬੈਕ*",
+  "l.find.messageLabel": "ਤੁਹਾਡਾ ਫੀਡਬੈਕ",
+  "l.find.consent":
+    "ਮੈਂ ਸਹਿਮਤ ਹਾਂ ਕਿ ਇਸ ਫੀਡਬੈਕ ਦਾ ਜਵਾਬ ਦੇਣ ਲਈ ਏਜੰਟ ਫਾਰਮਰ ਮੇਰਾ ਈਮੇਲ ਅਤੇ ਸੁਨੇਹਾ ਸੰਭਾਲ ਸਕਦਾ ਹੈ।",
+  "l.find.submit": "ਭੇਜੋ",
+  "l.find.sending": "ਭੇਜਿਆ ਜਾ ਰਿਹਾ ਹੈ",
+  "l.find.disclaimer": "ਏਜੰਟ ਫਾਰਮਰ ਤੁਹਾਡੀ ਜਾਣਕਾਰੀ ਸਿਰਫ਼ ਤੁਹਾਡੀ ਬੇਨਤੀ ਦਾ ਜਵਾਬ ਦੇਣ ਲਈ ਰੱਖਦਾ ਹੈ।",
+  "l.find.sentTitle": "ਧੰਨਵਾਦ — ਸਾਨੂੰ ਮਿਲ ਗਿਆ।",
+  "l.find.sentNotified": "ਤੁਹਾਡਾ ਫੀਡਬੈਕ ਸੰਭਾਲ ਲਿਆ ਗਿਆ ਹੈ ਅਤੇ ਟੀਮ ਨੂੰ ਸੂਚਿਤ ਕਰ ਦਿੱਤਾ ਗਿਆ ਹੈ।",
+  "l.find.sentUnnotified": "ਤੁਹਾਡਾ ਫੀਡਬੈਕ ਸੰਭਾਲ ਲਿਆ ਗਿਆ ਹੈ। ਅਸੀਂ ਜਲਦੀ ਤੋਂ ਜਲਦੀ ਪੜ੍ਹਾਂਗੇ।",
+  "l.find.sendAnother": "ਇੱਕ ਹੋਰ ਭੇਜੋ",
+  "l.find.errorGeneric": "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+  "l.find.errorNetwork": "ਨੈੱਟਵਰਕ ਗਲਤੀ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+  "l.find.mapHeading": "ਸਾਨੂੰ ਕਿੱਥੇ ਲੱਭੋ",
 };
 
 export const LANDING: Record<Locale, Dict> = { en, hi, kn, ta, te, ml, mr, bn, pa };

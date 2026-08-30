@@ -4,6 +4,7 @@ import type { FarmWithCrop } from "@/lib/dashboard";
 import { cropStageFor, harvestInfo, stageTimelinePct, STAGE_LABELS } from "@/lib/agronomy";
 import HarvestDateEditor from "@/components/dashboard/HarvestDateEditor";
 import DeleteFarmButton from "@/components/dashboard/DeleteFarmButton";
+import { T } from "@/components/i18n/LanguageProvider";
 
 const STAGES = STAGE_LABELS;
 
@@ -19,8 +20,8 @@ export default function CropDetailCard({ farm, health: healthProp }: { farm: Far
               <Sprout className="w-[18px] h-[18px]" />
             </span>
             <div>
-              <div className="text-sm font-semibold text-af-ink">Farm {farm.farm_index}</div>
-              <div className="text-[12px] text-af-muted">No crop selected yet</div>
+              <div className="text-sm font-semibold text-af-ink"><T k="farmCard.title" params={{ n: farm.farm_index }} /></div>
+              <div className="text-[12px] text-af-muted"><T k="dashboard.stat.noCropSelected" /></div>
             </div>
           </div>
           {/* A cropless farm is the most likely leftover, so it needs the
@@ -54,16 +55,16 @@ export default function CropDetailCard({ farm, health: healthProp }: { farm: Far
             <div className="flex items-center gap-2">
               <h3 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink">{crop.chosen_crop}</h3>
               <span className="rounded-full bg-af-primary/10 text-af-primary-deep px-2.5 py-0.5 text-[11px] font-semibold">
-                Farm {farm.farm_index}
+                <T k="farmCard.title" params={{ n: farm.farm_index }} />
               </span>
             </div>
-            <div className="text-[12px] text-af-muted">Day {days} · {stage.label} stage</div>
+            <div className="text-[12px] text-af-muted"><T k="cropDetailCard.dayStage" params={{ n: days, stage: stage.label }} /></div>
           </div>
         </div>
         <div className="flex items-start gap-2">
           <div className="text-right">
             <div className="font-mono text-2xl font-semibold text-af-ink">{health}</div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-af-muted">Health</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-af-muted"><T k="cropDetailCard.health" /></div>
           </div>
           <DeleteFarmButton
             farmId={farm.id}
@@ -77,21 +78,21 @@ export default function CropDetailCard({ farm, health: healthProp }: { farm: Far
       <div className="mt-4 flex flex-wrap gap-2">
         <Chip icon={<Layers className="w-3 h-3" />} text={farm.soil_type} />
         <Chip icon={<Droplets className="w-3 h-3" />} text={farm.irrigation} />
-        <Chip icon={<CalendarDays className="w-3 h-3" />} text={`${farm.area} acres`} />
-        <Chip icon={<CalendarDays className="w-3 h-3" />} text={`Seeded ${crop.seeding_date}`} />
+        <Chip icon={<CalendarDays className="w-3 h-3" />} text={<T k="cropDetailCard.acres" params={{ n: farm.area }} />} />
+        <Chip icon={<CalendarDays className="w-3 h-3" />} text={<T k="farmCard.seeded" params={{ date: crop.seeding_date }} />} />
       </div>
 
       {/* growth timeline */}
       <div className="mt-6">
         <div className="flex items-center justify-between mb-3">
           <span className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
-            Growth Timeline
+            <T k="cropDetailCard.growthTimeline" />
           </span>
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-af-ink-2">
             <CalendarClock className="w-3.5 h-3.5 text-af-primary" />
-            {daysLeft > 0 ? `~${daysLeft} days to harvest` : "Ready to harvest"}
+            {daysLeft > 0 ? <T k="cropDetailCard.daysToHarvest" params={{ n: daysLeft }} /> : <T k="dashboard.readyToHarvest" />}
             <span className="text-af-muted">
-              · {estimated ? "Est." : "Planned"} {harvestLabel}
+              · <T k={estimated ? "dashboard.est" : "dashboard.planned"} /> {harvestLabel}
             </span>
           </span>
         </div>
@@ -137,7 +138,7 @@ export default function CropDetailCard({ farm, health: healthProp }: { farm: Far
   );
 }
 
-function Chip({ icon, text }: { icon: React.ReactNode; text: string }) {
+function Chip({ icon, text }: { icon: React.ReactNode; text: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-lg bg-af-bg border border-af-border px-2.5 py-1 text-[11px] font-semibold text-af-ink-2">
       {icon}

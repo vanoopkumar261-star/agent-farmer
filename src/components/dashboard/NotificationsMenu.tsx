@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bell, CloudRain, Sparkles, Bug, Check, AlertTriangle, ListChecks, TrendingUp } from "lucide-react";
 import { loadNotifications, markAllRead, type NotificationRow } from "@/lib/notifications";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 const KIND: Record<string, { icon: any; tint: string }> = {
   weather: { icon: CloudRain, tint: "bg-af-ai/10 text-af-ai" },
@@ -14,19 +15,20 @@ const KIND: Record<string, { icon: any; tint: string }> = {
   info: { icon: Sparkles, tint: "bg-af-ai/10 text-af-ai" },
 };
 
-function relTime(iso: string): string {
+function relTime(iso: string, t: (key: string, params?: Record<string, string | number>) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
   const hours = Math.floor(diff / 3_600_000);
   const days = Math.floor(diff / 86_400_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days === 1) return "yesterday";
-  return `${days}d ago`;
+  if (mins < 1) return t("notifications.justNow");
+  if (mins < 60) return t("notifications.minsAgo", { n: mins });
+  if (hours < 24) return t("notifications.hoursAgo", { n: hours });
+  if (days === 1) return t("notifications.yesterday");
+  return t("notifications.daysAgo", { n: days });
 }
 
 export default function NotificationsMenu({ farmerId }: { farmerId?: string }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationRow[]>([]);
   const ref = useRef<HTMLDivElement>(null);
@@ -56,7 +58,7 @@ export default function NotificationsMenu({ farmerId }: { farmerId?: string }) {
       <button
         onClick={() => setOpen((o) => !o)}
         className="relative inline-flex items-center justify-center w-10 h-10 rounded-[10px] border border-af-border bg-af-card text-af-ink-2 hover:text-af-ink hover:border-af-primary/30 transition"
-        aria-label="Notifications"
+        aria-label={t("notifications.ariaLabel")}
       >
         <Bell className="w-[18px] h-[18px]" />
         {unread > 0 && (
@@ -68,21 +70,21 @@ export default function NotificationsMenu({ farmerId }: { farmerId?: string }) {
         <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-af-card border border-af-border shadow-af-float overflow-hidden z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-af-border">
             <span className="text-sm font-semibold text-af-ink">
-              Notifications{unread > 0 ? ` (${unread})` : ""}
+              {unread > 0 ? t("notifications.titleWithCount", { n: unread }) : t("notifications.title")}
             </span>
             {unread > 0 && (
               <button
                 onClick={onMarkAll}
                 className="inline-flex items-center gap-1 text-[11px] font-semibold text-af-primary-deep hover:underline"
               >
-                <Check className="w-3 h-3" /> Mark all read
+                <Check className="w-3 h-3" /> {t("notifications.markAllRead")}
               </button>
             )}
           </div>
 
           {items.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-af-muted">
-              You&apos;re all caught up — no notifications.
+              {t("notifications.empty")}
             </div>
           ) : (
             <ul className="max-h-80 overflow-auto">
@@ -102,7 +104,7 @@ export default function NotificationsMenu({ farmerId }: { farmerId?: string }) {
                     <div className="min-w-0">
                       <div className="text-sm font-semibold text-af-ink leading-snug">{n.title}</div>
                       {n.body && <div className="text-[12px] text-af-ink-2 mt-0.5 leading-snug">{n.body}</div>}
-                      <div className="text-[11px] text-af-muted mt-0.5">{relTime(n.created_at)}</div>
+                      <div className="text-[11px] text-af-muted mt-0.5">{relTime(n.created_at, t)}</div>
                     </div>
                   </li>
                 );
@@ -116,7 +118,7 @@ export default function NotificationsMenu({ farmerId }: { farmerId?: string }) {
               onClick={() => setOpen(false)}
               className="text-meta font-semibold text-af-primary-deep hover:underline"
             >
-              View dashboard
+              {t("notifications.viewDashboard")}
             </Link>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { Leaf } from "lucide-react";
+import { T } from "@/components/i18n/LanguageProvider";
 
 export default function AppFooter() {
   const year = new Date().getFullYear();
@@ -13,9 +14,9 @@ export default function AppFooter() {
           <span className="font-mono text-[10px] tracking-[0.16em] uppercase">AI Farm OS</span>
         </div>
         <div className="flex items-center gap-4 text-[12px] text-af-muted">
-          <a href="#" className="hover:text-af-ink-2 transition">Privacy</a>
-          <a href="#" className="hover:text-af-ink-2 transition">Terms</a>
-          <a href="#" className="hover:text-af-ink-2 transition">Support</a>
+          <a href="#" className="hover:text-af-ink-2 transition"><T k="appFooter.privacy" /></a>
+          <a href="#" className="hover:text-af-ink-2 transition"><T k="appFooter.terms" /></a>
+          <a href="#" className="hover:text-af-ink-2 transition"><T k="appFooter.support" /></a>
           <span className="hidden sm:inline">© {year} Agent Farmer</span>
         </div>
       </div>

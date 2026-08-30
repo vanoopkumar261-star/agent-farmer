@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Leaf, Check } from "lucide-react";
 import AuthPanel from "@/components/auth/AuthPanel";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 export default function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/dashboard";
+  const { t } = useT();
 
   // All credential handling lives in <AuthPanel/>; this page only decides
   // where to go afterwards.
@@ -34,33 +36,36 @@ export default function LoginForm() {
             <div className="inline-flex items-center gap-2 self-start rounded-full bg-white/15 backdrop-blur border border-white/25 px-4 py-2">
               <Leaf className="w-4 h-4 text-white" />
               <span className="font-mono text-[10px] font-bold tracking-[0.22em] uppercase text-white/90">
-                Agent Farmer · Sign in
+                {t("login.badge")}
               </span>
             </div>
 
             <div className="max-w-md space-y-4">
               <h1 className="font-sans text-4xl font-extrabold tracking-tight text-white leading-[1.05]">
-                Your farm, your account.
+                {t("login.hero.title")}
               </h1>
               <p className="text-white/80 text-base leading-relaxed">
-                Sign in to reach your private dashboard — your farms, crops, finances
-                and AI companion, kept just for you.
+                {t("login.hero.sub")}
               </p>
               <div className="flex flex-wrap gap-2 pt-2">
-                {["Simple sign-in", "Private & secure", "Your data only"].map((t) => (
+                {[
+                  t("login.trust.simple"),
+                  t("login.trust.private"),
+                  t("login.trust.dataOnly"),
+                ].map((label) => (
                   <span
-                    key={t}
+                    key={label}
                     className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1.5 text-[11px] font-semibold text-white/85"
                   >
                     <Check className="w-3 h-3" />
-                    {t}
+                    {label}
                   </span>
                 ))}
               </div>
             </div>
 
             <div className="text-white/55 font-mono text-[10px] tracking-[0.22em] uppercase">
-              private by design · one account per farmer
+              {t("login.footer.tag")}
             </div>
           </div>
         </div>
@@ -77,7 +82,7 @@ export default function LoginForm() {
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-af-ink-2 hover:text-af-primary transition"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back to Home
+                {t("login.backHome")}
               </Link>
             </div>
 
@@ -85,8 +90,7 @@ export default function LoginForm() {
               <AuthPanel onAuthed={handleAuthed} />
 
               <div className="mt-6 text-center text-xs text-af-muted">
-                By continuing you agree to our Terms &amp; Conditions and consent to
-                AI-assisted decision support.
+                {t("login.legal")}
               </div>
             </div>
           </div>

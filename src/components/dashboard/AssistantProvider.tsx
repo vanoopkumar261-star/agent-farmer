@@ -70,7 +70,7 @@ export default function AssistantProvider({
   initialMessages?: Msg[];
   suggestions?: string[];
 }) {
-  const { locale } = useT();
+  const { locale, t } = useT();
   const [messages, setMessages] = useState<Msg[]>(initialMessages);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -110,7 +110,7 @@ export default function AssistantProvider({
 
         if (!res.ok || !res.body) {
           const errText = await res.text().catch(() => "");
-          return fail(errText || "Sorry, I couldn't reach the AI engine. Please try again.");
+          return fail(errText || t("assistant.error.unreachable"));
         }
 
         const reader = res.body.getReader();
@@ -128,13 +128,13 @@ export default function AssistantProvider({
         }
         return acc;
       } catch {
-        return fail("Network error. Please try again.");
+        return fail(t("assistant.error.network"));
       } finally {
         setStreaming(false);
         inFlight.current = false;
       }
     },
-    [messages, locale]
+    [messages, locale, t]
   );
 
   const value = useMemo<AssistantContextValue>(

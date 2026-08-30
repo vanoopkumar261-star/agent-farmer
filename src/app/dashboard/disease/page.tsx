@@ -23,7 +23,7 @@ export default async function DiseasePage() {
       <div className="mb-6">
         <h1 className="text-heading font-semibold text-af-ink"><T k="title.disease" /></h1>
         <p className="mt-1 text-sm text-af-ink-2">
-          Upload a leaf — our AI model identifies the issue and suggests treatment.
+          <T k="disease.subtitle" />
         </p>
       </div>
 
@@ -33,7 +33,7 @@ export default async function DiseasePage() {
         <div className="mt-8">
           <div className="flex items-center gap-2 mb-4">
             <History className="w-4 h-4 text-af-primary" />
-            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">Recent Scans</h2>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink"><T k="disease.recentScans" /></h2>
             <span className="font-mono text-[11px] font-semibold text-af-muted">{scans.length}</span>
           </div>
           <div className="space-y-3">
@@ -68,10 +68,10 @@ function ScanRow({ s, viewUrl }: { s: DiagnosisRecord; viewUrl: string | null })
 
       <div className="min-w-0 flex-1">
         <div className="text-[15px] font-semibold text-af-ink truncate">
-          {s.healthy ? "Healthy" : s.disease ?? "Issue found"}
+          {s.healthy ? <T k="disease.healthy" /> : s.disease ?? <T k="disease.issueFound" />}
         </div>
         <div className="mt-0.5 text-meta text-af-ink-2">
-          {s.crop_name ?? "Crop"}
+          {s.crop_name ?? <T k="disease.crop" />}
           {conf != null && <span className="text-af-muted"> · {conf}%</span>}
         </div>
         <div className="mt-0.5 text-[12px] text-af-muted">{when}</div>

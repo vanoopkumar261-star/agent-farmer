@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { LanguageProvider } from "@/components/i18n/LanguageProvider";
+import { LanguageProvider, useT } from "@/components/i18n/LanguageProvider";
 import SiteHeader from "@/components/landing/SiteHeader";
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -112,14 +112,15 @@ const DEPTH = 1800;
 const FOCUS = 0.16; // half-width (in progress units) of the in-focus band
 
 function GraphPlane({ layer, onPick }: { layer: Layer; onPick: (n: Node) => void }) {
+  const { t } = useT();
   const byId = (id: string) => layer.nodes!.find((n) => n.id === id)!;
   return (
     <div className="relative h-[min(600px,72vh)] w-[min(1040px,94vw)]">
       {/* layer caption */}
       <div className="pointer-events-none absolute -top-14 left-0 flex items-baseline gap-3">
         <span className="font-mono text-[13px] text-[#39ffb0]">{layer.index}</span>
-        <span className="font-inter text-[22px] font-medium tracking-tight text-white">{layer.name}</span>
-        <span className="font-inter text-[13px] font-light text-white/45">{layer.blurb}</span>
+        <span className="font-inter text-[22px] font-medium tracking-tight text-white">{t(`architecture.layer.${layer.index}.name`)}</span>
+        <span className="font-inter text-[13px] font-light text-white/45">{t(`architecture.layer.${layer.index}.blurb`)}</span>
       </div>
 
       {/* connectors */}
@@ -168,11 +169,11 @@ function GraphPlane({ layer, onPick }: { layer: Layer; onPick: (n: Node) => void
           <span className="arch-lock-glow" aria-hidden />
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#39ffb0] shadow-[0_0_8px_rgba(57,255,176,0.9)]" />
-            <span className="font-inter text-[14px] font-semibold text-white">{n.title}</span>
+            <span className="font-inter text-[14px] font-semibold text-white">{t(`architecture.node.${n.id}.title`)}</span>
           </div>
-          <p className="mt-1.5 font-inter text-[12px] font-light leading-snug text-white/50">{n.sub}</p>
+          <p className="mt-1.5 font-inter text-[12px] font-light leading-snug text-white/50">{t(`architecture.node.${n.id}.sub`)}</p>
           <span className="mt-2 inline-block font-mono text-[10px] uppercase tracking-widest text-[#39ffb0]/0 transition-colors group-hover:text-[#39ffb0]/80">
-            details →
+            {t("architecture.node.detailsCta")}
           </span>
         </button>
       ))}
@@ -181,17 +182,18 @@ function GraphPlane({ layer, onPick }: { layer: Layer; onPick: (n: Node) => void
 }
 
 function IntroPlane({ layer }: { layer: Layer }) {
+  const { t } = useT();
   return (
     <div className="max-w-[720px] px-6 text-center">
-      <span className="font-mono text-[13px] tracking-widest text-[#39ffb0]">{layer.index} · ARCHITECTURE</span>
+      <span className="font-mono text-[13px] tracking-widest text-[#39ffb0]">{layer.index} · {t("architecture.kicker")}</span>
       <h1 className="mt-5 font-inter text-[44px] font-semibold leading-[1.05] tracking-tight text-white sm:text-[64px]">
-        How Agent Farmer<br />is built
+        {t("architecture.hero.titleLine1")}<br />{t("architecture.hero.titleLine2")}
       </h1>
       <p className="mx-auto mt-6 max-w-[52ch] font-inter text-[16px] font-light leading-[1.7] text-white/60">
-        {layer.blurb}
+        {t(`architecture.layer.${layer.index}.blurb`)}
       </p>
       <div className="mt-10 flex flex-col items-center gap-2 font-inter text-[13px] text-white/50">
-        Scroll to travel the stack
+        {t("architecture.scrollHint")}
         <svg viewBox="0 0 24 24" className="h-5 w-5 animate-af-float" fill="none" aria-hidden>
           <path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -201,6 +203,7 @@ function IntroPlane({ layer }: { layer: Layer }) {
 }
 
 function ArchitectureContent() {
+  const { t } = useT();
   const trackRef = useRef<HTMLDivElement>(null);
   const planeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const glowRef = useRef<HTMLDivElement>(null);
@@ -304,7 +307,7 @@ function ArchitectureContent() {
       </div>
 
       {/* left layer index */}
-      <nav className="fixed left-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-3 lg:flex" aria-label="Architecture layers">
+      <nav className="fixed left-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-3 lg:flex" aria-label={t("architecture.navAriaLabel")}>
         {LAYERS.map((l, i) => {
           const isActive = active === i;
           const isLock = isActive && locked;
@@ -328,7 +331,7 @@ function ArchitectureContent() {
                   isActive ? "text-[#39ffb0]" : "text-white/40 group-hover:text-white/70"
                 } ${isLock ? "drop-shadow-[0_0_6px_rgba(57,255,176,0.7)]" : ""}`}
               >
-                {l.index} {l.name.toUpperCase()}
+                {l.index} {t(`architecture.layer.${l.index}.name`).toUpperCase()}
               </span>
             </button>
           );
@@ -390,7 +393,7 @@ function ArchitectureContent() {
               locked ? "animate-pulse bg-[#39ffb0] shadow-[0_0_10px_rgba(57,255,176,0.95)]" : "bg-white/30"
             }`}
           />
-          {locked ? "Cards in focus — click any node" : "Keep scrolling to lock the next layer"}
+          {locked ? t("architecture.beacon.locked") : t("architecture.beacon.unlocked")}
         </div>
       </div>
 
@@ -407,15 +410,15 @@ function ArchitectureContent() {
           >
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-[#39ffb0] shadow-[0_0_10px_rgba(57,255,176,0.9)]" />
-              <h3 className="font-inter text-[20px] font-semibold text-white">{selected.title}</h3>
+              <h3 className="font-inter text-[20px] font-semibold text-white">{t(`architecture.node.${selected.id}.title`)}</h3>
             </div>
-            <p className="mt-1 font-mono text-[12px] uppercase tracking-widest text-[#39ffb0]/80">{selected.sub}</p>
-            <p className="mt-4 font-inter text-[14px] font-light leading-[1.7] text-white/70">{selected.detail}</p>
+            <p className="mt-1 font-mono text-[12px] uppercase tracking-widest text-[#39ffb0]/80">{t(`architecture.node.${selected.id}.sub`)}</p>
+            <p className="mt-4 font-inter text-[14px] font-light leading-[1.7] text-white/70">{t(`architecture.node.${selected.id}.detail`)}</p>
             <button
               onClick={() => setSelected(null)}
               className="mt-6 rounded-full border border-white/15 px-4 py-2 font-inter text-[13px] text-white/70 transition-colors hover:border-[#39ffb0]/60 hover:text-white"
             >
-              Close
+              {t("architecture.close")}
             </button>
           </div>
         </div>

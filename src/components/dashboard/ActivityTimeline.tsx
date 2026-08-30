@@ -1,10 +1,11 @@
 import Card from "@/components/ui/Card";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { Activity, Sprout, CloudRain, Microscope, Wallet } from "lucide-react";
+import { T } from "@/components/i18n/LanguageProvider";
 
 export type ActivityItem = {
   icon: "crop" | "weather" | "disease" | "expense";
-  title: string;
+  title: React.ReactNode;
   time: string;
 };
 
@@ -18,7 +19,7 @@ const iconMap = {
 export default function ActivityTimeline({ items }: { items: ActivityItem[] }) {
   return (
     <Card className="p-6">
-      <SectionHeader title="Recent Activity" icon={<Activity className="w-4 h-4" />} />
+      <SectionHeader title={<T k="activityTimeline.title" />} icon={<Activity className="w-4 h-4" />} />
       <ol className="relative mt-2">
         {/* connector line */}
         <span className="absolute left-[15px] top-2 bottom-2 w-px bg-af-border" />

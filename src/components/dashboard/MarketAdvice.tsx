@@ -36,7 +36,7 @@ export default function MarketAdvice({
   unavailableCrops?: string[];  // 👈 NEW
   state?: string;               // 👈 NEW
 }) {
-  const { locale } = useT();
+  const { locale, t } = useT();
   const [advice, setAdvice] = useState<Advice | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -90,7 +90,7 @@ export default function MarketAdvice({
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1.5">
             <Sparkles className="w-3.5 h-3.5 text-af-primary" />
             <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-white/90">
-              AI Selling Advisor
+              {t("marketAdvice.title")}
             </span>
           </div>
 
@@ -99,7 +99,7 @@ export default function MarketAdvice({
             <div className="inline-flex items-center gap-1.5 rounded-full bg-af-amber/20 border border-af-amber/30 px-3 py-1.5">
               <PackageX className="w-3 h-3 text-af-amber" />
               <span className="text-[10px] font-bold text-af-amber">
-                {farmerUnavailableCrops.join(", ")} not at mandis today
+                {t("marketAdvice.notAtMandisToday", { crops: farmerUnavailableCrops.join(", ") })}
               </span>
             </div>
           )}
@@ -111,16 +111,16 @@ export default function MarketAdvice({
             <div className="flex items-start gap-2">
               <PackageX className="w-4 h-4 text-af-amber shrink-0 mt-0.5" />
               <div className="text-[12px] text-white/75 leading-relaxed">
-                <strong className="text-white">
-                  {farmerUnavailableCrops.join(" & ")}
-                </strong>{" "}
-                — your crop{farmerUnavailableCrops.length > 1 ? "s are" : " is"} not
-                arriving at {state ?? "local"} mandis today. AI advice below is
-                based on crops currently trading.
+                {t(
+                  farmerUnavailableCrops.length > 1 ? "marketAdvice.unavailableNoticeMany" : "marketAdvice.unavailableNoticeOne",
+                  { crops: farmerUnavailableCrops.join(" & "), region: state ?? t("marketAdvice.local") }
+                )}
                 {farmerAvailableCrops.length > 0 && (
                   <span>
-                    {" "}Your <strong className="text-white">{farmerAvailableCrops.join(", ")}</strong>{" "}
-                    {farmerAvailableCrops.length > 1 ? "are" : "is"} available — check those below.
+                    {t(
+                      farmerAvailableCrops.length > 1 ? "marketAdvice.availableCheckMany" : "marketAdvice.availableCheckOne",
+                      { crops: farmerAvailableCrops.join(", ") }
+                    )}
                   </span>
                 )}
               </div>
@@ -169,7 +169,7 @@ export default function MarketAdvice({
                       {r.reason}
                     </p>
                     <div className="mt-2 text-[10px] font-mono text-white/50">
-                      Confidence {r.confidence}%
+                      {t("marketAdvice.confidence", { pct: r.confidence })}
                     </div>
                   </div>
                 );
@@ -183,14 +183,13 @@ export default function MarketAdvice({
               )
             ) && (
               <div className="mt-4 rounded-[14px] bg-white/[0.06] border border-white/10 px-4 py-3 text-[13px] text-white/70">
-                No actionable recommendations for currently trading crops.
-                Check back when your crops arrive at mandis.
+                {t("marketAdvice.noneActionable")}
               </div>
             )}
           </>
         ) : (
           <p className="mt-4 text-sm text-white/70">
-            Market advice is unavailable right now.
+            {t("marketAdvice.unavailable")}
           </p>
         )}
       </div>

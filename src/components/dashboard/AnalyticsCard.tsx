@@ -20,6 +20,7 @@ import Tabs from "@/components/ui/Tabs";
 import Badge from "@/components/ui/Badge";
 import { BarChart3 } from "lucide-react";
 import { SERIES, STATUS, GRID, AXIS, tooltipStyle } from "@/lib/chartTheme";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 /**
  * Farm Analytics — every series here is derived from the farmer's own records.
@@ -71,6 +72,7 @@ export default function AnalyticsCard({
   season?: SeasonPoint[];
   heatThreshold?: number;
 }) {
+  const { t } = useT();
   const hasCash = Boolean(cash && cash.length > 0);
   const hasWeather = weather.length > 0;
   const hasSeason = season.length > 0;
@@ -79,9 +81,9 @@ export default function AnalyticsCard({
   const [tab, setTab] = useState(hasSeason ? "season" : hasWeather ? "weather" : "cash");
 
   const tabs = [
-    { id: "season", label: "Season" },
-    { id: "weather", label: "Weather" },
-    { id: "cash", label: "Cash Flow" },
+    { id: "season", label: t("analyticsCard.tabSeason") },
+    { id: "weather", label: t("analyticsCard.tabWeather") },
+    { id: "cash", label: t("analyticsCard.tabCash") },
   ];
 
   const net = netProfit ?? 0;
@@ -100,9 +102,9 @@ export default function AnalyticsCard({
           </span>
           <div>
             <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">
-              Farm Analytics
+              {t("analyticsCard.title")}
             </h2>
-            <p className="text-meta text-af-muted">Built from your own farm records</p>
+            <p className="text-meta text-af-muted">{t("analyticsCard.subtitle")}</p>
           </div>
         </div>
         <Tabs tabs={tabs} active={tab} onChange={setTab} />
@@ -115,7 +117,7 @@ export default function AnalyticsCard({
             <span className="font-mono text-2xl font-semibold tracking-[-0.02em] text-af-ink">
               {soonest.daysLeft}d
             </span>
-            <Badge tone="primary">to first harvest</Badge>
+            <Badge tone="primary">{t("analyticsCard.toFirstHarvest")}</Badge>
             <span className="text-meta text-af-muted">
               {soonest.name} · {soonest.stage}
             </span>
@@ -127,9 +129,9 @@ export default function AnalyticsCard({
               {hottest}°C
             </span>
             <Badge tone={overHeat ? "danger" : "primary"}>
-              {overHeat ? "above crop limit" : "within range"}
+              {overHeat ? t("analyticsCard.aboveCropLimit") : t("analyticsCard.withinRange")}
             </Badge>
-            <span className="text-meta text-af-muted">7-day peak · {wettest}% max rain chance</span>
+            <span className="text-meta text-af-muted">{t("analyticsCard.sevenDayPeak", { pct: wettest })}</span>
           </>
         )}
         {tab === "cash" && (
@@ -138,9 +140,9 @@ export default function AnalyticsCard({
               {netLabel}
             </span>
             <Badge tone={net >= 0 ? "primary" : "danger"}>
-              {net >= 0 ? "net positive" : "net loss"}
+              {net >= 0 ? t("analyticsCard.netPositive") : t("analyticsCard.netLoss")}
             </Badge>
-            <span className="text-meta text-af-muted">season to date</span>
+            <span className="text-meta text-af-muted">{t("analyticsCard.seasonToDate")}</span>
           </>
         )}
       </div>
@@ -187,7 +189,7 @@ export default function AnalyticsCard({
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <Empty text="Seed a crop and its season will be tracked here." />
+            <Empty text={t("analyticsCard.emptySeason")} />
           )
         ) : tab === "weather" ? (
           hasWeather ? (
@@ -232,7 +234,7 @@ export default function AnalyticsCard({
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
-            <Empty text="Weather is syncing for your location." />
+            <Empty text={t("analyticsCard.emptyWeather")} />
           )
         ) : hasCash ? (
           <ResponsiveContainer width="100%" height="100%">
@@ -256,7 +258,7 @@ export default function AnalyticsCard({
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <Empty text="Log an expense or a sale to see your cash flow." />
+          <Empty text={t("analyticsCard.emptyCash")} />
         )}
       </div>
     </Card>

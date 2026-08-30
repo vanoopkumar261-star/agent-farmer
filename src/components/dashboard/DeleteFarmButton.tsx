@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2, AlertTriangle } from "lucide-react";
 import { deleteFarm } from "@/lib/db";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 export default function DeleteFarmButton({
   farmId,
@@ -28,6 +29,7 @@ export default function DeleteFarmButton({
   cropName?: string;
 }) {
   const router = useRouter();
+  const { t } = useT();
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function DeleteFarmButton({
     setError(null);
     const ok = await deleteFarm(farmId);
     if (!ok) {
-      setError("Could not delete this farm. Please try again.");
+      setError(t("deleteFarmButton.error"));
       setBusy(false);
       setArmed(false);
       return;
@@ -60,7 +62,7 @@ export default function DeleteFarmButton({
       <button
         type="button"
         onClick={() => setArmed(true)}
-        aria-label={`Delete Farm ${farmIndex}`}
+        aria-label={t("deleteFarmButton.ariaDelete", { n: farmIndex })}
         className="inline-flex items-center justify-center w-8 h-8 rounded-[10px] text-af-muted transition hover:bg-af-danger/10 hover:text-af-danger outline-none focus-visible:ring-2 focus-visible:ring-af-danger/40"
       >
         <Trash2 className="w-4 h-4" />
@@ -71,7 +73,7 @@ export default function DeleteFarmButton({
   return (
     <span className="inline-flex items-center gap-2">
       <span className="text-[12px] text-af-ink-2">
-        Delete Farm {farmIndex}
+        {t("deleteFarmButton.confirmText", { n: farmIndex })}
         {cropName ? ` (${cropName})` : ""}?
       </span>
       <button
@@ -81,7 +83,7 @@ export default function DeleteFarmButton({
         className="inline-flex items-center gap-1 rounded-[10px] bg-af-danger/10 px-2.5 py-1 text-[12px] font-semibold text-af-danger transition hover:bg-af-danger/15 disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-af-danger/40"
       >
         {busy && <Loader2 className="w-3 h-3 animate-spin" />}
-        {busy ? "Deleting…" : "Delete"}
+        {busy ? t("deleteFarmButton.deleting") : t("deleteFarmButton.delete")}
       </button>
       <button
         type="button"
@@ -89,7 +91,7 @@ export default function DeleteFarmButton({
         disabled={busy}
         className="rounded-[10px] px-2 py-1 text-[12px] font-semibold text-af-muted transition hover:text-af-ink disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
       >
-        Cancel
+        {t("dashboard.cancel")}
       </button>
     </span>
   );

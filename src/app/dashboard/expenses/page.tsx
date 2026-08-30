@@ -17,10 +17,10 @@ export default async function ExpensesPage() {
   if (!farmer) {
     return (
       <div className="max-w-md mx-auto mt-20 text-center rounded-2xl bg-af-card border border-af-border shadow-af-sm p-10">
-        <h2 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink">No farmer profile</h2>
-        <p className="mt-2 text-sm text-af-ink-2">Complete onboarding to track expenses.</p>
+        <h2 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink"><T k="expenses.noProfileTitle" /></h2>
+        <p className="mt-2 text-sm text-af-ink-2"><T k="expenses.noProfileBody" /></p>
         <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold">
-          Start Onboarding
+          <T k="dashboard.home.startOnboarding" />
         </Link>
       </div>
     );
@@ -37,7 +37,7 @@ export default async function ExpensesPage() {
         </span>
         <div>
           <h1 className="text-heading font-semibold text-af-ink"><T k="title.expenses" /></h1>
-          <p className="mt-0.5 text-sm text-af-ink-2">Your farm ledger — income, expenses, and seasonal profit.</p>
+          <p className="mt-0.5 text-sm text-af-ink-2"><T k="expenses.subtitle" /></p>
         </div>
       </div>
 
@@ -46,7 +46,7 @@ export default async function ExpensesPage() {
         <Reveal index={0}>
           <StatTile
             icon={<TrendingUp className="w-[18px] h-[18px]" />}
-            label="Total Income"
+            label={<T k="expenses.stat.totalIncome" />}
             value={data.totalIncome}
             prefix="₹"
             spark={[0, 22, 22, 27, 27, 45]}
@@ -55,7 +55,7 @@ export default async function ExpensesPage() {
         <Reveal index={1}>
           <StatTile
             icon={<TrendingDown className="w-[18px] h-[18px]" />}
-            label="Total Expenses"
+            label={<T k="expenses.stat.totalExpenses" />}
             value={data.totalExpense}
             prefix="₹"
             sparkColor={SERIES.expense}
@@ -65,7 +65,7 @@ export default async function ExpensesPage() {
         <Reveal index={2}>
           <StatTile
             icon={<Landmark className="w-[18px] h-[18px]" />}
-            label="Net Profit"
+            label={<T k="expenses.stat.netProfit" />}
             value={data.profit}
             prefix="₹"
             delta={margin}

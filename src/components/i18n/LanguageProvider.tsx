@@ -4,16 +4,18 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { DEFAULT_LOCALE, Locale, STORAGE_KEY } from "@/lib/i18n/config";
 import { translate } from "@/lib/i18n/dictionaries";
 
+type Params = Record<string, string | number>;
+
 type Ctx = {
   locale: Locale;
   setLocale: (l: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Params) => string;
 };
 
 const LanguageContext = createContext<Ctx>({
   locale: DEFAULT_LOCALE,
   setLocale: () => {},
-  t: (k) => translate(DEFAULT_LOCALE, k),
+  t: (k, params) => translate(DEFAULT_LOCALE, k, params),
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -34,7 +36,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, []);
 
-  const t = useCallback((key: string) => translate(locale, key), [locale]);
+  const t = useCallback((key: string, params?: Params) => translate(locale, key, params), [locale]);
 
   return (
     <LanguageContext.Provider value={{ locale, setLocale, t }}>
@@ -48,7 +50,7 @@ export function useT() {
 }
 
 /** Inline translated string — usable inside server components as a client island. */
-export function T({ k }: { k: string }) {
+export function T({ k, params }: { k: string; params?: Params }) {
   const { t } = useT();
-  return <>{t(k)}</>;
+  return <>{t(k, params)}</>;
 }

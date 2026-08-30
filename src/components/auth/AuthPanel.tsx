@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { ArrowRight, Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { normalizeEmail, validateEmail } from "@/lib/validation";
+import { normalizeEmail, validateEmail, INVALID_EMAIL_MSG } from "@/lib/validation";
+import { useT } from "@/components/i18n/LanguageProvider";
+
+/** Maps the fixed set of English messages `validateEmail` can return to a translated string. */
+function translateEmailError(raw: string | null, t: (key: string) => string): string | null {
+  if (!raw) return null;
+  if (raw === "Email is required.") return t("login.error.emailRequired");
+  if (raw === INVALID_EMAIL_MSG) return t("login.error.invalidEmail");
+  return raw;
+}
 
 export type AuthMode = "signin" | "signup";
 
@@ -32,6 +41,7 @@ export default function AuthPanel({
   /** Drops the heading, for embedding inside a page that has its own. */
   compact?: boolean;
 }) {
+  const { t } = useT();
   const [mode, setMode] = useState<AuthMode>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,7 +70,7 @@ export default function AuthPanel({
   const [emailTouched, setEmailTouched] = useState(false);
   const emailProblem = validateEmail(email);
   const emailValid = emailProblem === null;
-  const emailError = emailTouched ? emailProblem : null;
+  const emailError = emailTouched ? translateEmailError(emailProblem, t) : null;
   const canSubmit = emailValid && password.length >= 6;
 
   const submit = async () => {
@@ -70,7 +80,7 @@ export default function AuthPanel({
       return;
     }
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError(t("login.auth.passwordTooShort"));
       return;
     }
 
@@ -107,9 +117,7 @@ export default function AuthPanel({
             password,
           });
           if (e2) {
-            setError(
-              "Account created, but sign-in is blocked. In Supabase → Authentication → Providers → Email, turn OFF “Confirm email”, then try again."
-            );
+            setError(t("login.auth.confirmEmailOffError"));
             return;
           }
         }
@@ -119,7 +127,7 @@ export default function AuthPanel({
           password,
         });
         if (error) {
-          setError("Incorrect email or password.");
+          setError(t("login.auth.incorrectCredentials"));
           return;
         }
       }
@@ -146,11 +154,11 @@ export default function AuthPanel({
               id="already-registered-title"
               className="mt-4 text-[17px] font-semibold tracking-[-0.02em] text-af-ink"
             >
-              This email is already registered
+              {t("login.auth.alreadyRegisteredTitle")}
             </h3>
             <p className="mt-1.5 text-sm text-af-ink-2 leading-relaxed">
-              <span className="font-semibold text-af-ink">{email.trim().toLowerCase()}</span>{" "}
-              already has an account. Sign in with your password to pick up where you left off.
+              <span className="font-semibold text-af-ink">{email.trim().toLowerCase()}</span>
+              {t("login.auth.alreadyHasAccountSuffix")}
             </p>
             <div className="mt-5 flex flex-col gap-2">
               <button
@@ -166,7 +174,7 @@ export default function AuthPanel({
                 }}
                 className="w-full rounded-[12px] bg-af-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-af-primary-deep active:scale-[0.99]"
               >
-                Go to sign in
+                {t("login.auth.goToSignIn")}
               </button>
               <button
                 type="button"
@@ -177,7 +185,7 @@ export default function AuthPanel({
                 }}
                 className="w-full rounded-[12px] px-5 py-2.5 text-sm font-semibold text-af-ink-2 transition hover:text-af-ink"
               >
-                Use a different email
+                {t("login.auth.useDifferentEmail")}
               </button>
             </div>
           </div>
@@ -200,7 +208,7 @@ export default function AuthPanel({
                 : "text-af-muted hover:text-af-ink-2"
             }`}
           >
-            {m === "signup" ? "Create account" : "Sign in"}
+            {m === "signup" ? t("login.auth.createAccount") : t("login.auth.signIn")}
           </button>
         ))}
       </div>
@@ -208,12 +216,10 @@ export default function AuthPanel({
       {!compact && (
         <>
           <h2 className="font-sans text-2xl font-semibold tracking-[-0.02em] text-af-ink">
-            {mode === "signin" ? "Welcome back" : "Create your account"}
+            {mode === "signin" ? t("login.auth.welcomeBack") : t("login.auth.createYourAccount")}
           </h2>
           <p className="mt-1 text-sm text-af-ink-2">
-            {mode === "signin"
-              ? "Sign in to pick up exactly where you left off."
-              : "Your email and a password — that's all we need to get started."}
+            {mode === "signin" ? t("login.auth.signInSubtitle") : t("login.auth.signUpSubtitle")}
           </p>
         </>
       )}
@@ -221,7 +227,7 @@ export default function AuthPanel({
       <div className="mt-6 space-y-4">
         <div className="space-y-1.5">
           <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
-            Email
+            {t("login.auth.emailLabel")}
           </label>
           <div className="relative">
             <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-af-muted" />
@@ -233,7 +239,7 @@ export default function AuthPanel({
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => setEmailTouched(true)}
               onKeyDown={(e) => e.key === "Enter" && (canSubmit ? submit() : setEmailTouched(true))}
-              placeholder="name@domain.com"
+              placeholder={t("login.auth.emailPlaceholder")}
               aria-invalid={Boolean(emailError)}
               aria-describedby={emailError ? "auth-email-error" : undefined}
               className={`w-full rounded-[14px] bg-af-bg border pl-11 pr-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 transition ${
@@ -257,7 +263,7 @@ export default function AuthPanel({
 
         <div className="space-y-1.5">
           <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
-            Password
+            {t("login.auth.passwordLabel")}
           </label>
           <div className="relative">
             <Lock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-af-muted" />
@@ -267,14 +273,16 @@ export default function AuthPanel({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && canSubmit && submit()}
-              placeholder={mode === "signup" ? "At least 6 characters" : "Your password"}
+              placeholder={
+                mode === "signup"
+                  ? t("login.auth.passwordPlaceholderSignup")
+                  : t("login.auth.passwordPlaceholderSignin")
+              }
               className="w-full rounded-[14px] bg-af-bg border border-af-border pl-11 pr-4 py-3 text-sm text-af-ink placeholder:text-af-muted outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
             />
           </div>
           {mode === "signup" && (
-            <p className="text-[11px] text-af-muted">
-              Keep this safe — password reset isn&apos;t available yet.
-            </p>
+            <p className="text-[11px] text-af-muted">{t("login.auth.passwordResetNote")}</p>
           )}
         </div>
 
@@ -293,11 +301,11 @@ export default function AuthPanel({
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              {mode === "signin" ? "Signing in…" : "Creating account…"}
+              {mode === "signin" ? t("login.auth.signingIn") : t("login.auth.creatingAccount")}
             </>
           ) : (
             <>
-              {mode === "signin" ? "Sign in" : "Create account & continue"}
+              {mode === "signin" ? t("login.auth.signIn") : t("login.auth.createAccountSubmit")}
               <ArrowRight className="w-4 h-4" />
             </>
           )}

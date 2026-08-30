@@ -29,7 +29,7 @@ export default function StatTile({
   sparkColor = "currentColor",
 }: {
   icon: React.ReactNode;
-  label: string;
+  label: React.ReactNode;
   value: number;
   prefix?: string;
   suffix?: string;
@@ -37,9 +37,9 @@ export default function StatTile({
   delta?: number;
   positiveIsGood?: boolean;
   /** Context line under the label, e.g. "Across 2 farms". */
-  meta?: string;
+  meta?: React.ReactNode;
   /** Drill-in link under the label. Takes precedence over `meta`. */
-  link?: { label: string; href: string };
+  link?: { label: React.ReactNode; href: string };
   spark?: number[];
   sparkColor?: string;
 }) {

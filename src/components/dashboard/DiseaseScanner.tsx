@@ -16,6 +16,7 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 type DiseaseResult = {
   source: "model" | "vision";
@@ -34,6 +35,7 @@ type DiseaseResult = {
 
 export default function DiseaseScanner() {
   const router = useRouter();
+  const { t } = useT();
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,14 +70,14 @@ export default function DiseaseScanner() {
       const res = await fetch("/api/disease", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error ?? "Diagnosis failed. Please try again.");
+        setError(data?.error ?? t("diseaseScanner.diagnosisFailed"));
       } else {
         setResult(data as DiseaseResult);
         // Refresh the server-rendered "Recent Scans" list with the saved record.
         router.refresh();
       }
     } catch {
-      setError("Network error. Is the app online?");
+      setError(t("diseaseScanner.networkError"));
     } finally {
       setLoading(false);
     }
@@ -90,8 +92,8 @@ export default function DiseaseScanner() {
             <ScanLine className="w-[18px] h-[18px]" />
           </span>
           <div>
-            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">Upload a Leaf</h2>
-            <p className="text-meta text-af-muted">A clear, close photo works best</p>
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">{t("diseaseScanner.uploadTitle")}</h2>
+            <p className="text-meta text-af-muted">{t("diseaseScanner.uploadSubtitle")}</p>
           </div>
         </div>
 
@@ -115,14 +117,14 @@ export default function DiseaseScanner() {
             <span className="flex items-center justify-center w-14 h-14 rounded-2xl bg-af-primary/10 text-af-primary-deep">
               <Upload className="w-6 h-6" />
             </span>
-            <div className="mt-4 text-sm font-semibold text-af-ink">Drag &amp; drop an image or click to browse</div>
-            <div className="mt-1 text-[12px] text-af-muted">JPG, PNG up to 10MB · a single affected leaf</div>
+            <div className="mt-4 text-sm font-semibold text-af-ink">{t("diseaseScanner.dragDrop")}</div>
+            <div className="mt-1 text-[12px] text-af-muted">{t("diseaseScanner.fileHint")}</div>
           </button>
         ) : (
           <div className="relative">
             <img
               src={preview}
-              alt="leaf preview"
+              alt={t("diseaseScanner.leafPreviewAlt")}
               className="w-full h-[300px] object-cover rounded-2xl border border-af-border"
             />
             <button
@@ -136,7 +138,7 @@ export default function DiseaseScanner() {
                 <div className="absolute inset-x-0 h-16 bg-gradient-to-b from-af-primary/0 via-af-primary/40 to-af-primary/0 animate-hud-scan" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="inline-flex items-center gap-2 rounded-full bg-af-card px-4 py-2 text-sm font-semibold text-af-ink shadow-af-md">
-                    <Loader2 className="w-4 h-4 animate-spin text-af-primary" /> Analyzing…
+                    <Loader2 className="w-4 h-4 animate-spin text-af-primary" /> {t("diseaseScanner.analyzing")}
                   </span>
                 </div>
               </div>
@@ -158,7 +160,7 @@ export default function DiseaseScanner() {
               onClick={reset}
               className="inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-card border border-af-border px-4 py-3 text-sm font-semibold text-af-ink hover:bg-af-bg transition"
             >
-              <RefreshCw className="w-4 h-4" /> Change
+              <RefreshCw className="w-4 h-4" /> {t("diseaseScanner.change")}
             </button>
             <button
               onClick={analyze}
@@ -166,7 +168,7 @@ export default function DiseaseScanner() {
               className="flex-1 inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanLine className="w-4 h-4" />}
-              {loading ? "Analyzing…" : "Diagnose Disease"}
+              {loading ? t("diseaseScanner.analyzing") : t("diseaseScanner.diagnose")}
             </button>
           </div>
         )}
@@ -190,22 +192,23 @@ export default function DiseaseScanner() {
 }
 
 const STEPS = [
-  { title: "Upload a clear leaf image", body: "Our AI scans the leaf" },
-  { title: "AI identifies the issue", body: "Trained on thousands of samples" },
-  { title: "Get treatment plan", body: "Step-by-step action for your crop" },
+  { titleKey: "diseaseScanner.step1Title", bodyKey: "diseaseScanner.step1Body" },
+  { titleKey: "diseaseScanner.step2Title", bodyKey: "diseaseScanner.step2Body" },
+  { titleKey: "diseaseScanner.step3Title", bodyKey: "diseaseScanner.step3Body" },
 ];
 
 /** Empty state for the result panel — explains the flow before the first scan. */
 function HowItWorks() {
+  const { t } = useT();
   return (
     // The page backdrop already carries the botanical/circuit motif, so this
     // panel stays clean rather than stacking a second illustration on top.
     <div className="h-full">
-      <h3 className="text-lg font-semibold text-af-primary-deep tracking-tight">How it works</h3>
+      <h3 className="text-lg font-semibold text-af-primary-deep tracking-tight">{t("diseaseScanner.howItWorks")}</h3>
 
       <ol className="mt-6 space-y-7">
         {STEPS.map((s, i) => (
-          <li key={s.title} className="flex items-start gap-3.5">
+          <li key={s.titleKey} className="flex items-start gap-3.5">
             <span className="relative flex flex-col items-center shrink-0">
               <span className="flex items-center justify-center w-7 h-7 rounded-full bg-af-sage text-af-primary-deep font-mono text-[11px] font-semibold">
                 {i + 1}
@@ -215,8 +218,8 @@ function HowItWorks() {
               )}
             </span>
             <div className="min-w-0 pt-0.5">
-              <div className="text-[15px] font-semibold text-af-ink leading-tight">{s.title}</div>
-              <div className="mt-1 text-meta text-af-ink-2">{s.body}</div>
+              <div className="text-[15px] font-semibold text-af-ink leading-tight">{t(s.titleKey)}</div>
+              <div className="mt-1 text-meta text-af-ink-2">{t(s.bodyKey)}</div>
             </div>
           </li>
         ))}
@@ -226,6 +229,7 @@ function HowItWorks() {
 }
 
 function ResultView({ r }: { r: DiseaseResult }) {
+  const { t } = useT();
   const sevTone =
     r.severity === "Low"
       ? "bg-af-primary/10 text-af-primary-deep"
@@ -244,24 +248,24 @@ function ResultView({ r }: { r: DiseaseResult }) {
             {r.crop}
           </div>
           <h3 className="mt-1 text-2xl font-semibold text-af-ink leading-tight">
-            {r.healthy ? "Healthy" : r.disease}
+            {r.healthy ? t("diseaseScanner.healthy") : r.disease}
           </h3>
         </div>
         {r.healthy ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-af-primary/10 text-af-primary-deep px-3 py-1.5 text-[11px] font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" /> No disease
+            <ShieldCheck className="w-3.5 h-3.5" /> {t("diseaseScanner.noDisease")}
           </span>
         ) : (
           <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold ${sevTone}`}>
-            {r.severity} severity
+            {t("diseaseScanner.severitySuffix", { severity: r.severity })}
           </span>
         )}
       </div>
 
       {/* meters */}
       <div className="grid grid-cols-2 gap-3">
-        <Meter label="Confidence" value={conf} tone="ai" />
-        <Meter label="Affected area" value={Math.round(r.affectedAreaPct)} tone={r.healthy ? "green" : "amber"} />
+        <Meter label={t("diseaseScanner.confidence")} value={conf} tone="ai" />
+        <Meter label={t("diseaseScanner.affectedArea")} value={Math.round(r.affectedAreaPct)} tone={r.healthy ? "green" : "amber"} />
       </div>
 
       {r.summary && <p className="text-sm text-af-ink-2 leading-relaxed">{r.summary}</p>}
@@ -271,12 +275,12 @@ function ResultView({ r }: { r: DiseaseResult }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <TreatBlock
             icon={<Leaf className="w-4 h-4 text-af-primary-deep" />}
-            title="Organic"
+            title={t("diseaseScanner.organic")}
             items={r.treatment.organic}
           />
           <TreatBlock
             icon={<FlaskConical className="w-4 h-4 text-af-ai" />}
-            title="Chemical"
+            title={t("diseaseScanner.chemical")}
             items={r.treatment.chemical}
           />
         </div>
@@ -287,7 +291,7 @@ function ResultView({ r }: { r: DiseaseResult }) {
         {r.recovery && (
           <div className="rounded-[14px] bg-af-bg border border-af-border px-4 py-3">
             <div className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted">
-              Recovery
+              {t("diseaseScanner.recovery")}
             </div>
             <div className="mt-1 text-sm font-semibold text-af-ink">{r.recovery}</div>
           </div>
@@ -295,7 +299,7 @@ function ResultView({ r }: { r: DiseaseResult }) {
         {r.prevention?.length > 0 && (
           <div className="rounded-[14px] bg-af-bg border border-af-border px-4 py-3">
             <div className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted">
-              Prevention
+              {t("diseaseScanner.prevention")}
             </div>
             <ul className="mt-1 text-meta text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
               {r.prevention.slice(0, 3).map((p, i) => (
@@ -314,9 +318,8 @@ function ResultView({ r }: { r: DiseaseResult }) {
         <div className="flex items-start gap-2 rounded-[14px] border border-af-amber/25 bg-af-amber/10 px-4 py-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-af-amber-ink" />
           <div className="text-sm text-af-ink-2 leading-relaxed">
-            <span className="font-semibold text-af-ink">This diagnosis is uncertain ({conf}%).</span>{" "}
-            Please confirm with your local agriculture officer or Krishi Vigyan Kendra before
-            spending on treatment.
+            <span className="font-semibold text-af-ink">{t("diseaseScanner.uncertainDiagnosis", { conf })}</span>{" "}
+            {t("diseaseScanner.confirmOfficer")}
           </div>
         </div>
       )}
@@ -328,14 +331,13 @@ function ResultView({ r }: { r: DiseaseResult }) {
         ) : (
           <Sparkles className="w-3.5 h-3.5 text-af-ai" />
         )}
-        {r.note ?? (r.source === "model" ? "Trained model" : "AI vision")}
+        {r.note ?? (r.source === "model" ? t("diseaseScanner.trainedModel") : t("diseaseScanner.aiVision"))}
       </div>
 
       {/* Standing disclaimer. The scanner recommends spending money on chemicals
           and can be wrong, so this is shown on every result, confident or not. */}
       <p className="border-t border-af-border pt-3 text-[11px] leading-relaxed text-af-muted">
-        AI-assisted guidance — not a substitute for a qualified agronomist. Always confirm before
-        applying chemical treatment, and follow the label rates on any product you buy.
+        {t("diseaseScanner.disclaimer")}
       </p>
     </div>
   );
