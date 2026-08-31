@@ -24,12 +24,12 @@ The honest cost: this is a **from-scratch build**, not a wrapper. There is curre
 | **RLS-scoped CRUD** (farms, crop_cycles, expenses, tasks, notifications, settings) | Direct port | The web app already writes these directly from the browser client (`supabase.from(...).insert(...)`), relying on Postgres RLS for authorization — a mobile client's own session does the same, no Next.js involvement needed either way. |
 | **Weather** (Open-Meteo) | Direct port | Keyless public API, callable straight from the mobile app. |
 | **`/api/chat`, `/api/crop-guide`, `/api/market-advice`, `/api/recommendations`, `/api/scheme-match`, `/api/disease`, `/api/feedback`** | Direct port | Plain JSON/multipart REST endpoints, session-optional or unauthenticated — callable from mobile `fetch` as-is. |
-| **`/api/transcribe`, `/api/tts`** | **Needs a patch** | These two call `getSessionFarmer()`, which reads the session *only* from cookies (`next/headers`), not an `Authorization` header. Small, isolated fix: accept a Bearer token and verify it via `supabase.auth.getUser(token)`. |
+| **`/api/transcribe`, `/api/tts`, `/api/soil-reading`** | ✅ done 2026-09-01 | These called `getSessionFarmer()`, which read the session *only* from cookies (`next/headers`). Rather than thread a request through the ~10 call sites of `createSupabaseServer()`, the fix went into the client factory itself (`src/lib/supabase-server.ts`): `bearerToken()` reads the header via `next/headers`, and when one is present it is forwarded to PostgREST/Storage so owner-scoped RLS resolves to that farmer. `getSessionUser()` verifies it with `supabase.auth.getUser(token)`. Every route and every downstream read inherited this with no call-site change, including the rate limiter's per-farmer bucketing. |
 | **Dashboard read layer** (`getDashboardData`, `getMarket`, `getWeather`, `computeFarmHealth`, `deriveAlerts`, task generation) | **Needs new API routes** | These currently run only inside React Server Components, not over HTTP, and several touch server-only secrets (`SUPABASE_SERVICE_ROLE_KEY`, `DATA_GOV_API_KEY`). Wrap each in a thin `/api/*` route the mobile app can call — do not duplicate this logic client-side. |
 | **Voice input/output** | **Native replacement required** | `window.speechSynthesis`, `SpeechRecognition`, and `MediaRecorder` don't exist in React Native. Replace with `expo-speech` (TTS) and either a native STT module or the same record-then-POST-to-`/api/transcribe` pattern using `expo-av`/`expo-audio` for recording. |
 | **Disease-photo capture** | **Native replacement required** | The web version uses `<input type=file>` + HTML5 drag-drop. Swap for `expo-image-picker` (camera/gallery); the upload contract itself (`FormData` POST to `/api/disease`) is unchanged. |
-| **Maps** (store locator, onboarding location picker) | **Native replacement required** | Leaflet has no RN equivalent — use `react-native-maps`. |
-| **Charts** (Recharts) | **Native replacement required** | No direct RN port — pick a native charting library (e.g. `victory-native` or `react-native-gifted-charts`) and re-theme with `chartTheme.ts`'s existing color values. |
+| **Maps** (store locator, onboarding location picker) | **Native replacement required** | Leaflet has no RN equivalent. Built with `@maplibre/maplibre-react-native` (not `react-native-maps`): OpenFreeMap's Liberty style needs no API key, so nothing has to ship in the bundle. |
+| **Charts** (Recharts) | **Native replacement required** | No direct RN port — built instead as a small hand-drawn `react-native-svg` area chart (`src/components/ui/Sparkline.tsx` in the mobile repo) reusing the web palette's hues — the app needs one line and a fill, not an axis/legend system. |
 
 ## 3. Phases
 
@@ -37,18 +37,24 @@ The honest cost: this is a **from-scratch build**, not a wrapper. There is curre
 Expo app (TypeScript + Expo Router) at `E:\My projects\agent-farmer-mobile` (its own repo — see "Repo location" above), Supabase client wired with `AsyncStorage` session persistence against the **same Supabase project**, a working sign-in/sign-up screen, and one authenticated home screen rendering real farm + weather data. Verified end-to-end in a real browser: signed up a live test account against Supabase Auth, confirmed session persistence across reload, saw the honest empty state for an account with no farm profile, then confirmed real farm/crop data and live Open-Meteo weather render correctly once a farm exists (test rows inserted and cleaned up via `scripts/db-exec.mjs` for the check). One bug found and fixed along the way: Expo's static web output pre-renders in a Node SSR pass with no `window`, which crashed the Supabase client's AsyncStorage-backed auth adapter — fixed with an SSR-safe storage guard in `src/lib/supabase.ts` (native builds never hit this, since there's no SSR step there).
 
 ### Phase 1 — Backend readiness
-- Patch `/api/transcribe` and `/api/tts` to accept `Authorization: Bearer <token>`.
+- ~~Patch `/api/transcribe` and `/api/tts` to accept `Authorization: Bearer <token>`~~ — **done 2026-09-01**, and it covers every route rather than those two (see §2). Verified end to end against a throwaway account: no token → 401, malformed token → 401, valid token → past the gate, and an RLS-scoped insert as that user → 201.
 - Add thin API routes wrapping the currently-RSC-only dashboard reads (`/api/dashboard`, `/api/market`, etc.) so the mobile app never needs service-role secrets or duplicated business logic.
-- Close the RLS migration-history gap noted in the developer report (§4.3 / a `015` migration) before scaling up who's writing to these tables from a second client.
+- ~~Close the RLS migration-history gap noted in the developer report (§4.3 / a `015` migration)~~ — closed by `scripts/sql/015_reapply_owner_rls.sql`.
 
-### Phase 2 — Screen-by-screen port
-One dashboard screen per work session, in roughly this order (simplest/highest-value first): crops → market → expenses → schemes → settings → disease scanner → assistant → store locator. Reuse existing API routes and TypeScript types directly from `src/lib` rather than re-deriving business logic in the mobile app.
+### Phase 2 — Screen-by-screen port ✅ core screens done
+Built: home, crops, market, expenses, schemes, settings, disease scanner, assistant, store locator, onboarding — plus, on 2026-09-01, the three surfaces the web app gained on 2026-08-30: the **live sensor card** on Home (`src/components/SensorCard.tsx`), the **news feed** (`NewsScreen.tsx`, with a two-headline doorway on Home), and the **Jaivik Sathi eLibrary** (`LibraryScreen.tsx` + `library/BookReader.tsx`). Onboarding now also captures the **house PIN code** into `preferences.house_pincode`, matching where the web app stores it.
+
+Still web-only: the soil-pH camera flow, and the oilseeds interstitial.
+
+Reuse existing API routes and TypeScript types directly from `src/lib` rather than re-deriving business logic in the mobile app.
 
 ### Phase 3 — Native module swaps
-`expo-image-picker`/`expo-camera` for disease scanning, `expo-speech`/`expo-av` (or a cloud STT SDK) for voice, `react-native-maps` for location features, a native chart library for analytics. Re-evaluate the English-only voice scope decision for mobile — a cloud STT/TTS API might be worth the marginal cost on mobile where "install a Chrome voice pack" isn't an option the way it sort of is on desktop.
+`expo-image-picker`/`expo-camera` for disease scanning, `expo-speech`/`expo-av` (or a cloud STT SDK) for voice, MapLibre for location features (done), a native chart library for analytics (done — see §2). Re-evaluate the English-only voice scope decision for mobile — a cloud STT/TTS API might be worth the marginal cost on mobile where "install a Chrome voice pack" isn't an option the way it sort of is on desktop.
 
 ### Phase 4 — Polish & ship
-Push notifications (native replacement for the in-app `notifications` table's web-only surface), offline handling for rural connectivity gaps, i18n parity with the 9-language web app, EAS Build/Submit for app-store packaging.
+Push notifications (native replacement for the in-app `notifications` table's web-only surface), offline handling for rural connectivity gaps, i18n parity with the 9-language web app (the mobile app is still English-only), EAS Build/Submit for app-store packaging.
+
+**Blocking a real-device demo:** `EXPO_PUBLIC_API_BASE_URL` is still `http://10.0.2.2:3000`, the Android emulator's alias for the host machine. On a physical phone that resolves to nothing, so market, scan, assistant, sensors, news and the library PDFs all degrade silently. Point it at the deployed Vercel URL before handing the APK to anyone. The eLibrary's text and covers are bundled, so it is the one screen that works regardless.
 
 ## 4. Open decisions for a later session
 
