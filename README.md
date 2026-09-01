@@ -75,9 +75,15 @@ The schema is a numbered set of SQL migrations in `scripts/sql/`, applied in ord
 for f in scripts/sql/*.sql; do node scripts/db-exec.mjs "$f"; done
 ```
 
-They create the farmer/farm/crop tables with per-owner row-level security, the task and notification tables, the mandi geocache, and the feedback table. Later migrations assume the earlier ones have run, so apply them in filename order.
+They create the task and notification tables, the feedback table, the rate-limit and audit tables, and apply per-owner row-level security across all of them. Later migrations assume the earlier ones have run, so apply them in filename order.
 
-**One Supabase setting matters:** under **Authentication → Providers → Email**, turn **"Confirm email" OFF**. The app has no SMTP configured, so with confirmation on, `signUp` returns no session and registration appears to hang. When you deploy, also add your production URL under **Authentication → URL Configuration → Redirect URLs**.
+The four core tables — `farmer_profiles`, `farms`, `crop_cycles`, `farm_expenses` — were originally created by hand in the Supabase dashboard and had no `CREATE TABLE` in this history. `019_baseline_owner_tables.sql` backfills their definitions (generated from the live schema) and, more importantly, the `enable row level security` statements that were never tracked anywhere. `scripts/sql/008_mandi_geocache.sql` has never been applied to the live project — `schema_migrations` records what has.
+
+**One Supabase setting matters for local setup:** under **Authentication → Providers → Email**, "Confirm email" must be **OFF** to develop without SMTP — with it on, `signUp` returns no session and registration appears to hang.
+
+> ⚠️ That is a development convenience, not a production setting. With confirmation off, anyone can register any address they do not own and immediately hold an `authenticated` session. Before going live, configure SMTP and turn it **ON** — see the checklist in [SECURITY.md](SECURITY.md), which is the authority for production auth settings.
+
+When you deploy, also add your production URL under **Authentication → URL Configuration → Redirect URLs**.
 
 ## ▲ Deploying to Vercel
 

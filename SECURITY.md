@@ -8,14 +8,39 @@ the manual (dashboard / platform) steps that back the in-repo configuration.
 ### Data isolation
 - **RLS on every owner table** — `farmer_profiles`, `farms`, `crop_cycles`,
   `farm_expenses`, `farm_tasks`, `health_snapshots`, `crop_health_records`,
-  `chat_messages`, `notifications`, and `storage.objects` for the `leaf-scans`
-  bucket. Each policy resolves to `owner_id = auth.uid()` (directly or through an
-  `EXISTS` walk). `feedback`, `api_rate_limits` and `security_audit` are
-  RLS-enabled with **no policy** — reachable only via the service role.
+  `chat_messages`, `notifications`, `soil_readings`, and `storage.objects` for
+  the `leaf-scans` bucket. Each policy resolves to `owner_id = auth.uid()`
+  (directly or through an `EXISTS` walk). `feedback`, `api_rate_limits`,
+  `security_audit` and `schema_migrations` are RLS-enabled with **no policy** —
+  reachable only via the service role.
+- **Write-time reference checks** (`021_child_ownership_checks.sql`) — the child
+  tables validate the `farm_id` / `crop_id` a row points at, not just its
+  `farmer_id`, so a row cannot be attached to another tenant's farm.
 - `scripts/sql/015_reapply_owner_rls.sql` re-applies the owner-scoped policies
-  that `007` had temporarily reverted, so replaying the migration history now
-  produces a secured database. Verified: the anon key gets `42501` on all owner
-  tables.
+  that `007` had temporarily reverted, and `019_baseline_owner_tables.sql`
+  supplies the `enable row level security` statements for the four
+  dashboard-created tables, which no migration previously contained — so
+  replaying the history now produces a secured database rather than one whose
+  policies are present but never consulted. RLS is additionally `FORCE`d on those
+  four. Verified against the live project: the anon key gets `42501` on every
+  owner table, and holds no table privileges on them at all
+  (`020_grant_hygiene.sql` — the earlier revokes named only the four DML
+  privileges, leaving `TRUNCATE`, which bypasses RLS entirely).
+
+### Known-fixed
+- **2026-09-01 — cross-tenant read of every leaf scan (`018`).** `014` intended to
+  make the `leaf-scans` bucket private and failed for two reasons: it never
+  dropped the permissive `"leaf-scans public read"` / `"leaf-scans authenticated
+  insert"` policies created in `005`, and its replacements referenced an
+  unqualified `name` inside `exists (select 1 from farmer_profiles p ...)`, which
+  Postgres bound to `farmer_profiles.name` rather than `storage.objects.name` —
+  making all three owner policies permanently false. Anyone holding the anon key
+  (shipped in the web bundle and the mobile app) could list every farmer's folder
+  and download their field photographs; any signed-in user could write into any
+  farmer's prefix. Fixed in `018_fix_leaf_scans_exposure.sql` and verified both
+  ways: anon now lists `[]` and gets 404 on a known object, while a signed-in
+  farmer can still read, write and list their own prefix — which the owner-scoped
+  policies had in fact never permitted before.
 - **Access audit** (`016_access_audit.sql`) — an `AFTER` trigger on
   `farmer_profiles` writes every INSERT/UPDATE/DELETE (actor `auth.uid()`,
   changed columns, timestamp) to an append-only `security_audit` table that no
