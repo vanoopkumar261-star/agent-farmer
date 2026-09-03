@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Send, Brain, CloudSun, Sprout, User, Loader2, Leaf, AudioLines } from "lucide-react";
+import { Send, Brain, CloudSun, Sprout, User, Loader2, Leaf, AudioLines, BookOpen } from "lucide-react";
 import { useAssistant } from "./AssistantProvider";
 import { useT } from "@/components/i18n/LanguageProvider";
 import DictateButton from "./DictateButton";
@@ -119,18 +119,53 @@ export default function AssistantChat({
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-af-sage text-af-primary-deep shrink-0 mt-0.5">
                   <Leaf className="w-4 h-4" />
                 </span>
-                <div className="flex items-end gap-1 max-w-[82%]">
-                  <div className="rounded-2xl rounded-bl-md bg-af-bg border border-af-border px-4 py-2.5 text-[14px] text-af-ink leading-relaxed whitespace-pre-wrap min-w-0">
-                    {waitingFirstToken && i === messages.length - 1 ? (
-                      <span className="inline-flex items-center gap-1 text-af-muted">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("assistant.thinking")}
-                      </span>
-                    ) : (
-                      m.content
-                    )}
+                <div className="max-w-[82%] min-w-0">
+                  <div className="flex items-end gap-1">
+                    <div className="rounded-2xl rounded-bl-md bg-af-bg border border-af-border px-4 py-2.5 text-[14px] text-af-ink leading-relaxed whitespace-pre-wrap min-w-0">
+                      {waitingFirstToken && i === messages.length - 1 ? (
+                        <span className="inline-flex items-center gap-1 text-af-muted">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("assistant.thinking")}
+                        </span>
+                      ) : (
+                        m.content
+                      )}
+                    </div>
+                    {/* Renders nothing when this language has no installed voice. */}
+                    {!streaming && m.content && <SpeakButton text={m.content} />}
                   </div>
-                  {/* Renders nothing when this language has no installed voice. */}
-                  {!streaming && m.content && <SpeakButton text={m.content} />}
+
+                  {/* Where the answer came from. Absent when the knowledge base
+                      did not cover the question — no chips is itself honest,
+                      and means the reply is the model's own general knowledge. */}
+                  {!streaming && m.sources && m.sources.length > 0 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <span className="font-mono text-[9px] font-semibold tracking-[0.14em] uppercase text-af-muted">
+                        {t("rag.basedOn")}
+                      </span>
+                      {m.sources.map((src, k) => {
+                        const label = src.parent ? `${src.parent} · ${src.title}` : src.title;
+                        const chip =
+                          "inline-flex items-center gap-1 rounded-full border border-af-border bg-af-card px-2.5 py-1 text-[11px] text-af-ink-2 hover:border-af-primary/40 hover:text-af-ink transition";
+                        return src.link ? (
+                          <a
+                            key={k}
+                            href={src.link}
+                            target={src.link.startsWith("http") ? "_blank" : undefined}
+                            rel={src.link.startsWith("http") ? "noopener noreferrer" : undefined}
+                            className={chip}
+                          >
+                            <BookOpen className="w-3 h-3 shrink-0" />
+                            {label}
+                          </a>
+                        ) : (
+                          <span key={k} className={chip}>
+                            <BookOpen className="w-3 h-3 shrink-0" />
+                            {label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             )

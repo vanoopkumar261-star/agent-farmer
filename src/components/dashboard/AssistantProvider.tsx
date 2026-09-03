@@ -10,7 +10,20 @@ import {
 } from "react";
 import { useT } from "@/components/i18n/LanguageProvider";
 
-export type Msg = { role: "user" | "assistant"; content: string };
+/** A citation the assistant drew on, surfaced under its reply. */
+export type Source = {
+  title: string;
+  parent: string | null;
+  link: string | null;
+  source: "scheme" | "library" | "agronomy";
+};
+
+export type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  /** Set only on assistant turns that actually retrieved something. */
+  sources?: Source[];
+};
 
 /**
  * The one and only assistant state for the whole dashboard.
@@ -113,6 +126,18 @@ export default function AssistantProvider({
           return fail(errText || t("assistant.error.unreachable"));
         }
 
+        // Citations ride on a header because the body is a text stream. Absent
+        // or empty means the knowledge base did not cover the question, which
+        // is a real answer — the reply then carries no chips and makes no claim
+        // to a source.
+        let sources: Source[] = [];
+        try {
+          const raw = res.headers.get("X-Rag-Sources");
+          if (raw) sources = JSON.parse(atob(raw)) as Source[];
+        } catch {
+          /* malformed header — show the answer without citations */
+        }
+
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let acc = "";
@@ -122,7 +147,7 @@ export default function AssistantProvider({
           acc += decoder.decode(value, { stream: true });
           setMessages((m) => {
             const copy = [...m];
-            copy[copy.length - 1] = { role: "assistant", content: acc };
+            copy[copy.length - 1] = { role: "assistant", content: acc, sources };
             return copy;
           });
         }

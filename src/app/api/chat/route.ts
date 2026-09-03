@@ -5,6 +5,8 @@ import { saveChatTurn } from "@/lib/history";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
+import { createSupabaseServer } from "@/lib/supabase-server";
+import { buildSourceBlock, retrieve } from "@/lib/rag/retrieve";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +47,13 @@ export async function POST(req: Request) {
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
   const language = aiLanguageName(locale);
 
+  // Look up passages from our own handbooks, schemes and crop data before
+  // answering. Returns nothing when the corpus does not cover the question,
+  // which is the designed outcome — see src/lib/rag/retrieve.ts for why the
+  // gate is retriever agreement rather than a similarity score.
+  const retrieved = await retrieve(createSupabaseServer(), lastUser, farmer?.id ?? null);
+  const sourceBlock = buildSourceBlock(retrieved);
+
   const system = `You are the Agent Farmer AI Assistant — a knowledgeable, friendly farming advisor for Indian farmers.
 
 You have live memory of this farmer's data:
@@ -63,7 +72,9 @@ Guidelines:
 - Use ₹ for money and metric units. Assume Indian agriculture context.
 - When weather implies action (rain, heat), say what to do and when.
 - If asked about farming beyond the data above, answer helpfully from general agronomy knowledge.
-- Never invent farm data that isn't provided. If data is missing, say so briefly.`;
+- Never invent farm data that isn't provided. If data is missing, say so briefly.
+
+${sourceBlock}`;
 
   // fetchWithRetry still throws once its attempts are spent — most often on the
   // intermittent TLS chain failure described in src/lib/http.ts. Letting that
@@ -167,10 +178,21 @@ Guidelines:
     },
   });
 
+  // The body is a text stream, so the citations ride on a header instead —
+  // base64 so a handbook title with non-ASCII characters cannot break it.
+  const citations = retrieved.passages.map((p) => ({
+    title: p.title,
+    parent: p.parent,
+    link: p.link,
+    source: p.source,
+  }));
+
   return new Response(stream, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
+      "X-Rag-Sources": Buffer.from(JSON.stringify(citations), "utf8").toString("base64"),
+      "Access-Control-Expose-Headers": "X-Rag-Sources",
     },
   });
 }

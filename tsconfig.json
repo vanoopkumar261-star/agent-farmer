@@ -22,5 +22,12 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // Deno, not Node: `supabase/functions/embed` runs in Supabase's Edge
+    // Runtime, where `Deno` and `Supabase.ai` are globals this config knows
+    // nothing about. Typechecking it here reports errors for code that is
+    // correct where it actually runs.
+    "supabase/functions"
+  ]
 }
