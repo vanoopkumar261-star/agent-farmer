@@ -308,3 +308,116 @@ select:focus {
     animation: none !important;
   }
 }
+
+/* ── Loading screen ─────────────────────────────────────────────────────────
+   The mark draws itself, then colour rises through the whole composition.
+
+   Everything is keyed off `pathLength="1"` in AgentFarmerMark, which normalises
+   every curve to a length of 1 no matter its real geometry — so one rule draws
+   all of them at the same rate and editing a curve never breaks the timing.
+
+   The mark draws ONCE and then holds. A loop that redraws every couple of
+   seconds reads as a stutter on a ten-second load, and the reference is a
+   single progression, not a cycle. Only the bar and a slow breath continue. */
+
+/* The 400ms hold before anything is visible. A page that resolves quickly
+   unmounts this before it ever paints, so fast navigation never flashes. */
+@keyframes af-loading-in {
+  to { opacity: 1; }
+}
+.af-loading {
+  opacity: 0;
+  animation: af-loading-in 260ms ease-out 400ms forwards;
+}
+
+/* Ink being laid down. */
+@keyframes af-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+/* Drafting guides being erased as the ink arrives. */
+@keyframes af-sketch-out {
+  0%   { opacity: .55; }
+  55%  { opacity: .4; }
+  100% { opacity: 0; }
+}
+/* The reveal: slides up from fully below the artwork to fully covering it. */
+@keyframes af-rise {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+/* Eases toward ~95% and stops. It never claims completion it cannot verify. */
+@keyframes af-bar {
+  0%   { width: 4%; }
+  25%  { width: 46%; }
+  55%  { width: 72%; }
+  80%  { width: 86%; }
+  100% { width: 95%; }
+}
+@keyframes af-breathe {
+  0%, 100% { opacity: .55; }
+  50%      { opacity: 1; }
+}
+@keyframes af-underline {
+  from { width: 0; }
+  to   { width: 172px; }
+}
+
+.af-mark .af-ink {
+  stroke: rgb(var(--af-ink));
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: af-draw 900ms cubic-bezier(.6, .05, .3, 1) forwards;
+  animation-delay: calc(400ms + var(--d, 0s));
+}
+.af-mark .af-arc { stroke-width: 2; opacity: .55; }
+.af-mark .af-node { stroke-width: 2.5; }
+
+/* The unfinished pass. Real elements rather than a <use> clone, because
+   document CSS does not reach into a <use> shadow tree — the ink pass silently
+   lost its classes and this pale pass painted over it. */
+.af-mark .af-pencil { opacity: .85; }
+.af-horizon .af-pencil-h { opacity: .85; }
+
+.af-mark .af-sketch {
+  fill: none;
+  opacity: .55;
+  animation: af-sketch-out 1800ms ease-out 500ms forwards;
+}
+
+/* Both clips share one motion, so gold reaches the ear and the fields
+   together rather than in two passes that nearly line up. */
+.af-rise-rect,
+.af-rise-rect-h {
+  transform: translateY(100%);
+  animation: af-rise 2200ms cubic-bezier(.4, 0, .2, 1) 600ms forwards;
+}
+
+.af-mark .af-gold { opacity: .85; }
+.af-horizon .af-horizon-warm { opacity: .95; }
+
+.af-wordmark { opacity: 0; animation: af-loading-in 700ms ease-out 900ms forwards; }
+.af-underline { width: 0; animation: af-underline 900ms cubic-bezier(.4, 0, .2, 1) 1500ms forwards; }
+.af-bar-fill { width: 4%; animation: af-bar 9s cubic-bezier(.1, .7, .2, 1) 500ms forwards; }
+.af-dot { animation: af-breathe 2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* No drawing, no sweep, no breath: the finished mark, immediately.
+     The bar holds a static fill rather than animating — reduced motion means
+     no motion, and the "Loading…" label already carries the state. (The app's
+     `af-shimmer` is a translateX and would slide the fill out of the track, so
+     it is deliberately not reused here.) */
+  .af-loading { opacity: 1; animation: none; }
+  .af-mark .af-ink { stroke-dashoffset: 0; animation: none; }
+  .af-mark .af-sketch { opacity: 0; animation: none; }
+  .af-rise-rect,
+  .af-rise-rect-h { transform: translateY(0); animation: none; }
+  .af-wordmark { opacity: 1; animation: none; }
+  .af-underline { width: 172px; animation: none; }
+  .af-dot { animation: none; }
+  .af-bar-fill { width: 62%; animation: none; }
+}
