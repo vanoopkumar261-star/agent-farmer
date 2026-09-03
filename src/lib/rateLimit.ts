@@ -49,6 +49,11 @@ export const LIMITS = {
   geocode: { limit: 30, windowSec: 60 },
   img: { limit: 120, windowSec: 60 },
   "soil-reading": { limit: 10, windowSec: 60 },
+  // Mostly a database read, but a stale store makes it pull the SACHET feed
+  // inline. Generous enough that a worried farmer can re-check during a storm,
+  // tight enough that a loop can't turn us into a scraper against a government
+  // service with no published SLA.
+  "hazard-check": { limit: 20, windowSec: 60 },
 } as const;
 
 export type Endpoint = keyof typeof LIMITS;

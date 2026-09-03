@@ -259,3 +259,52 @@ select:focus {
     animation: none !important;
   }
 }
+/* ── District severity map (emergency alert popup) ──────────────────────────
+   The glow breathes slowly when nothing is in force and pulses harder only for
+   a red alert, so movement itself carries meaning: a map that is moving fast is
+   an emergency, not decoration. Yellow and orange deliberately hold still.
+   Driven by a class on the <svg>; the colour comes from the --sev variable the
+   component sets. */
+@keyframes af-sev-breathe {
+  0%, 100% { opacity: 0.72; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.045); }
+}
+@keyframes af-sev-urgent {
+  0%, 100% { opacity: 0.78; transform: scale(0.985); }
+  50%      { opacity: 1;    transform: scale(1.075); }
+}
+@keyframes af-sev-ping {
+  0%   { opacity: 0.55; transform: scale(0.9); }
+  70%  { opacity: 0;    transform: scale(2.1); }
+  100% { opacity: 0;    transform: scale(2.1); }
+}
+
+.af-sevmap-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* Calm — the slow "all is well" breath. */
+.af-sevmap[data-band="clear"] .af-sevmap-glow {
+  animation: af-sev-breathe 4.5s ease-in-out infinite;
+}
+/* Emergency — faster and deeper. */
+.af-sevmap[data-band="red"] .af-sevmap-glow {
+  animation: af-sev-urgent 1.6s ease-in-out infinite;
+}
+/* Yellow and orange are intentionally absent: they glow but do not move, so
+   motion stays reserved for the two states where it means something. */
+/* The "you" dot gets an outward ping only in the red state — the one case
+   where drawing the eye to the farmer's own position is worth the movement. */
+.af-sevmap[data-band="red"] .af-sevmap-home > circle:first-child {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: af-sev-ping 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .af-sevmap-glow,
+  .af-sevmap[data-band="red"] .af-sevmap-glow,
+  .af-sevmap[data-band="red"] .af-sevmap-home > circle:first-child {
+    animation: none !important;
+  }
+}

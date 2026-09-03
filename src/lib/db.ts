@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { estimateYieldLabel, suggestHarvestDate } from "./agronomy";
+import { districtFromAddress } from "./hazards/match";
 
 export async function createFarmerProfile(profile: any) {
   const {
@@ -50,6 +51,15 @@ export async function createFarmerProfile(profile: any) {
       house_lat: profile.location?.lat,
       house_lng: profile.location?.lng,
       house_address: profile.locationAddress,
+      // District/state for the hazard early-warning check, which matches
+      // official IMD/CWC warnings to a farmer by district name. Taken from the
+      // address Nominatim already resolved rather than a second lookup — see
+      // districtFromAddress(). Null is fine: the check re-derives it on first
+      // use for anyone who onboarded before this existed.
+      ...(() => {
+        const where = districtFromAddress(profile.locationAddress);
+        return where ? { house_district: where.district, house_state: where.state } : {};
+      })(),
       preferences: {
         ...(prefsPatch ?? {}),
         ...(pincode ? { house_pincode: pincode } : {}),

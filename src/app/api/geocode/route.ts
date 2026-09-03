@@ -27,8 +27,29 @@ type GeoOut = {
   lng?: number;
   address?: string;
   pincode?: string;
+  /**
+   * Administrative district and state. Nominatim already returns these in the
+   * `addressdetails` payload this route requests; they used to be dropped on
+   * the floor. The hazard early-warning check matches official IMD/CWC warnings
+   * to a farmer by district name, so it needs them.
+   *
+   * Nominatim's field naming for districts is inconsistent across India — some
+   * places carry `state_district`, others only `county` — hence the fallback
+   * chain where these are read.
+   */
+  district?: string;
+  state?: string;
   error?: string;
 };
+
+/** Pull the district/state out of a Nominatim `address` object. */
+function adminAreas(a: any): { district?: string; state?: string } {
+  if (!a) return {};
+  return {
+    district: a.state_district || a.county || a.district || undefined,
+    state: a.state || undefined,
+  };
+}
 
 async function nominatim(path: string): Promise<any> {
   const res = await fetch(`${NOMINATIM}${path}`, {
@@ -62,6 +83,7 @@ export async function GET(req: Request) {
         lng: lo,
         address: (d?.display_name as string) || undefined,
         pincode: (d?.address?.postcode as string) || undefined,
+        ...adminAreas(d?.address),
       } satisfies GeoOut);
     }
 
@@ -88,6 +110,7 @@ export async function GET(req: Request) {
           lng: parseFloat(f.lon),
           address: (f.display_name as string) || undefined,
           pincode: (f.address?.postcode as string) || (isPin ? q : undefined),
+          ...adminAreas(f.address),
         } satisfies GeoOut);
       }
     }

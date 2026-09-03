@@ -1,5 +1,6 @@
 import { AlertTriangle, CloudRain, Bug, Sparkles, ListChecks } from "lucide-react";
 import { T } from "@/components/i18n/LanguageProvider";
+import HazardCheckButton from "./HazardCheckButton";
 
 export type Alert = {
   kind: "weather" | "disease" | "ai" | "critical" | "task";
@@ -42,6 +43,10 @@ export default function AlertsCard({ alerts }: { alerts: Alert[] }) {
           );
         })}
       </div>
+
+      {/* The alerts above are our own reading of the forecast. This checks what
+          IMD / CWC / the state SDMA have actually warned about, on demand. */}
+      <HazardCheckButton />
     </div>
   );
 }

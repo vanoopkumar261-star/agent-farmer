@@ -58,6 +58,71 @@ export const STATUS = {
 } as const;
 
 /**
+ * Hazard severity ramp — IMD's own green/yellow/orange/red warning scale, used
+ * by the district map in the emergency-alert popup.
+ *
+ * ── Why not the af-* status tokens ───────────────────────────────────────────
+ * Because they cannot do it. Running the obvious mapping through the dataviz
+ * validator:
+ *
+ *   node scripts/validate_palette.js "#284D35,#D6A72C,#A35A2E,#A8452F" \
+ *        --mode light --surface "#FFFFFF"
+ *   → [FAIL] CVD separation       #A8452F ↔ #A35A2E  ΔE 2.5 (deutan)
+ *     [FAIL] Normal-vision floor  #A8452F ↔ #A35A2E  ΔE 4.8
+ *
+ * af-danger and Earth Brown are the same colour to the eye. In a weather-safety
+ * feature that means a farmer cannot tell an orange day from a red one.
+ *
+ * ── Why the categorical checks do not govern this ────────────────────────────
+ * Every attempt to satisfy the validator's *adjacent-pair* tests also failed,
+ * and that is the wrong test here. Yellow → orange → red are three neighbouring
+ * hues on one continuum, so forcing any pair apart collapses another. Those
+ * checks assume a categorical palette whose series appear together; these four
+ * states are mutually exclusive — exactly one is ever on screen. The validator
+ * says so itself: "scope: categorical palettes only."
+ *
+ * ── What was validated instead ───────────────────────────────────────────────
+ * A severity ramp must escalate visibly even with no colour perception at all,
+ * so it was checked on chroma, which rises monotonically:
+ *
+ *   clear  #2E8B57  L 0.569  C 0.119   contrast vs white 4.25
+ *   yellow #E0A81C  L 0.764  C 0.151   contrast vs white 2.15
+ *   orange #E2662A  L 0.654  C 0.170   contrast vs white 3.40
+ *   red    #B3221A  L 0.498  C 0.182   contrast vs white 6.64
+ *
+ * 0.119 → 0.151 → 0.170 → 0.182, no reversal, and calm is the least vivid of
+ * the four. "More urgent" is literally "more vivid".
+ *
+ * ── Two rules this ramp depends on ───────────────────────────────────────────
+ * 1. NEVER colour alone. Yellow sits at 2.15 contrast; it is legible only
+ *    because the band name and an icon always accompany it.
+ * 2. Label ink flips by band — see SEVERITY_INK below.
+ *
+ * More saturated than the muted forest/ivory brand, deliberately: a safety
+ * signal that blends into the page has failed. Scoped to this one component.
+ */
+export const SEVERITY = {
+  clear: "#2E8B57",
+  yellow: "#E0A81C",
+  orange: "#E2662A",
+  red: "#B3221A",
+} as const;
+
+/**
+ * Readable ink for a label sitting ON each severity fill.
+ * Measured: ink-on-yellow 6.01, ink-on-orange 3.78, white-on-red 6.64,
+ * white-on-clear 4.25.
+ */
+export const SEVERITY_INK = {
+  clear: "#FFFFFF",
+  yellow: "#26352D",
+  orange: "#26352D",
+  red: "#FFFFFF",
+} as const;
+
+export type SeverityKey = keyof typeof SEVERITY;
+
+/**
  * Single-hue forest ramp for composition (the expense donut). Monotonic in
  * lightness so the split is readable without colour vision; identity comes from
  * the legend list, not the hue.

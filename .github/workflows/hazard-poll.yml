@@ -1,0 +1,69 @@
+name: Hazard poll
+
+# Polls NDMA SACHET for official IMD / CWC / SDMA warnings and stores them.
+#
+# This lives here rather than in vercel.json because Vercel Cron on the Hobby
+# plan runs at most once per day, which cannot deliver a two-hour thunderstorm
+# nowcast. GitHub Actions gives a 10-minute cadence for free.
+#
+# Caveat worth knowing: GitHub's scheduler is best-effort and drifts under load,
+# sometimes by several minutes. That is acceptable for a 2-3 hour warning window
+# and not for a 30-minute one. If drift becomes a problem, move this to Supabase
+# pg_cron, which schedules reliably — the route it calls does not change.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  # So a run can be triggered by hand while setting this up or debugging.
+  workflow_dispatch:
+
+# A slow run must never overlap the next tick.
+concurrency:
+  group: hazard-poll
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger hazard ingest
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${APP_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::APP_URL and CRON_SECRET repository secrets must both be set."
+            exit 1
+          fi
+
+          # --fail-with-body so a non-2xx still prints the JSON reason before
+          # failing the step; without it a 502 from a down feed is a blank error.
+          http_code=$(curl --silent --show-error --fail-with-body \
+            --max-time 90 \
+            --retry 2 --retry-delay 5 --retry-connrefused \
+            -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -o response.json \
+            -w "%{http_code}" \
+            "${APP_URL}/api/cron/hazards") || true
+
+          echo "HTTP ${http_code}"
+          cat response.json || true
+          echo
+
+          # 502 means SACHET was unreachable this tick. That is upstream, not
+          # our bug, and the next run in 10 minutes will pick it up — so do not
+          # fail the workflow and page someone over a transient government feed.
+          if [ "${http_code}" = "502" ]; then
+            echo "::warning::Upstream feed unavailable this tick; will retry on the next schedule."
+            exit 0
+          fi
+
+          case "${http_code}" in
+            2*) exit 0 ;;
+            *)  echo "::error::Hazard poll failed with HTTP ${http_code}"; exit 1 ;;
+          esac
