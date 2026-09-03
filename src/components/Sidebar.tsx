@@ -73,8 +73,13 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="hidden lg:flex w-[264px] shrink-0 min-h-screen bg-af-card border-r border-af-border flex-col justify-between py-7 px-4 sticky top-0"
+      className="af-sidebar relative hidden lg:flex w-[264px] shrink-0 min-h-screen flex-col justify-between py-7 px-4 sticky top-0"
     >
+      {/* The right edge. A positioned element rather than `border-r`, because a
+          border cannot hold a gradient — and a flat hairline beside a warm
+          panel is the thing that made this read as a white box. */}
+      <span aria-hidden="true" className="af-sidebar-edge absolute inset-y-0 right-0 w-px" />
+
       <div className="flex flex-col gap-8">
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-2">
@@ -93,6 +98,9 @@ export default function Sidebar() {
             </span>
           </div>
         </div>
+
+        {/* Gold inlay under the wordmark, brightest in the middle. */}
+        <div aria-hidden="true" className="af-rule-warm h-px -mt-4 mx-2" />
 
         {/* Navigation groups */}
         {/* Tour anchor is the nav list, not the <aside>: the aside is
@@ -121,12 +129,12 @@ export default function Sidebar() {
                       outline-none focus-visible:ring-2 focus-visible:ring-af-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-af-card
                       ${
                         isActive
-                          ? "bg-af-sage text-af-secondary"
+                          ? "af-nav-active text-af-secondary"
                           : "text-af-ink-2 hover:bg-af-bg hover:text-af-ink"
                       }`}
                   >
                     {isActive && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-af-primary" />
+                      <span className="af-nav-marker absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full" />
                     )}
                     <item.icon
                       className={`w-[18px] h-[18px] shrink-0 ${
@@ -154,7 +162,7 @@ export default function Sidebar() {
           {t("nav.newFarm")}
         </AddFarmButton>
 
-        <div className="h-px bg-af-border w-full" />
+        <div aria-hidden="true" className="af-rule-warm h-px w-full" />
 
         <div className="flex items-center gap-3 px-1 py-1">
           <div className="w-9 h-9 rounded-full bg-af-sage flex items-center justify-center shrink-0">

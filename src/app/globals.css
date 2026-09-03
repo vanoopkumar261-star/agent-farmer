@@ -47,6 +47,10 @@
                                       The mustard itself is 2.2:1 and unreadable
                                       as type; seven components had each
                                       hand-picked their own #9a7100 for this. */
+  --af-wood: 139 115 85;           /* #8B7355 Earth Brown — the one colour named
+                                      in the source palette above that never got
+                                      a token. Grain and warm edges only; it is
+                                      too low-contrast for type. */
   --af-danger: 168 69 47;          /* #A8452F — muted brick, genuine errors */
 }
 
@@ -65,6 +69,7 @@
   --af-ink-2: 63 83 71;            /* #3F5347 */
   --af-muted: 124 138 120;         /* #7C8A78 */
   --af-amber-ink: 138 106 18;      /* #8A6A12 */
+  --af-wood: 139 115 85;           /* #8B7355 Earth Brown */
 }
 
 /* ── Lenis smooth scroll (recommended base styles) ── */
@@ -420,4 +425,90 @@ select:focus {
   .af-underline { width: 172px; animation: none; }
   .af-dot { animation: none; }
   .af-bar-fill { width: 62%; animation: none; }
+}
+
+/* ── Sidebar: warm inserts ───────────────────────────────────────────────────
+   The nav was flat #FFFFFF against an ivory page, which read as a clinical
+   panel bolted onto a warm product. These layers give it grain and a little
+   gold without turning it into a decorated surface — everything here is between
+   2% and 8% alpha, so it should register as "warm" rather than as a pattern
+   anyone can describe.
+
+   Layer order (topmost first, as CSS paints background-image):
+     1+2. two grain passes at different periods. One alone reads as a
+          pinstripe; two at co-prime widths interfere and read as timber.
+     3.   a warm wash rising from the floor, so the panel is lit from the page
+          rather than uniformly tinted.
+     4.   a faint golden bloom behind the logo. */
+.af-sidebar {
+  background-color: rgb(var(--af-card));
+  background-image:
+    /* Soft-edged, not hard 1px bars. Hard stops render as corduroy — a regular
+       pinstripe the eye keeps re-reading. Fading each striation in and out
+       leaves the same warmth with nothing to lock onto. */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      rgb(var(--af-wood) / 0.028) 1.5px,
+      transparent 3px,
+      transparent 7px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      rgb(var(--af-wood) / 0.018) 4px,
+      transparent 8px,
+      transparent 17px
+    ),
+    linear-gradient(
+      180deg,
+      rgb(var(--af-beige) / 0) 0%,
+      rgb(var(--af-beige) / 0.5) 58%,
+      rgb(var(--af-beige) / 0.85) 100%
+    ),
+    radial-gradient(115% 34% at 50% 0%, rgb(var(--af-amber) / 0.07), transparent 72%);
+}
+
+/* The right edge, replacing a flat 1px hairline. Gold where the eye lands —
+   beside the nav — fading to the border colour at both ends so it never looks
+   like a rule that was drawn on. */
+.af-sidebar-edge {
+  background-image: linear-gradient(
+    180deg,
+    rgb(var(--af-border)) 0%,
+    rgb(var(--af-amber) / 0.5) 16%,
+    rgb(var(--af-amber) / 0.26) 46%,
+    rgb(var(--af-wood) / 0.34) 78%,
+    rgb(var(--af-border)) 100%
+  );
+}
+
+/* Hairlines under the logo and above the profile row. Brightest in the middle
+   so they read as inlay rather than as a divider. */
+.af-rule-warm {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(var(--af-amber) / 0.34) 22%,
+    rgb(var(--af-wood) / 0.28) 55%,
+    transparent 100%
+  );
+}
+
+/* The active row. Sage stays the base — green is what "you are here" means in
+   this product — with a breath of beige beneath it so the selected item feels
+   lit rather than merely filled. */
+.af-nav-active {
+  background-image: linear-gradient(
+    100deg,
+    rgb(var(--af-sage)) 0%,
+    rgb(var(--af-beige) / 0.9) 78%,
+    rgb(var(--af-amber) / 0.14) 100%
+  );
+}
+
+/* The indicator bar: gold at the top rolling into brand green, so the gold is
+   an accent on the marker rather than a second status colour. */
+.af-nav-marker {
+  background-image: linear-gradient(180deg, rgb(var(--af-amber)) 0%, rgb(var(--af-primary)) 58%, rgb(var(--af-primary)) 100%);
 }
