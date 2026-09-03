@@ -1,5 +1,6 @@
 import "server-only";
 import { searchAgriStores } from "./places";
+import { addAddresses } from "./storeAddress";
 import { SEARCH_RADIUS_KM } from "./storeConfig";
 import { hazardAdmin } from "./hazards/store";
 
@@ -35,6 +36,12 @@ export type Store = {
   lng: number;
   distanceKm: number;
   address: string | null;
+  /**
+   * Google's own place identifier, present only on the Places tier. It is what
+   * lets a Directions link name the shop without any risk of Google resolving
+   * that name against the wrong town — see `storeDirections.ts`.
+   */
+  placeId?: string | null;
   /** Which real source this came from. There is no third option any more. */
   source: "places" | "osm";
 };
@@ -168,7 +175,14 @@ export async function getNearbyStores(lat: number, lng: number): Promise<Store[]
 
   const places = await searchAgriStores(lat, lng);
   if (places && places.length > 0) {
-    const rows: CachedStore[] = places.map((p) => ({ ...p, source: "places" as const }));
+    // `p.id` is stored prefixed ("gp-…") to keep ids unique across sources;
+    // Google needs the bare place_id back, so it is split out here rather than
+    // reconstructed at render time.
+    const rows: CachedStore[] = places.map((p) => ({
+      ...p,
+      placeId: p.id.startsWith("gp-") ? p.id.slice(3) : p.id,
+      source: "places" as const,
+    }));
     await writeCache(key, "places", rows);
     return withDistance(rows);
   }
@@ -176,8 +190,14 @@ export async function getNearbyStores(lat: number, lng: number): Promise<Store[]
   try {
     const osm = await fromOverpass(lat, lng, SEARCH_RADIUS_KM * 1000);
     if (osm.length > 0) {
-      await writeCache(key, "osm", osm);
-      return withDistance(osm);
+      // Sort before geocoding, not after: `addAddresses` only looks up the
+      // first few, and those should be the shops nearest the farmer.
+      const nearestFirst = osm.sort(
+        (a, b) => haversineKm(lat, lng, a.lat, a.lng) - haversineKm(lat, lng, b.lat, b.lng)
+      );
+      const located = await addAddresses(nearestFirst);
+      await writeCache(key, "osm", located);
+      return withDistance(located);
     }
   } catch (e) {
     console.error("STORES overpass error:", e);

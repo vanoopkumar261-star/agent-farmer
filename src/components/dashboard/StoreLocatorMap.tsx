@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Circle, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import { MapPin, Navigation, Store as StoreIcon, Home, Layers } from "lucide-react";
 import type { Store } from "@/lib/stores";
+import { directionsUrl } from "@/lib/storeDirections";
 import { SEARCH_RADIUS_KM } from "@/lib/storeConfig";
 import { useT } from "@/components/i18n/LanguageProvider";
 
@@ -81,23 +82,31 @@ export default function StoreLocatorMap({
                       <div className="text-sm font-semibold text-af-ink truncate">{s.name}</div>
                       <div className="text-[11px] text-af-muted">{s.type}</div>
                     </div>
-                    {/* The star rating that used to sit here was `ratingFor()`
-                        — the shop's own name hashed into a number between 3.8
-                        and 4.9, shown as if it were a review score. Replaced
-                        with the real address, which is both true and more use
-                        when the shop may be 90 km away. */}
-                    {s.address && (
-                      <span className="text-[11px] text-af-muted text-right shrink-0 max-w-[45%] truncate">
-                        {s.address}
-                      </span>
-                    )}
                   </div>
+                  {/* The star rating that used to sit here was `ratingFor()` —
+                      the shop's own name hashed into a number between 3.8 and
+                      4.9, shown as if it were a review score.
+
+                      The address replaces it, and it is doing real work rather
+                      than filling the gap. Community-mapped shops are not in
+                      Google's index, so their pin borrows the name of whatever
+                      business Google does have nearby — a garden centre opens a
+                      page titled "unisex salon". The address is how a farmer
+                      confirms the destination is the right street before
+                      setting off, so it gets its own full-width line instead of
+                      being truncated into the corner. */}
+                  {s.address && (
+                    <div className="mt-1.5 flex items-start gap-1.5 text-[11px] text-af-muted leading-snug">
+                      <MapPin className="w-3 h-3 mt-[1px] shrink-0 text-af-muted/70" />
+                      <span className="min-w-0">{s.address}</span>
+                    </div>
+                  )}
                   <div className="mt-2 flex items-center justify-between">
                     <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-af-ink-2">
                       <MapPin className="w-3.5 h-3.5 text-af-primary" /> {t("storeLocatorMap.kmAway", { n: s.distanceKm })}
                     </span>
                     <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`}
+                      href={directionsUrl(s)}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
