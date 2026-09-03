@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTextToSpeech } from "./useTextToSpeech";
 import { useSpeechRecognition, type RecognitionError } from "./useSpeechRecognition";
 import { VOICE_LOCALE } from "@/lib/speech";
+import { toSpeakableText } from "@/lib/plainText";
 
 export type VoicePhase = "idle" | "listening" | "transcribing" | "thinking" | "speaking";
 
@@ -78,11 +79,18 @@ export function useVoiceConversation({
     if (!activeRef.current) return;
 
     if (reply) {
-      setLastReply(reply);
+      // The model answers in Markdown. Voice mode both SHOWS this text at 19px
+      // and reads it aloud, so the syntax has to go: unstripped, the seven
+      // languages with no installed voice read "star star" on screen, and the
+      // two with one hear it. Markdown is not rendered here — the layout is a
+      // single centred block meant to be read across a room, and centred
+      // bullets would fight that — so it is flattened to plain prose instead.
+      const spoken = toSpeakableText(reply);
+      setLastReply(spoken);
       // Silent languages fall through instantly: `speak` resolves immediately
       // when the device has no voice, so the loop still works as voice-in.
       setPhase("speaking");
-      await ttsRef.current.speak(reply);
+      await ttsRef.current.speak(spoken);
     }
 
     if (!activeRef.current) return;

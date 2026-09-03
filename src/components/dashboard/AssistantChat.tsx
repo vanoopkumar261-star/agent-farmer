@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { Send, Brain, CloudSun, Sprout, User, Loader2, Leaf, AudioLines, BookOpen } from "lucide-react";
 import { useAssistant } from "./AssistantProvider";
 import { useT } from "@/components/i18n/LanguageProvider";
 import DictateButton from "./DictateButton";
+import dynamic from "next/dynamic";
+import { toSpeakableText } from "@/lib/plainText";
+
+/**
+ * The Markdown renderer is ~56KB and only earns its place once a reply exists.
+ * Loading it statically put ~12KB on EVERY dashboard page, because the floating
+ * assistant dock is mounted in the shell — cost paid on pages nobody opens the
+ * chat on, by farmers on phones.
+ *
+ * The fallback is the reply with its syntax stripped rather than nothing, so
+ * the words are readable from the first frame and simply gain formatting when
+ * the chunk arrives — no flash of asterisks, no empty bubble.
+ */
+const AssistantMarkdown = dynamic(() => import("./AssistantMarkdown"), { ssr: false });
 import { voiceEnabledFor } from "@/lib/speech";
 import SpeakButton from "./SpeakButton";
 
@@ -121,17 +135,23 @@ export default function AssistantChat({
                 </span>
                 <div className="max-w-[82%] min-w-0">
                   <div className="flex items-end gap-1">
-                    <div className="rounded-2xl rounded-bl-md bg-af-bg border border-af-border px-4 py-2.5 text-[14px] text-af-ink leading-relaxed whitespace-pre-wrap min-w-0">
+                    <div className="rounded-2xl rounded-bl-md bg-af-bg border border-af-border px-4 py-2.5 text-[14px] text-af-ink leading-relaxed min-w-0">
                       {waitingFirstToken && i === messages.length - 1 ? (
                         <span className="inline-flex items-center gap-1 text-af-muted">
                           <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("assistant.thinking")}
                         </span>
                       ) : (
-                        m.content
+                        /* Markdown, not raw text. `whitespace-pre-wrap` is gone
+                           with it: Markdown supplies its own paragraphs and
+                           lists, and preserving the source newlines on top of
+                           that double-spaces every reply. */
+                        <Suspense fallback={<span className="whitespace-pre-wrap">{toSpeakableText(m.content)}</span>}>
+                          <AssistantMarkdown>{m.content}</AssistantMarkdown>
+                        </Suspense>
                       )}
                     </div>
                     {/* Renders nothing when this language has no installed voice. */}
-                    {!streaming && m.content && <SpeakButton text={m.content} />}
+                    {!streaming && m.content && <SpeakButton text={toSpeakableText(m.content)} />}
                   </div>
 
                   {/* Where the answer came from. Absent when the knowledge base
