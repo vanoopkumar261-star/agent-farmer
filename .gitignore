@@ -67,3 +67,11 @@ scripts/.cache/
 /public/images/Mustard feild.png
 /public/images/Sunflower field.png
 .env*
+
+# Claude Code's per-machine config: settings.local.json records the absolute
+# paths of this developer's machine, and settings.json records which plugins
+# they happen to have installed. Neither describes the project.
+/.claude/
+
+# Supabase CLI scratch, written when deploying an edge function.
+/supabase/.temp/
