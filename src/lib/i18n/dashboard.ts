@@ -11,6 +11,12 @@ type Dict = Record<string, string>;
    ──────────────────────────────────────────────────────────────────────────── */
 
 const en: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "No verified shops within {n} km",
+  "stores.emptyBody": "We only show shops we can actually confirm, so we would rather say nothing than send you somewhere that isn't there. Search Google Maps for what's around you.",
+  "stores.searchOnMaps": "Search on Google Maps",
+  "storeLocatorMap.viewSatellite": "Satellite",
+  "storeLocatorMap.viewMap": "Map",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "Based on",
   // District severity map caption (emergency alert popup)
@@ -665,6 +671,12 @@ const en: Dict = {
 };
 
 const hi: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "{n} किमी के भीतर कोई सत्यापित दुकान नहीं",
+  "stores.emptyBody": "हम केवल वही दुकानें दिखाते हैं जिनकी पुष्टि हो सके — आपको किसी ऐसी जगह भेजने से बेहतर है कुछ न कहना जो वहाँ है ही नहीं। अपने आसपास की दुकानें Google Maps पर खोजें।",
+  "stores.searchOnMaps": "Google Maps पर खोजें",
+  "storeLocatorMap.viewSatellite": "सैटेलाइट",
+  "storeLocatorMap.viewMap": "मानचित्र",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "स्रोत",
   // District severity map caption (emergency alert popup)
@@ -1237,6 +1249,12 @@ const hi: Dict = {
   "soilPh.band.alkaline.advice": "जिप्सम डालें, सहनशील फ़सलें (जौ, सरसों) उगाएँ, और पूरी मृदा जाँच कराएँ।",
 };
 const kn: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "{n} ಕಿಮೀ ವ್ಯಾಪ್ತಿಯಲ್ಲಿ ಪರಿಶೀಲಿತ ಅಂಗಡಿಗಳಿಲ್ಲ",
+  "stores.emptyBody": "ನಾವು ಖಚಿತಪಡಿಸಬಹುದಾದ ಅಂಗಡಿಗಳನ್ನು ಮಾತ್ರ ತೋರಿಸುತ್ತೇವೆ — ಇಲ್ಲದ ಸ್ಥಳಕ್ಕೆ ಕಳುಹಿಸುವುದಕ್ಕಿಂತ ಏನೂ ಹೇಳದಿರುವುದು ಉತ್ತಮ. ನಿಮ್ಮ ಸುತ್ತಮುತ್ತಲಿನದನ್ನು Google Maps ನಲ್ಲಿ ಹುಡುಕಿ.",
+  "stores.searchOnMaps": "Google Maps ನಲ್ಲಿ ಹುಡುಕಿ",
+  "storeLocatorMap.viewSatellite": "ಉಪಗ್ರಹ",
+  "storeLocatorMap.viewMap": "ನಕ್ಷೆ",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "ಆಧಾರ",
   // District severity map caption (emergency alert popup)
@@ -1809,6 +1827,12 @@ const kn: Dict = {
   "soilPh.band.alkaline.advice": "ಜಿಪ್ಸಂ ಹಾಕಿ, ಸಹಿಷ್ಣು ಬೆಳೆಗಳನ್ನು (ಜವೆ, ಸಾಸಿವೆ) ಬೆಳೆಯಿರಿ, ಪೂರ್ಣ ಮಣ್ಣಿನ ಪರೀಕ್ಷೆ ಮಾಡಿಸಿ.",
 };
 const ta: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "{n} கிமீ சுற்றளவில் சரிபார்க்கப்பட்ட கடைகள் இல்லை",
+  "stores.emptyBody": "உறுதிப்படுத்த முடிந்த கடைகளை மட்டுமே காட்டுகிறோம் — இல்லாத இடத்திற்கு அனுப்புவதைவிட ஒன்றும் சொல்லாதிருப்பது நல்லது. உங்கள் அருகில் உள்ளதை Google Maps இல் தேடுங்கள்.",
+  "stores.searchOnMaps": "Google Maps இல் தேடு",
+  "storeLocatorMap.viewSatellite": "செயற்கைக்கோள்",
+  "storeLocatorMap.viewMap": "வரைபடம்",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "ஆதாரம்",
   // District severity map caption (emergency alert popup)
@@ -2381,6 +2405,12 @@ const ta: Dict = {
   "soilPh.band.alkaline.advice": "ஜிப்சம் இடுங்கள், தாங்கும் பயிர்களை (பார்லி, கடுகு) பயிரிடுங்கள், முழு மண் பரிசோதனை செய்யுங்கள்.",
 };
 const te: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "{n} కిమీ పరిధిలో ధృవీకరించిన దుకాణాలు లేవు",
+  "stores.emptyBody": "మేము నిర్ధారించగలిగే దుకాణాలను మాత్రమే చూపిస్తాము — లేని చోటికి పంపడం కంటే ఏమీ చెప్పకపోవడమే మేలు. మీ చుట్టుపక్కల ఉన్నవాటిని Google Maps లో వెతకండి.",
+  "stores.searchOnMaps": "Google Maps లో వెతకండి",
+  "storeLocatorMap.viewSatellite": "ఉపగ్రహం",
+  "storeLocatorMap.viewMap": "మ్యాప్",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "ఆధారం",
   // District severity map caption (emergency alert popup)
@@ -2953,6 +2983,12 @@ const te: Dict = {
   "soilPh.band.alkaline.advice": "జిప్సం వేయండి, తట్టుకునే పంటలు (బార్లీ, ఆవాలు) పండించండి, పూర్తి నేల పరీక్ష చేయించండి.",
 };
 const ml: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "{n} കിമീ പരിധിയിൽ സ്ഥിരീകരിച്ച കടകളില്ല",
+  "stores.emptyBody": "സ്ഥിരീകരിക്കാൻ കഴിയുന്ന കടകൾ മാത്രമേ ഞങ്ങൾ കാണിക്കൂ — ഇല്ലാത്ത സ്ഥലത്തേക്ക് അയക്കുന്നതിനെക്കാൾ ഒന്നും പറയാതിരിക്കുന്നതാണ് നല്ലത്. നിങ്ങളുടെ സമീപത്തുള്ളവ Google Maps ൽ തിരയുക.",
+  "stores.searchOnMaps": "Google Maps ൽ തിരയുക",
+  "storeLocatorMap.viewSatellite": "ഉപഗ്രഹം",
+  "storeLocatorMap.viewMap": "മാപ്പ്",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "ആധാരം",
   // District severity map caption (emergency alert popup)
@@ -3525,6 +3561,12 @@ const ml: Dict = {
   "soilPh.band.alkaline.advice": "ജിപ്സം ചേർക്കുക, സഹിഷ്ണുതയുള്ള വിളകൾ (ബാർലി, കടുക്) വളർത്തുക, പൂർണ മണ്ണ് പരിശോധന നടത്തുക.",
 };
 const mr: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "{n} किमीच्या आत पडताळलेली दुकाने नाहीत",
+  "stores.emptyBody": "आम्ही फक्त पडताळता येणारी दुकाने दाखवतो — नसलेल्या ठिकाणी पाठवण्यापेक्षा काहीच न सांगणे बरे. तुमच्या आसपासचे Google Maps वर शोधा.",
+  "stores.searchOnMaps": "Google Maps वर शोधा",
+  "storeLocatorMap.viewSatellite": "उपग्रह",
+  "storeLocatorMap.viewMap": "नकाशा",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "स्रोत",
   // District severity map caption (emergency alert popup)
@@ -4097,6 +4139,12 @@ const mr: Dict = {
   "soilPh.band.alkaline.advice": "जिप्सम टाका, सहनशील पिके (जव, मोहरी) घ्या आणि संपूर्ण माती चाचणी करा.",
 };
 const bn: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "{n} কিমির মধ্যে যাচাই করা দোকান নেই",
+  "stores.emptyBody": "আমরা কেবল সেই দোকানগুলো দেখাই যেগুলো নিশ্চিত করা যায় — নেই এমন জায়গায় পাঠানোর চেয়ে কিছু না বলাই ভালো। আপনার আশেপাশে কী আছে তা Google Maps-এ খুঁজুন।",
+  "stores.searchOnMaps": "Google Maps-এ খুঁজুন",
+  "storeLocatorMap.viewSatellite": "স্যাটেলাইট",
+  "storeLocatorMap.viewMap": "মানচিত্র",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "সূত্র",
   // District severity map caption (emergency alert popup)
@@ -4669,6 +4717,12 @@ const bn: Dict = {
   "soilPh.band.alkaline.advice": "জিপসাম প্রয়োগ করুন, সহনশীল ফসল (বার্লি, সরিষা) চাষ করুন এবং সম্পূর্ণ মাটি পরীক্ষা করান।",
 };
 const pa: Dict = {
+  // Store locator: honest empty state + satellite toggle
+  "stores.emptyTitle": "{n} ਕਿਮੀ ਦੇ ਅੰਦਰ ਕੋਈ ਪੁਸ਼ਟੀ ਕੀਤੀ ਦੁਕਾਨ ਨਹੀਂ",
+  "stores.emptyBody": "ਅਸੀਂ ਸਿਰਫ਼ ਉਹੀ ਦੁਕਾਨਾਂ ਦਿਖਾਉਂਦੇ ਹਾਂ ਜਿਨ੍ਹਾਂ ਦੀ ਪੁਸ਼ਟੀ ਹੋ ਸਕੇ — ਜੋ ਥਾਂ ਹੈ ਹੀ ਨਹੀਂ ਉੱਥੇ ਭੇਜਣ ਨਾਲੋਂ ਕੁਝ ਨਾ ਕਹਿਣਾ ਬਿਹਤਰ ਹੈ। ਆਪਣੇ ਆਲੇ-ਦੁਆਲੇ ਦਾ Google Maps 'ਤੇ ਖੋਜੋ।",
+  "stores.searchOnMaps": "Google Maps 'ਤੇ ਖੋਜੋ",
+  "storeLocatorMap.viewSatellite": "ਸੈਟੇਲਾਈਟ",
+  "storeLocatorMap.viewMap": "ਨਕਸ਼ਾ",
   // Citation chips under an assistant reply (RAG)
   "rag.basedOn": "ਸਰੋਤ",
   // District severity map caption (emergency alert popup)

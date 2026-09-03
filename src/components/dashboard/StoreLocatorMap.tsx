@@ -4,8 +4,9 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useState } from "react";
 import { Circle, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
-import { MapPin, Star, Navigation, Store as StoreIcon, Home } from "lucide-react";
+import { MapPin, Navigation, Store as StoreIcon, Home, Layers } from "lucide-react";
 import type { Store } from "@/lib/stores";
+import { SEARCH_RADIUS_KM } from "@/lib/storeConfig";
 import { useT } from "@/components/i18n/LanguageProvider";
 
 const houseIcon = L.divIcon({
@@ -44,6 +45,7 @@ export default function StoreLocatorMap({
 }) {
   const { t } = useT();
   const [selected, setSelected] = useState<string | null>(stores[0]?.id ?? null);
+  const [satellite, setSatellite] = useState(false);
   const active = stores.find((s) => s.id === selected);
   const center = active ?? house;
 
@@ -79,9 +81,16 @@ export default function StoreLocatorMap({
                       <div className="text-sm font-semibold text-af-ink truncate">{s.name}</div>
                       <div className="text-[11px] text-af-muted">{s.type}</div>
                     </div>
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-af-amber/10 text-af-amber-ink px-2 py-0.5 text-[11px] font-semibold shrink-0">
-                      <Star className="w-3 h-3 fill-current" /> {s.rating}
-                    </span>
+                    {/* The star rating that used to sit here was `ratingFor()`
+                        — the shop's own name hashed into a number between 3.8
+                        and 4.9, shown as if it were a review score. Replaced
+                        with the real address, which is both true and more use
+                        when the shop may be 90 km away. */}
+                    {s.address && (
+                      <span className="text-[11px] text-af-muted text-right shrink-0 max-w-[45%] truncate">
+                        {s.address}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-af-ink-2">
@@ -106,22 +115,54 @@ export default function StoreLocatorMap({
 
       {/* Map */}
       <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm p-2.5 order-1 lg:order-2">
-        <div className="h-[420px] lg:h-[520px] w-full overflow-hidden rounded-[16px]">
+        <div className="relative h-[420px] lg:h-[520px] w-full overflow-hidden rounded-[16px]">
+          {/* Satellite is the useful half of what people mean by "Google Earth":
+              on imagery a farmer can see whether a pin sits on a real building
+              or in a field. Esri World Imagery is free and needs no key.
+
+              z-[1000] is not arbitrary: Leaflet gives its overlayPane z-index
+              400, so a button at 400 ties with the circle's SVG and loses the
+              hit test to it on DOM order — visible, but dead to a click.
+              Leaflet's own controls sit at 800-1000, so this clears them all. */}
+          <button
+            onClick={() => setSatellite((v) => !v)}
+            aria-pressed={satellite}
+            className="absolute top-3 right-3 z-[1000] inline-flex items-center gap-1.5 rounded-[10px] border border-af-border bg-af-card/95 backdrop-blur px-2.5 py-1.5 text-[11px] font-semibold text-af-ink shadow-af-sm hover:border-af-primary/40 transition"
+          >
+            <Layers className="w-3.5 h-3.5 text-af-primary" />
+            {satellite ? t("storeLocatorMap.viewMap") : t("storeLocatorMap.viewSatellite")}
+          </button>
+
           <MapContainer
             center={[house.lat, house.lng]}
-            zoom={12}
+            zoom={8}
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            {satellite ? (
+              <TileLayer
+                key="sat"
+                attribution='Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            ) : (
+              <TileLayer
+                key="map"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            )}
             <Recenter lat={center.lat} lng={center.lng} />
             <Circle
               center={[house.lat, house.lng]}
-              radius={20000}
-              pathOptions={{ color: "#668653", weight: 1, fillColor: "#668653", fillOpacity: 0.05 }}
+              radius={SEARCH_RADIUS_KM * 1000}
+              pathOptions={{
+                color: satellite ? "#F7F6F0" : "#668653",
+                weight: 1,
+                fillColor: "#668653",
+                fillOpacity: satellite ? 0 : 0.04,
+              }}
             />
             <Marker position={[house.lat, house.lng]} icon={houseIcon} />
             {stores.map((s) => (
@@ -141,7 +182,7 @@ export default function StoreLocatorMap({
           <span className="inline-flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-af-primary" /> {t("storeLocatorMap.store")}
           </span>
-          <span className="ml-auto">{t("storeLocatorMap.radius", { n: 20 })}</span>
+          <span className="ml-auto">{t("storeLocatorMap.radius", { n: SEARCH_RADIUS_KM })}</span>
         </div>
       </div>
     </div>
