@@ -72,7 +72,9 @@ export default function Sidebar() {
   const { t } = useT();
 
   return (
-    <aside className="hidden lg:flex w-[264px] shrink-0 min-h-screen bg-af-card border-r border-af-border flex-col justify-between py-7 px-4 sticky top-0">
+    <aside
+      className="hidden lg:flex w-[264px] shrink-0 min-h-screen bg-af-card border-r border-af-border flex-col justify-between py-7 px-4 sticky top-0"
+    >
       <div className="flex flex-col gap-8">
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-2">
@@ -93,7 +95,10 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation groups */}
-        <nav className="flex flex-col gap-6">
+        {/* Tour anchor is the nav list, not the <aside>: the aside is
+            `sticky` and stretches to the full document height, so highlighting it
+            would cut a hole taller than the viewport. */}
+        <nav data-tour="sidebar" className="flex flex-col gap-6">
           {navGroups.map((group) => (
             <div key={group.titleKey} className="flex flex-col gap-1">
               <div className="px-3 mb-1 font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted">

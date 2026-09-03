@@ -118,6 +118,7 @@ export default function AssistantDock() {
       {/* Launcher */}
       <button
         ref={launcherRef}
+        data-tour="assistant"
         onClick={() => (isOpen ? close() : open())}
         aria-expanded={isOpen}
         aria-label={isOpen ? t("assistant.closeAria") : t("assistant.openAria")}

@@ -7,6 +7,7 @@ import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES } from "@/lib/i18n/config";
 import Card from "@/components/ui/Card";
 import DataPrivacyModal from "@/components/dashboard/DataPrivacyModal";
+import { resetTour } from "@/lib/tour";
 import {
   User,
   Globe,
@@ -20,6 +21,7 @@ import {
   TrendingUp,
   Sparkles,
   LogOut,
+  GraduationCap,
 } from "lucide-react";
 
 type NotifPrefs = { weather: boolean; disease: boolean; market: boolean; ai: boolean };
@@ -46,6 +48,7 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
   const [username, setUsername] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [showDataPrivacy, setShowDataPrivacy] = useState(false);
+  const [replaying, setReplaying] = useState(false);
 
   const [notif, setNotif] = useState<NotifPrefs>({
     ...DEFAULT_NOTIF,
@@ -60,6 +63,15 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
       if (em) setUsername(em.replace(/@agentfarmer\.local$/, ""));
     });
   }, []);
+
+  // Clear the tutorial flag and go back to the dashboard, where DashboardTour
+  // sees the cleared preferences on its next render and runs again.
+  async function replayTour() {
+    setReplaying(true);
+    await resetTour(profile.id);
+    router.push("/dashboard");
+    router.refresh();
+  }
 
   // Persist a notification toggle immediately into farmer_profiles.preferences.
   async function toggleNotif(key: keyof NotifPrefs) {
@@ -178,6 +190,24 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
               <span className="text-meta font-semibold text-af-ink-2">{profile.phone}</span>
             </div>
           )}
+          <button
+            onClick={replayTour}
+            disabled={replaying}
+            className="w-full flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3 hover:border-af-primary/30 transition disabled:opacity-50"
+          >
+            <span className="flex items-center gap-2.5">
+              <GraduationCap className="w-4 h-4 text-af-primary" />
+              <span className="text-left">
+                <span className="block text-sm font-semibold text-af-ink">{t("tour.replay")}</span>
+                <span className="block text-meta text-af-muted">{t("tour.replayDesc")}</span>
+              </span>
+            </span>
+            {replaying ? (
+              <Loader2 className="w-4 h-4 animate-spin text-af-primary" />
+            ) : (
+              <span className="text-meta font-semibold text-af-primary-deep">{t("settings.manageArrow")}</span>
+            )}
+          </button>
           <button
             onClick={() => setShowDataPrivacy(true)}
             className="w-full flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3 hover:border-af-primary/30 transition"

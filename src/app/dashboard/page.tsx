@@ -18,6 +18,7 @@ import FarmCard from "@/components/dashboard/FarmCard";
 import HealthRing from "@/components/dashboard/HealthRing";
 import TasksCard, { Task } from "@/components/dashboard/TasksCard";
 import AlertsCard, { Alert } from "@/components/dashboard/AlertsCard";
+import DashboardTour from "@/components/dashboard/tour/DashboardTour";
 import StatTile from "@/components/dashboard/StatTile";
 import QuickActions from "@/components/dashboard/QuickActions";
 import MarketTicker from "@/components/dashboard/MarketTicker";
@@ -266,12 +267,12 @@ export default async function DashboardPage() {
       </Reveal>
 
       {/* Quick actions */}
-      <Reveal index={1} className="mt-6">
+      <Reveal index={1} className="mt-6" data-tour="quick-actions">
         <QuickActions />
       </Reveal>
 
       {/* Stat tiles */}
-      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4" data-tour="stats">
         <Reveal index={0}>
           <StatTile icon={<Sprout className="w-[22px] h-[22px]" />} label={<T k="dashboard.stat.activeFarms" />} value={farms.length}
             link={{ label: <T k="dashboard.stat.viewAllFarms" />, href: "/dashboard/crops" }} />
@@ -312,7 +313,7 @@ export default async function DashboardPage() {
               heatThreshold={heatThreshold}
             />
           </Reveal>
-          <Reveal>
+          <Reveal data-tour="weather">
             <WeatherCard weather={weather} place={place} />
           </Reveal>
           <Reveal>
@@ -384,10 +385,10 @@ export default async function DashboardPage() {
             </Reveal>
           )}
 
-          <Reveal>
+          <Reveal data-tour="tasks">
             <TasksCard tasks={tasks} farmerId={farmer.id} />
           </Reveal>
-          <Reveal>
+          <Reveal data-tour="alerts">
             <AlertsCard alerts={alerts} />
           </Reveal>
           <Reveal>
@@ -405,6 +406,11 @@ export default async function DashboardPage() {
           <AiChatPreview />
         </Reveal>
       </div>
+
+      {/* First-run tutorial. Mounted on the dashboard home rather than the
+          layout so it can never fire on a sub-page, where its anchors do not
+          exist. Renders nothing once the farmer has been through it. */}
+      <DashboardTour farmerId={farmer.id} preferences={farmer.preferences} />
     </div>
   );
 }
