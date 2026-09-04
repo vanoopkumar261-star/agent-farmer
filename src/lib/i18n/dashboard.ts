@@ -11,6 +11,16 @@ type Dict = Record<string, string>;
    ──────────────────────────────────────────────────────────────────────────── */
 
 const en: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "Nursery & Garden",
+  "storeType.seeds": "Seeds",
+  "storeType.agroChemist": "Crop Protection",
+  "storeType.fertiliser": "Fertiliser",
+  "storeType.implements": "Tools & Irrigation",
+  "storeType.coldStore": "Cold Storage",
+  "storeType.grainMarket": "Grain Market",
+  "storeType.cooperative": "Co-op Society",
+  "storeType.agriSupplies": "Agri Supplies",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "No verified shops within {n} km",
   "stores.emptyBody": "We only show shops we can actually confirm, so we would rather say nothing than send you somewhere that isn't there. Search Google Maps for what's around you.",
@@ -671,6 +681,16 @@ const en: Dict = {
 };
 
 const hi: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "नर्सरी और बागवानी",
+  "storeType.seeds": "बीज",
+  "storeType.agroChemist": "फसल सुरक्षा",
+  "storeType.fertiliser": "खाद",
+  "storeType.implements": "औज़ार और सिंचाई",
+  "storeType.coldStore": "शीत भंडार",
+  "storeType.grainMarket": "अनाज मंडी",
+  "storeType.cooperative": "सहकारी समिति",
+  "storeType.agriSupplies": "कृषि सामग्री",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "{n} किमी के भीतर कोई सत्यापित दुकान नहीं",
   "stores.emptyBody": "हम केवल वही दुकानें दिखाते हैं जिनकी पुष्टि हो सके — आपको किसी ऐसी जगह भेजने से बेहतर है कुछ न कहना जो वहाँ है ही नहीं। अपने आसपास की दुकानें Google Maps पर खोजें।",
@@ -1249,6 +1269,16 @@ const hi: Dict = {
   "soilPh.band.alkaline.advice": "जिप्सम डालें, सहनशील फ़सलें (जौ, सरसों) उगाएँ, और पूरी मृदा जाँच कराएँ।",
 };
 const kn: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "ನರ್ಸರಿ ಮತ್ತು ತೋಟಗಾರಿಕೆ",
+  "storeType.seeds": "ಬೀಜ",
+  "storeType.agroChemist": "ಬೆಳೆ ಸಂರಕ್ಷಣೆ",
+  "storeType.fertiliser": "ಗೊಬ್ಬರ",
+  "storeType.implements": "ಉಪಕರಣ ಮತ್ತು ನೀರಾವರಿ",
+  "storeType.coldStore": "ಶೀತಲ ಸಂಗ್ರಹ",
+  "storeType.grainMarket": "ಧಾನ್ಯ ಮಂಡಿ",
+  "storeType.cooperative": "ಸಹಕಾರ ಸಂಘ",
+  "storeType.agriSupplies": "ಕೃಷಿ ಸಾಮಗ್ರಿ",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "{n} ಕಿಮೀ ವ್ಯಾಪ್ತಿಯಲ್ಲಿ ಪರಿಶೀಲಿತ ಅಂಗಡಿಗಳಿಲ್ಲ",
   "stores.emptyBody": "ನಾವು ಖಚಿತಪಡಿಸಬಹುದಾದ ಅಂಗಡಿಗಳನ್ನು ಮಾತ್ರ ತೋರಿಸುತ್ತೇವೆ — ಇಲ್ಲದ ಸ್ಥಳಕ್ಕೆ ಕಳುಹಿಸುವುದಕ್ಕಿಂತ ಏನೂ ಹೇಳದಿರುವುದು ಉತ್ತಮ. ನಿಮ್ಮ ಸುತ್ತಮುತ್ತಲಿನದನ್ನು Google Maps ನಲ್ಲಿ ಹುಡುಕಿ.",
@@ -1827,6 +1857,16 @@ const kn: Dict = {
   "soilPh.band.alkaline.advice": "ಜಿಪ್ಸಂ ಹಾಕಿ, ಸಹಿಷ್ಣು ಬೆಳೆಗಳನ್ನು (ಜವೆ, ಸಾಸಿವೆ) ಬೆಳೆಯಿರಿ, ಪೂರ್ಣ ಮಣ್ಣಿನ ಪರೀಕ್ಷೆ ಮಾಡಿಸಿ.",
 };
 const ta: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "நாற்றங்கால் & தோட்டம்",
+  "storeType.seeds": "விதைகள்",
+  "storeType.agroChemist": "பயிர் பாதுகாப்பு",
+  "storeType.fertiliser": "உரம்",
+  "storeType.implements": "கருவிகள் & நீர்ப்பாசனம்",
+  "storeType.coldStore": "குளிர் சேமிப்பு",
+  "storeType.grainMarket": "தானிய சந்தை",
+  "storeType.cooperative": "கூட்டுறவு சங்கம்",
+  "storeType.agriSupplies": "விவசாய பொருட்கள்",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "{n} கிமீ சுற்றளவில் சரிபார்க்கப்பட்ட கடைகள் இல்லை",
   "stores.emptyBody": "உறுதிப்படுத்த முடிந்த கடைகளை மட்டுமே காட்டுகிறோம் — இல்லாத இடத்திற்கு அனுப்புவதைவிட ஒன்றும் சொல்லாதிருப்பது நல்லது. உங்கள் அருகில் உள்ளதை Google Maps இல் தேடுங்கள்.",
@@ -2405,6 +2445,16 @@ const ta: Dict = {
   "soilPh.band.alkaline.advice": "ஜிப்சம் இடுங்கள், தாங்கும் பயிர்களை (பார்லி, கடுகு) பயிரிடுங்கள், முழு மண் பரிசோதனை செய்யுங்கள்.",
 };
 const te: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "నర్సరీ & తోట",
+  "storeType.seeds": "విత్తనాలు",
+  "storeType.agroChemist": "పంట రక్షణ",
+  "storeType.fertiliser": "ఎరువులు",
+  "storeType.implements": "పరికరాలు & నీటిపారుదల",
+  "storeType.coldStore": "శీతల గిడ్డంగి",
+  "storeType.grainMarket": "ధాన్యం మార్కెట్",
+  "storeType.cooperative": "సహకార సంఘం",
+  "storeType.agriSupplies": "వ్యవసాయ సామగ్రి",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "{n} కిమీ పరిధిలో ధృవీకరించిన దుకాణాలు లేవు",
   "stores.emptyBody": "మేము నిర్ధారించగలిగే దుకాణాలను మాత్రమే చూపిస్తాము — లేని చోటికి పంపడం కంటే ఏమీ చెప్పకపోవడమే మేలు. మీ చుట్టుపక్కల ఉన్నవాటిని Google Maps లో వెతకండి.",
@@ -2983,6 +3033,16 @@ const te: Dict = {
   "soilPh.band.alkaline.advice": "జిప్సం వేయండి, తట్టుకునే పంటలు (బార్లీ, ఆవాలు) పండించండి, పూర్తి నేల పరీక్ష చేయించండి.",
 };
 const ml: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "നഴ്സറി & തോട്ടം",
+  "storeType.seeds": "വിത്തുകൾ",
+  "storeType.agroChemist": "വിള സംരക്ഷണം",
+  "storeType.fertiliser": "വളം",
+  "storeType.implements": "ഉപകരണങ്ങൾ & ജലസേചനം",
+  "storeType.coldStore": "ശീതസംഭരണി",
+  "storeType.grainMarket": "ധാന്യ ചന്ത",
+  "storeType.cooperative": "സഹകരണ സംഘം",
+  "storeType.agriSupplies": "കാർഷിക സാമഗ്രികൾ",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "{n} കിമീ പരിധിയിൽ സ്ഥിരീകരിച്ച കടകളില്ല",
   "stores.emptyBody": "സ്ഥിരീകരിക്കാൻ കഴിയുന്ന കടകൾ മാത്രമേ ഞങ്ങൾ കാണിക്കൂ — ഇല്ലാത്ത സ്ഥലത്തേക്ക് അയക്കുന്നതിനെക്കാൾ ഒന്നും പറയാതിരിക്കുന്നതാണ് നല്ലത്. നിങ്ങളുടെ സമീപത്തുള്ളവ Google Maps ൽ തിരയുക.",
@@ -3561,6 +3621,16 @@ const ml: Dict = {
   "soilPh.band.alkaline.advice": "ജിപ്സം ചേർക്കുക, സഹിഷ്ണുതയുള്ള വിളകൾ (ബാർലി, കടുക്) വളർത്തുക, പൂർണ മണ്ണ് പരിശോധന നടത്തുക.",
 };
 const mr: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "रोपवाटिका आणि बाग",
+  "storeType.seeds": "बियाणे",
+  "storeType.agroChemist": "पीक संरक्षण",
+  "storeType.fertiliser": "खत",
+  "storeType.implements": "अवजारे आणि सिंचन",
+  "storeType.coldStore": "शीतगृह",
+  "storeType.grainMarket": "धान्य मंडी",
+  "storeType.cooperative": "सहकारी संस्था",
+  "storeType.agriSupplies": "कृषी साहित्य",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "{n} किमीच्या आत पडताळलेली दुकाने नाहीत",
   "stores.emptyBody": "आम्ही फक्त पडताळता येणारी दुकाने दाखवतो — नसलेल्या ठिकाणी पाठवण्यापेक्षा काहीच न सांगणे बरे. तुमच्या आसपासचे Google Maps वर शोधा.",
@@ -4139,6 +4209,16 @@ const mr: Dict = {
   "soilPh.band.alkaline.advice": "जिप्सम टाका, सहनशील पिके (जव, मोहरी) घ्या आणि संपूर्ण माती चाचणी करा.",
 };
 const bn: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "নার্সারি ও বাগান",
+  "storeType.seeds": "বীজ",
+  "storeType.agroChemist": "ফসল সুরক্ষা",
+  "storeType.fertiliser": "সার",
+  "storeType.implements": "যন্ত্রপাতি ও সেচ",
+  "storeType.coldStore": "হিমাগার",
+  "storeType.grainMarket": "শস্য বাজার",
+  "storeType.cooperative": "সমবায় সমিতি",
+  "storeType.agriSupplies": "কৃষি সামগ্রী",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "{n} কিমির মধ্যে যাচাই করা দোকান নেই",
   "stores.emptyBody": "আমরা কেবল সেই দোকানগুলো দেখাই যেগুলো নিশ্চিত করা যায় — নেই এমন জায়গায় পাঠানোর চেয়ে কিছু না বলাই ভালো। আপনার আশেপাশে কী আছে তা Google Maps-এ খুঁজুন।",
@@ -4717,6 +4797,16 @@ const bn: Dict = {
   "soilPh.band.alkaline.advice": "জিপসাম প্রয়োগ করুন, সহনশীল ফসল (বার্লি, সরিষা) চাষ করুন এবং সম্পূর্ণ মাটি পরীক্ষা করান।",
 };
 const pa: Dict = {
+  // Store locator: what kind of place each result is.
+  "storeType.nursery": "ਨਰਸਰੀ ਤੇ ਬਾਗ਼ਬਾਨੀ",
+  "storeType.seeds": "ਬੀਜ",
+  "storeType.agroChemist": "ਫ਼ਸਲ ਸੁਰੱਖਿਆ",
+  "storeType.fertiliser": "ਖਾਦ",
+  "storeType.implements": "ਸੰਦ ਤੇ ਸਿੰਚਾਈ",
+  "storeType.coldStore": "ਕੋਲਡ ਸਟੋਰ",
+  "storeType.grainMarket": "ਅਨਾਜ ਮੰਡੀ",
+  "storeType.cooperative": "ਸਹਿਕਾਰੀ ਸਭਾ",
+  "storeType.agriSupplies": "ਖੇਤੀ ਸਮੱਗਰੀ",
   // Store locator: honest empty state + satellite toggle
   "stores.emptyTitle": "{n} ਕਿਮੀ ਦੇ ਅੰਦਰ ਕੋਈ ਪੁਸ਼ਟੀ ਕੀਤੀ ਦੁਕਾਨ ਨਹੀਂ",
   "stores.emptyBody": "ਅਸੀਂ ਸਿਰਫ਼ ਉਹੀ ਦੁਕਾਨਾਂ ਦਿਖਾਉਂਦੇ ਹਾਂ ਜਿਨ੍ਹਾਂ ਦੀ ਪੁਸ਼ਟੀ ਹੋ ਸਕੇ — ਜੋ ਥਾਂ ਹੈ ਹੀ ਨਹੀਂ ਉੱਥੇ ਭੇਜਣ ਨਾਲੋਂ ਕੁਝ ਨਾ ਕਹਿਣਾ ਬਿਹਤਰ ਹੈ। ਆਪਣੇ ਆਲੇ-ਦੁਆਲੇ ਦਾ Google Maps 'ਤੇ ਖੋਜੋ।",

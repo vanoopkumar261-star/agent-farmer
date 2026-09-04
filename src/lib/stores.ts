@@ -1,6 +1,7 @@
 import "server-only";
 import { searchAgriStores } from "./places";
 import { addAddresses } from "./storeAddress";
+import { classify, CATEGORY_RANK, type StoreCategory } from "./storeClassify";
 import { SEARCH_RADIUS_KM } from "./storeConfig";
 import { hazardAdmin } from "./hazards/store";
 
@@ -31,7 +32,14 @@ import { hazardAdmin } from "./hazards/store";
 export type Store = {
   id: string;
   name: string;
-  type: string;
+  /**
+   * What kind of place this is, as an i18n key — never a display string. The
+   * label used to be hardcoded English, so a farmer reading the app in Kannada
+   * still saw "Garden Centre".
+   */
+  labelKey: string;
+  /** Suppliers rank above services; see CATEGORY_RANK in storeClassify. */
+  category: StoreCategory;
   lat: number;
   lng: number;
   distanceKm: number;
@@ -58,20 +66,21 @@ export function haversineKm(aLat: number, aLng: number, bLat: number, bLng: numb
 
 export { SEARCH_RADIUS_KM };
 
-const SHOP_LABEL: Record<string, string> = {
-  agrarian: "Agri Supplies",
-  farm: "Farm Supplies",
-  garden_centre: "Garden Centre",
-  hardware: "Hardware Store",
-  doityourself: "Hardware Store",
-  trade: "Agri Trade",
-  chemist: "Agro Chemist",
-};
-
 type CachedStore = Omit<Store, "distanceKm">;
 
+/**
+ * Bump when the query or the classifier changes.
+ *
+ * `store_cache` keys on rounded coordinates and records neither the query nor a
+ * TTL, so without this a locality cached before a filter change keeps serving
+ * the old result set for ever. Folding a version into the key means every such
+ * change invalidates itself; the stale rows simply stop being addressed.
+ */
+const FILTER_VERSION = "v2";
+
 /** ~11 km buckets, so a locality shares one lookup. */
-const cacheKey = (lat: number, lng: number) => `${lat.toFixed(1)},${lng.toFixed(1)}`;
+const cacheKey = (lat: number, lng: number) =>
+  `${FILTER_VERSION}:${lat.toFixed(1)},${lng.toFixed(1)}`;
 
 async function readCache(key: string): Promise<CachedStore[] | null> {
   const admin = hazardAdmin();
@@ -110,15 +119,24 @@ async function writeCache(key: string, source: string, stores: CachedStore[]): P
  * missed.
  */
 async function fromOverpass(lat: number, lng: number, radiusM: number): Promise<CachedStore[]> {
+  // `nwr`, not `node`: a shop mapped as a building polygon is a way, and the
+  // node-only query could never see one. That alone was hiding a real seed
+  // supplier ("Zaildar Seed Farm") from the Ludhiana farmer.
+  //
+  // The tag list is wide because it no longer decides anything — `classify()`
+  // does. Casting wide and gating on the name finds shops the tags get wrong in
+  // both directions: it rescues a nursery mis-tagged `doityourself`, and drops
+  // the car washes and property advisors that carry `shop=hardware`.
+  //
+  // The cap is high for the same reason. 231 candidates around Ludhiana reduce
+  // to 14; truncating at 60 before the filter would throw away good shops to
+  // keep bad ones.
   const query = `[out:json][timeout:40];
 (
-  node["shop"="agrarian"](around:${radiusM},${lat},${lng});
-  node["shop"="farm"](around:${radiusM},${lat},${lng});
-  node["shop"="garden_centre"](around:${radiusM},${lat},${lng});
-  node["shop"="hardware"](around:${radiusM},${lat},${lng});
-  node["shop"="doityourself"](around:${radiusM},${lat},${lng});
+  nwr["shop"~"^(agrarian|garden_centre|farm|hardware|doityourself|trade|chemist|general|convenience|wholesale)$"](around:${radiusM},${lat},${lng});
+  nwr["craft"="agricultural_engines"](around:${radiusM},${lat},${lng});
 );
-out center 60;`;
+out center 400;`;
 
   const res = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
@@ -139,16 +157,30 @@ out center 60;`;
   const data = await res.json();
 
   return (data.elements ?? [])
-    .filter((e: any) => e.lat && e.lon && e.tags?.name)
-    .map((e: any) => ({
-      id: `osm-${e.id}`,
-      name: e.tags.name as string,
-      type: SHOP_LABEL[e.tags.shop as string] ?? "Farm Supplies",
-      lat: e.lat as number,
-      lng: e.lon as number,
-      address: (e.tags["addr:street"] as string) ?? null,
-      source: "osm" as const,
-    }));
+    .map((e: any) => {
+      // Ways and relations carry `center` rather than `lat`/`lon`.
+      const lat = e.lat ?? e.center?.lat;
+      const lng = e.lon ?? e.center?.lon;
+      const name = e.tags?.name as string | undefined;
+      if (lat == null || lng == null || !name) return null;
+
+      // The gate. An unrecognised shop is dropped, not relabelled: a farmer
+      // sent to a car wash because it carried `shop=hardware` loses the trip.
+      const c = classify(name, e.tags.shop);
+      if (!c) return null;
+
+      return {
+        id: `osm-${e.type}-${e.id}`,
+        name,
+        labelKey: c.labelKey,
+        category: c.category,
+        lat: lat as number,
+        lng: lng as number,
+        address: (e.tags["addr:street"] as string) ?? null,
+        source: "osm" as const,
+      };
+    })
+    .filter((s: CachedStore | null): s is CachedStore => s !== null);
 }
 
 /**
@@ -167,7 +199,14 @@ export async function getNearbyStores(lat: number, lng: number): Promise<Store[]
       // Google's bias returns places beyond the circle, which is how the radius
       // gets past its 50 km cap — so the real limit is enforced here.
       .filter((s) => s.distanceKm <= SEARCH_RADIUS_KM)
-      .sort((a, b) => a.distanceKm - b.distanceKm)
+      // Suppliers before services, each nearest-first. A cold store or a mandi
+      // is genuinely useful but is not what someone opening a *store* locator
+      // is usually after, so it sits below the shops that sell inputs.
+      .sort(
+        (a, b) =>
+          CATEGORY_RANK[a.category] - CATEGORY_RANK[b.category] ||
+          a.distanceKm - b.distanceKm
+      )
       .slice(0, 14);
 
   const cached = await readCache(key);
@@ -192,7 +231,7 @@ export async function getNearbyStores(lat: number, lng: number): Promise<Store[]
     if (osm.length > 0) {
       // Sort before geocoding, not after: `addAddresses` only looks up the
       // first few, and those should be the shops nearest the farmer.
-      const nearestFirst = osm.sort(
+      const nearestFirst = [...osm].sort(
         (a, b) => haversineKm(lat, lng, a.lat, a.lng) - haversineKm(lat, lng, b.lat, b.lng)
       );
       const located = await addAddresses(nearestFirst);

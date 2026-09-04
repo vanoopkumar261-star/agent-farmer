@@ -80,7 +80,7 @@ export default function StoreLocatorMap({
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="text-sm font-semibold text-af-ink truncate">{s.name}</div>
-                      <div className="text-[11px] text-af-muted">{s.type}</div>
+                      <div className="text-[11px] text-af-muted">{t(s.labelKey)}</div>
                     </div>
                   </div>
                   {/* The star rating that used to sit here was `ratingFor()` —

@@ -1,6 +1,6 @@
 import "server-only";
 import { fetchWithRetry } from "./http";
-import { SEARCH_RADIUS_KM } from "./storeConfig";
+import { classify, type StoreCategory } from "./storeClassify";
 
 /**
  * Google Places (New) Text Search — real agri-supply shops.
@@ -41,21 +41,40 @@ const QUERY = "agricultural supplies fertilizer seeds pesticides krishi kendra a
 export type PlaceResult = {
   id: string;
   name: string;
-  type: string;
+  labelKey: string;
+  category: StoreCategory;
   lat: number;
   lng: number;
   address: string | null;
 };
 
-/** Turn Google's type slugs into something a farmer would recognise. */
-function labelFor(types: string[] | undefined): string {
+/**
+ * What to call a Google result, as an i18n key.
+ *
+ * The name is tried first, through the same classifier the OSM tier uses, so
+ * "Sri Balaji Krishi Kendra" is labelled from what it says rather than from
+ * Google's generic `store` type. Google's own types are the fallback.
+ *
+ * Unlike the OSM tier this never DROPS anything. Places is reached by a text
+ * search for agricultural supplies, so a result is already an answer to an agri
+ * question; re-gating it on our keyword list would discard genuine shops whose
+ * names happen not to say "agri" — "Roots and Shoots" being exactly that case.
+ * If Places turns out noisy once a key is live, `classify` is right here and
+ * the gate is one line.
+ */
+function labelFor(name: string, types: string[] | undefined): {
+  labelKey: string;
+  category: StoreCategory;
+} {
+  const byName = classify(name, "agrarian");
+  if (byName) return byName;
+
   const t = new Set(types ?? []);
-  if (t.has("hardware_store")) return "Hardware Store";
-  if (t.has("garden_center") || t.has("florist")) return "Garden Centre";
-  if (t.has("pharmacy") || t.has("drugstore")) return "Agro Chemist";
-  if (t.has("wholesaler")) return "Agri Wholesaler";
-  if (t.has("home_goods_store") || t.has("store")) return "Agri Supplies";
-  return "Farm Supplies";
+  if (t.has("garden_center") || t.has("florist"))
+    return { labelKey: "storeType.nursery", category: "supplies" };
+  if (t.has("pharmacy") || t.has("drugstore"))
+    return { labelKey: "storeType.agroChemist", category: "supplies" };
+  return { labelKey: "storeType.agriSupplies", category: "supplies" };
 }
 
 /** One Text Search call biased at a point. Null on any failure — never throws. */
@@ -103,7 +122,7 @@ async function searchAt(
       .map((p: any) => ({
         id: `gp-${p.id}`,
         name: p.displayName.text as string,
-        type: labelFor(p.types),
+        ...labelFor(p.displayName.text as string, p.types),
         lat: p.location.latitude as number,
         lng: p.location.longitude as number,
         address: (p.formattedAddress as string) ?? null,

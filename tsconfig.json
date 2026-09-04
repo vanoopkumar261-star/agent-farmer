@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    // Without this TypeScript assumes ES5 for *syntax* checks and rejects
+    // things the app already relies on — Unicode property escapes (`\p{L}`
+    // with the `u` flag) and lookbehind among them. It does not affect output:
+    // Next compiles with SWC against browserslist, not this setting.
+    "target": "es2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
