@@ -1,9 +1,10 @@
 "use client";
 
 import { Suspense, useEffect, useRef } from "react";
-import { Send, Brain, CloudSun, Sprout, User, Loader2, Leaf, AudioLines, BookOpen } from "lucide-react";
+import { Send, Brain, CloudSun, Sprout, User, Loader2, Leaf, AudioLines, BookOpen, Check } from "lucide-react";
 import { useAssistant } from "./AssistantProvider";
 import { useT } from "@/components/i18n/LanguageProvider";
+import { LOCALES, type Locale } from "@/lib/i18n/config";
 import DictateButton from "./DictateButton";
 import dynamic from "next/dynamic";
 import { toSpeakableText } from "@/lib/plainText";
@@ -46,7 +47,7 @@ export default function AssistantChat({
   /** Set when the dock's "Try asking" rail is already showing the suggestions. */
   hideSuggestions?: boolean;
 }) {
-  const { messages, input, setInput, streaming, send, farmerName, suggestions, openVoice } =
+  const { messages, input, setInput, streaming, send, farmerName, suggestions, openVoice, chatLocale, setChatLocale } =
     useAssistant();
   const { t, locale } = useT();
   // Voice is English-only (see VOICE_LOCALES in lib/speech.ts). The text
@@ -97,10 +98,60 @@ export default function AssistantChat({
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4">
         {empty ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
-            <span className="flex items-center justify-center w-14 h-14 rounded-2xl bg-af-beige border border-af-border">
-              <Leaf className="w-7 h-7 text-af-primary-deep" />
-            </span>
-            <h3 className="mt-4 text-[19px] font-semibold tracking-[-0.02em] text-af-ink">
+            {/* The assistant's opening turn. Deliberately NOT pushed into
+                `messages`: anything in there is replayed to /api/chat as
+                conversation history, and the model would then see a question
+                the farmer never asked. This is presentational only, styled to
+                match an assistant bubble. */}
+            <div className="w-full max-w-md text-left">
+              <div className="flex items-start gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-af-sage text-af-primary-deep shrink-0 mt-0.5">
+                  <Leaf className="w-4 h-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  {chatLocale === null ? (
+                    <>
+                      <div className="rounded-2xl rounded-bl-md bg-af-bg border border-af-border px-4 py-2.5 text-[14px] text-af-ink leading-relaxed">
+                        {t("assistant.langPrompt")}
+                      </div>
+                      {/* Native scripts, so the choice is legible to someone
+                          who cannot read the interface language. Wraps rather
+                          than scrolls — the floating dock is narrow. */}
+                      <div className="mt-2.5 flex flex-wrap gap-2">
+                        {LOCALES.map((l) => (
+                          <button
+                            key={l.code}
+                            type="button"
+                            onClick={() => setChatLocale(l.code as Locale)}
+                            className="rounded-full bg-af-bg border border-af-border px-3.5 py-2 text-[13px] font-semibold text-af-ink-2 hover:border-af-primary/45 hover:bg-af-sage/40 hover:text-af-secondary transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45"
+                          >
+                            {l.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2 text-[13px]">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-af-sage border border-af-border px-3 py-1.5 font-semibold text-af-secondary">
+                        <Check className="w-3.5 h-3.5" />
+                        {t("assistant.langSet", {
+                          lang: LOCALES.find((l) => l.code === chatLocale)?.label ?? chatLocale,
+                        })}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setChatLocale(null)}
+                        className="font-semibold text-af-muted hover:text-af-primary underline underline-offset-2 transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 rounded"
+                      >
+                        {t("assistant.langChange")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <h3 className="mt-7 text-[19px] font-semibold tracking-[-0.02em] text-af-ink">
               {t("assistant.greeting", { name: farmerName.split(" ")[0] })}
             </h3>
             <p className="mt-1.5 text-sm text-af-ink-2 max-w-sm">

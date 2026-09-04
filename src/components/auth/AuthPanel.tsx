@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeEmail, validateEmail, INVALID_EMAIL_MSG } from "@/lib/validation";
@@ -68,6 +68,31 @@ export default function AuthPanel({
    * to the button.
    */
   const [emailTouched, setEmailTouched] = useState(false);
+
+  /**
+   * Chrome's password manager sets input.value natively, which does NOT fire
+   * the event React's synthetic system listens for. React state stayed empty
+   * while the fields visibly held the saved credentials, so `canSubmit` was
+   * false and the submit button sat greyed out with a not-allowed cursor and
+   * no explanation. The DOM is therefore the source of truth on submit, and
+   * this effect pulls autofilled values back into state so the UI agrees.
+   */
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Chrome fills at different moments depending on how the page was reached,
+    // so this samples a few times rather than betting on one.
+    const sync = () => {
+      const e = emailRef.current?.value ?? "";
+      const p = passwordRef.current?.value ?? "";
+      if (e) setEmail((prev) => (prev === e ? prev : e));
+      if (p) setPassword((prev) => (prev === p ? prev : p));
+    };
+    sync();
+    const timers = [50, 250, 800].map((ms) => window.setTimeout(sync, ms));
+    return () => timers.forEach(window.clearTimeout);
+  }, []);
   const emailProblem = validateEmail(email);
   const emailValid = emailProblem === null;
   const emailError = emailTouched ? translateEmailError(emailProblem, t) : null;
@@ -80,15 +105,35 @@ export default function AuthPanel({
    * raised to match") had been true and unactioned since it was written.
    */
   const MIN_PASSWORD = 8;
-  const canSubmit = emailValid && password.length >= MIN_PASSWORD;
+
+  /**
+   * The minimum is a SIGNUP rule, checked inside submit(). Enforcing it on
+   * sign-in locked out every account created while the minimum was 6 — the
+   * saved password was refused by the client before the server ever saw it.
+   * On sign-in the server decides, and a wrong password returns a normal error.
+   */
 
   const submit = async () => {
     setError(null);
-    if (emailProblem) {
+
+    // Read the inputs directly: if the browser autofilled after the last
+    // render, these hold the real credentials and state does not.
+    const emailValue = emailRef.current?.value ?? email;
+    const passwordValue = passwordRef.current?.value ?? password;
+    if (emailValue !== email) setEmail(emailValue);
+    if (passwordValue !== password) setPassword(passwordValue);
+
+    const problem = validateEmail(emailValue);
+    if (problem) {
       setEmailTouched(true);
+      setError(translateEmailError(problem, t));
       return;
     }
-    if (password.length < MIN_PASSWORD) {
+    if (!passwordValue) {
+      setError(t("login.auth.passwordTooShort"));
+      return;
+    }
+    if (mode === "signup" && passwordValue.length < MIN_PASSWORD) {
       setError(t("login.auth.passwordTooShort"));
       return;
     }
@@ -97,13 +142,13 @@ export default function AuthPanel({
     // Padding removed, nothing else. The address is sent exactly as typed —
     // Supabase Auth does its own case-folding server-side, so lower-casing here
     // would only mean the farmer's account no longer matches what they entered.
-    const cleanEmail = normalizeEmail(email);
+    const cleanEmail = normalizeEmail(emailValue);
 
     try {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email: cleanEmail,
-          password,
+          password: passwordValue,
         });
         if (error) {
           // Supabase answers a duplicate signup with HTTP 422 and
@@ -123,7 +168,7 @@ export default function AuthPanel({
         if (!data.session) {
           const { error: e2 } = await supabase.auth.signInWithPassword({
             email: cleanEmail,
-            password,
+            password: passwordValue,
           });
           if (e2) {
             setError(t("login.auth.confirmEmailOffError"));
@@ -133,7 +178,7 @@ export default function AuthPanel({
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
-          password,
+          password: passwordValue,
         });
         if (error) {
           setError(t("login.auth.incorrectCredentials"));
@@ -241,13 +286,14 @@ export default function AuthPanel({
           <div className="relative">
             <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-af-muted" />
             <input
+              ref={emailRef}
               autoFocus
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => setEmailTouched(true)}
-              onKeyDown={(e) => e.key === "Enter" && (canSubmit ? submit() : setEmailTouched(true))}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
               placeholder={t("login.auth.emailPlaceholder")}
               aria-invalid={Boolean(emailError)}
               aria-describedby={emailError ? "auth-email-error" : undefined}
@@ -277,11 +323,12 @@ export default function AuthPanel({
           <div className="relative">
             <Lock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-af-muted" />
             <input
+              ref={passwordRef}
               type="password"
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && canSubmit && submit()}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
               placeholder={
                 mode === "signup"
                   ? t("login.auth.passwordPlaceholderSignup")
@@ -303,7 +350,11 @@ export default function AuthPanel({
 
         <button
           type="button"
-          disabled={loading || !canSubmit}
+          // Only ever disabled while a request is in flight. Gating this on
+          // validation gave a greyed-out button with a not-allowed cursor and
+          // no message — the farmer could see filled fields and a dead button.
+          // submit() validates and says what is wrong instead.
+          disabled={loading}
           onClick={submit}
           className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.99] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
         >

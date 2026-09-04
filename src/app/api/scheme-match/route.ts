@@ -7,12 +7,23 @@ import { clampArr, clampStr, payloadTooLarge, PayloadTooLargeError, readJsonBoun
 export const dynamic = "force-dynamic";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-function safeParse(raw: string): any {
+/**
+ * Returns null rather than throwing when the model gives back something that
+ * is not JSON. An unparseable reply is an ordinary outcome of a model call, not
+ * a server fault, and letting it escape as a 500 broke the whole Schemes screen
+ * — on mobile, where this route is the only source, the farmer got nothing.
+ * /api/news already degrades this way (see its catch returning []).
+ */
+function safeParse(raw: string): any | null {
   const c = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
   const a = c.indexOf("{");
   const b = c.lastIndexOf("}");
-  if (a === -1 || b === -1) throw new Error("No JSON");
-  return JSON.parse(c.slice(a, b + 1));
+  if (a === -1 || b === -1) return null;
+  try {
+    return JSON.parse(c.slice(a, b + 1));
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(req: Request) {
@@ -66,7 +77,12 @@ Pick the 3 most relevant scheme ids for THIS farmer and give a short reason each
       }),
     }, { label: "groq/scheme-match" });
     const raw = await readGroqContent(res, "groq/scheme-match");
-    return NextResponse.json(safeParse(raw));
+    const parsed = safeParse(raw);
+    if (!parsed) {
+      console.warn("SCHEME match: model returned no JSON; serving an empty match set.");
+      return NextResponse.json({ headline: "", matches: [] });
+    }
+    return NextResponse.json(parsed);
   } catch (e: any) {
     console.error("SCHEME match error:", e);
     return NextResponse.json({ error: e?.message ?? "failed" }, { status: 500 });

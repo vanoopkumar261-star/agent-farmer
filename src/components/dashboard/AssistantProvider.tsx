@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useT } from "@/components/i18n/LanguageProvider";
+import type { Locale } from "@/lib/i18n/config";
 
 /** A citation the assistant drew on, surfaced under its reply. */
 export type Source = {
@@ -51,6 +52,19 @@ type AssistantContextValue = {
    * even when the interface is set to Hindi or Tamil.
    */
   send: (text: string, localeOverride?: string) => Promise<string>;
+  /**
+   * The language the assistant replies in, chosen from inside the chat.
+   *
+   * Separate from the interface locale on purpose: a farmer may read the
+   * dashboard in English and still want advice in Hindi. Null until they pick,
+   * which is also what makes the language prompt show on an empty chat.
+   *
+   * Not persisted — the durable language setting is `af_locale` in
+   * LanguageProvider, and a second stored language would give two answers to
+   * "what language is this farmer in".
+   */
+  chatLocale: Locale | null;
+  setChatLocale: (l: Locale | null) => void;
   farmerName: string;
   suggestions: string[];
   /** Floating-dock visibility. The route page ignores this. */
@@ -89,6 +103,7 @@ export default function AssistantProvider({
   const [streaming, setStreaming] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [chatLocale, setChatLocale] = useState<Locale | null>(null);
   // Guards against a second send slipping through before `streaming` re-renders.
   const inFlight = useRef(false);
 
@@ -118,7 +133,10 @@ export default function AssistantProvider({
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: next, locale: localeOverride ?? locale }),
+          // Order matters: voice mode passes "en" explicitly and must still win
+          // over a chat choice, or a farmer who picked Malayalam would get
+          // spoken replies in a language the device voice cannot read.
+          body: JSON.stringify({ messages: next, locale: localeOverride ?? chatLocale ?? locale }),
         });
 
         if (!res.ok || !res.body) {
@@ -159,7 +177,7 @@ export default function AssistantProvider({
         inFlight.current = false;
       }
     },
-    [messages, locale, t]
+    [messages, locale, chatLocale, t]
   );
 
   const value = useMemo<AssistantContextValue>(
@@ -169,6 +187,8 @@ export default function AssistantProvider({
       setInput,
       streaming,
       send,
+      chatLocale,
+      setChatLocale,
       farmerName,
       suggestions,
       isOpen,
@@ -179,7 +199,7 @@ export default function AssistantProvider({
       openVoice: () => setVoiceOpen(true),
       closeVoice: () => setVoiceOpen(false),
     }),
-    [messages, input, streaming, send, farmerName, suggestions, isOpen, voiceOpen]
+    [messages, input, streaming, send, chatLocale, farmerName, suggestions, isOpen, voiceOpen]
   );
 
   return <AssistantContext.Provider value={value}>{children}</AssistantContext.Provider>;
