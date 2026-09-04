@@ -38,7 +38,9 @@ export async function normalizeImage(
   buf: Buffer,
   mime: AllowedMime
 ): Promise<{ bytes: Buffer; mime: "image/jpeg" | "image/png" }> {
-  let pipeline: sharp.Sharp;
+  // sharp 0.35 no longer exposes a `sharp.Sharp` namespace type; deriving it
+  // from the callable keeps this correct across future versions.
+  let pipeline: ReturnType<typeof sharp>;
   try {
     pipeline = sharp(buf, { limitInputPixels: MAX_INPUT_PIXELS })
       .rotate() // bake in EXIF orientation before metadata is dropped

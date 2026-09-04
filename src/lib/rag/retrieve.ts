@@ -202,7 +202,13 @@ export async function retrieve(
     // Not covered. Returning nothing is the point: an irrelevant passage in the
     // prompt invites the model to answer a question the farmer did not ask,
     // using text that merely shares vocabulary.
-    console.log(`RAG miss: "${query}" agreement=${agreement} vecTop=${vecTop.toFixed(3)}`);
+    // The query text is deliberately NOT logged. What a farmer asks the
+    // assistant is the most sensitive text in this app — debts, scheme
+    // eligibility, a failing crop — and it was going to the platform log drain
+    // verbatim on every turn, with no retention policy and no consent for it.
+    // The numbers are what actually diagnose retrieval quality; the question
+    // itself never did.
+    console.log(`RAG miss: agreement=${agreement} vecTop=${vecTop.toFixed(3)}`);
     return { passages: [], memory: [], debug: { query, agreement, vecTop } };
   }
 
@@ -241,8 +247,9 @@ export async function retrieve(
       ? (((memRes.value as any)?.data ?? []) as { content: string }[]).map((m) => m.content)
       : [];
 
+  // No query text here either — see the note on the miss branch above.
   console.log(
-    `RAG hit: "${query}" agreement=${agreement} vecTop=${vecTop.toFixed(3)} passages=${passages.length}`
+    `RAG hit: agreement=${agreement} vecTop=${vecTop.toFixed(3)} passages=${passages.length}`
   );
   return { passages, memory, debug: { query, agreement, vecTop } };
 }

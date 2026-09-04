@@ -71,7 +71,16 @@ export default function AuthPanel({
   const emailProblem = validateEmail(email);
   const emailValid = emailProblem === null;
   const emailError = emailTouched ? translateEmailError(emailProblem, t) : null;
-  const canSubmit = emailValid && password.length >= 6;
+  /**
+   * Matches `[auth.password] min_length = 8` in supabase/config.toml.
+   *
+   * This was 6 while the server required 8, so the button enabled itself and
+   * then signup failed with Supabase's own English error — and the config's
+   * comment ("the client check in AuthPanel is only a courtesy and must be
+   * raised to match") had been true and unactioned since it was written.
+   */
+  const MIN_PASSWORD = 8;
+  const canSubmit = emailValid && password.length >= MIN_PASSWORD;
 
   const submit = async () => {
     setError(null);
@@ -79,7 +88,7 @@ export default function AuthPanel({
       setEmailTouched(true);
       return;
     }
-    if (password.length < 6) {
+    if (password.length < MIN_PASSWORD) {
       setError(t("login.auth.passwordTooShort"));
       return;
     }

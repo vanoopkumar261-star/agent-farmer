@@ -5,6 +5,7 @@ import { getWeather } from "./weather";
 import { getRecentDiagnoses, getLatestSoilReading } from "./history";
 import { phBand } from "./soilPh";
 import { npkContextLineEn } from "./npk";
+import { districtFromAddress } from "./hazards/match";
 
 /**
  * Builds the "memory" the AI assistant is given on every turn — farmer profile,
@@ -72,9 +73,31 @@ export async function buildAssistantContext(): Promise<string> {
       ]
     : [];
 
+  /**
+   * What the model is told about *where* the farmer is.
+   *
+   * This used to send the full postal address and the phone number on every
+   * turn. Neither earned its place: the weather is already resolved server-side
+   * from the coordinates and injected below, and regional advice — crop fit,
+   * mandi, state schemes — needs the district, not the doorstep. The phone
+   * number was never used for anything at all.
+   *
+   * Both were leaving the country to a third-party model provider on every
+   * message a farmer sent. Dropping them costs nothing in answer quality and
+   * is the cheapest privacy win available: data you do not send cannot leak.
+   */
+  const place = districtFromAddress(farmer.house_address);
+  const locationLine = place
+    ? `Location: ${place.district} district, ${place.state}.`
+    : farmer.house_address
+    ? // No recognised state in the string — fall back to the last two
+      // components, which is the region rather than the street.
+      `Location: ${farmer.house_address.split(",").map((p) => p.trim()).filter(Boolean).slice(-2).join(", ")}.`
+    : "Location: unknown.";
+
   return [
-    `Farmer: ${farmer.name}${farmer.phone ? ` (phone ${farmer.phone})` : ""}.`,
-    `Location: ${farmer.house_address ?? "unknown"}.`,
+    `Farmer: ${farmer.name}.`,
+    locationLine,
     `Farms (${farms.length}):`,
     ...farmLines,
     weatherLine,

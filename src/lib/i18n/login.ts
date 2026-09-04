@@ -39,7 +39,7 @@ const en: Dict = {
   "login.auth.signingIn": "Signing in…",
   "login.auth.creatingAccount": "Creating account…",
   "login.auth.createAccountSubmit": "Create account & continue",
-  "login.auth.passwordTooShort": "Password must be at least 6 characters.",
+  "login.auth.passwordTooShort": "Password must be at least 8 characters.",
   "login.auth.confirmEmailOffError": "Account created, but sign-in is blocked. In Supabase → Authentication → Providers → Email, turn OFF “Confirm email”, then try again.",
   "login.auth.incorrectCredentials": "Incorrect email or password.",
 
@@ -77,7 +77,7 @@ const hi: Dict = {
   "login.auth.signingIn": "साइन इन हो रहा है…",
   "login.auth.creatingAccount": "खाता बनाया जा रहा है…",
   "login.auth.createAccountSubmit": "खाता बनाएँ और जारी रखें",
-  "login.auth.passwordTooShort": "पासवर्ड कम से कम 6 अक्षर का होना चाहिए।",
+  "login.auth.passwordTooShort": "पासवर्ड कम से कम 8 अक्षर का होना चाहिए।",
   "login.auth.confirmEmailOffError": "खाता बन गया, लेकिन साइन इन रुका हुआ है। Supabase → Authentication → Providers → Email में जाकर “Confirm email” को बंद करें, फिर दोबारा कोशिश करें।",
   "login.auth.incorrectCredentials": "गलत ईमेल या पासवर्ड।",
 
@@ -115,7 +115,7 @@ const kn: Dict = {
   "login.auth.signingIn": "ಸೈನ್ ಇನ್ ಆಗುತ್ತಿದೆ…",
   "login.auth.creatingAccount": "ಖಾತೆ ರಚಿಸಲಾಗುತ್ತಿದೆ…",
   "login.auth.createAccountSubmit": "ಖಾತೆ ರಚಿಸಿ ಮತ್ತು ಮುಂದುವರಿಸಿ",
-  "login.auth.passwordTooShort": "ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳಿರಬೇಕು.",
+  "login.auth.passwordTooShort": "ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ 8 ಅಕ್ಷರಗಳಿರಬೇಕು.",
   "login.auth.confirmEmailOffError": "ಖಾತೆ ರಚನೆಯಾಗಿದೆ, ಆದರೆ ಸೈನ್ ಇನ್ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ. Supabase → Authentication → Providers → Email ನಲ್ಲಿ “Confirm email” ಅನ್ನು ಆಫ್ ಮಾಡಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
   "login.auth.incorrectCredentials": "ತಪ್ಪು ಇಮೇಲ್ ಅಥವಾ ಪಾಸ್‌ವರ್ಡ್.",
 
@@ -153,7 +153,7 @@ const ta: Dict = {
   "login.auth.signingIn": "உள்நுழைகிறது…",
   "login.auth.creatingAccount": "கணக்கு உருவாக்கப்படுகிறது…",
   "login.auth.createAccountSubmit": "கணக்கை உருவாக்கி தொடரவும்",
-  "login.auth.passwordTooShort": "கடவுச்சொல் குறைந்தது 6 எழுத்துகள் இருக்க வேண்டும்.",
+  "login.auth.passwordTooShort": "கடவுச்சொல் குறைந்தது 8 எழுத்துகள் இருக்க வேண்டும்.",
   "login.auth.confirmEmailOffError": "கணக்கு உருவாக்கப்பட்டது, ஆனால் உள்நுழைவு தடுக்கப்பட்டுள்ளது. Supabase → Authentication → Providers → Email இல் “Confirm email” ஐ ஆஃப் செய்து, மீண்டும் முயற்சிக்கவும்.",
   "login.auth.incorrectCredentials": "தவறான மின்னஞ்சல் அல்லது கடவுச்சொல்.",
 
@@ -191,7 +191,7 @@ const te: Dict = {
   "login.auth.signingIn": "సైన్ ఇన్ అవుతోంది…",
   "login.auth.creatingAccount": "ఖాతా సృష్టించబడుతోంది…",
   "login.auth.createAccountSubmit": "ఖాతా సృష్టించి కొనసాగించండి",
-  "login.auth.passwordTooShort": "పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి.",
+  "login.auth.passwordTooShort": "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు ఉండాలి.",
   "login.auth.confirmEmailOffError": "ఖాతా సృష్టించబడింది, కానీ సైన్ ఇన్ నిరోధించబడింది. Supabase → Authentication → Providers → Email లో “Confirm email” ఆఫ్ చేసి, మళ్ళీ ప్రయత్నించండి.",
   "login.auth.incorrectCredentials": "తప్పు ఇమెయిల్ లేదా పాస్‌వర్డ్.",
 
@@ -229,7 +229,7 @@ const ml: Dict = {
   "login.auth.signingIn": "സൈൻ ഇൻ ചെയ്യുന്നു…",
   "login.auth.creatingAccount": "അക്കൗണ്ട് സൃഷ്ടിക്കുന്നു…",
   "login.auth.createAccountSubmit": "അക്കൗണ്ട് സൃഷ്ടിച്ച് തുടരുക",
-  "login.auth.passwordTooShort": "പാസ്‌വേഡ് കുറഞ്ഞത് 6 അക്ഷരങ്ങൾ ഉണ്ടായിരിക്കണം.",
+  "login.auth.passwordTooShort": "പാസ്‌വേഡ് കുറഞ്ഞത് 8 അക്ഷരങ്ങൾ ഉണ്ടായിരിക്കണം.",
   "login.auth.confirmEmailOffError": "അക്കൗണ്ട് സൃഷ്ടിച്ചു, പക്ഷേ സൈൻ ഇൻ തടഞ്ഞിരിക്കുന്നു. Supabase → Authentication → Providers → Email ൽ “Confirm email” ഓഫ് ചെയ്ത് വീണ്ടും ശ്രമിക്കുക.",
   "login.auth.incorrectCredentials": "തെറ്റായ ഇമെയിൽ അല്ലെങ്കിൽ പാസ്‌വേഡ്.",
 
@@ -267,7 +267,7 @@ const mr: Dict = {
   "login.auth.signingIn": "साइन इन होत आहे…",
   "login.auth.creatingAccount": "खाते तयार होत आहे…",
   "login.auth.createAccountSubmit": "खाते तयार करा आणि सुरू ठेवा",
-  "login.auth.passwordTooShort": "पासवर्ड किमान 6 अक्षरांचा असावा.",
+  "login.auth.passwordTooShort": "पासवर्ड किमान 8 अक्षरांचा असावा.",
   "login.auth.confirmEmailOffError": "खाते तयार झाले, पण साइन इन अडवले आहे. Supabase → Authentication → Providers → Email मध्ये “Confirm email” बंद करा, नंतर पुन्हा प्रयत्न करा.",
   "login.auth.incorrectCredentials": "चुकीचा ईमेल किंवा पासवर्ड.",
 
@@ -305,7 +305,7 @@ const bn: Dict = {
   "login.auth.signingIn": "সাইন ইন হচ্ছে…",
   "login.auth.creatingAccount": "অ্যাকাউন্ট তৈরি হচ্ছে…",
   "login.auth.createAccountSubmit": "অ্যাকাউন্ট তৈরি করে চালিয়ে যান",
-  "login.auth.passwordTooShort": "পাসওয়ার্ড কমপক্ষে 6 অক্ষরের হতে হবে।",
+  "login.auth.passwordTooShort": "পাসওয়ার্ড কমপক্ষে 8 অক্ষরের হতে হবে।",
   "login.auth.confirmEmailOffError": "অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু সাইন ইন বন্ধ আছে। Supabase → Authentication → Providers → Email এ গিয়ে “Confirm email” বন্ধ করুন, তারপর আবার চেষ্টা করুন।",
   "login.auth.incorrectCredentials": "ভুল ইমেল বা পাসওয়ার্ড।",
 
@@ -343,7 +343,7 @@ const pa: Dict = {
   "login.auth.signingIn": "ਸਾਈਨ ਇਨ ਹੋ ਰਿਹਾ ਹੈ…",
   "login.auth.creatingAccount": "ਖਾਤਾ ਬਣਾਇਆ ਜਾ ਰਿਹਾ ਹੈ…",
   "login.auth.createAccountSubmit": "ਖਾਤਾ ਬਣਾਓ ਅਤੇ ਜਾਰੀ ਰੱਖੋ",
-  "login.auth.passwordTooShort": "ਪਾਸਵਰਡ ਘੱਟੋ-ਘੱਟ 6 ਅੱਖਰਾਂ ਦਾ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।",
+  "login.auth.passwordTooShort": "ਪਾਸਵਰਡ ਘੱਟੋ-ਘੱਟ 8 ਅੱਖਰਾਂ ਦਾ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।",
   "login.auth.confirmEmailOffError": "ਖਾਤਾ ਬਣ ਗਿਆ, ਪਰ ਸਾਈਨ ਇਨ ਰੁਕਿਆ ਹੋਇਆ ਹੈ। Supabase → Authentication → Providers → Email ਵਿੱਚ “Confirm email” ਬੰਦ ਕਰੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
   "login.auth.incorrectCredentials": "ਗਲਤ ਈਮੇਲ ਜਾਂ ਪਾਸਵਰਡ।",
 

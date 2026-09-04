@@ -60,6 +60,25 @@ the manual (dashboard / platform) steps that back the in-repo configuration.
   server-side (https-only, 5 MB cap, `image/*` check) so the browser never
   contacts arbitrary hosts and the CSP stays tight. Article links are
   scheme-validated before they reach an `href`.
+  The route is also an SSRF surface in its own right, and until 2026-09-04 it
+  did not defend itself: the URL is caller-supplied and only its *scheme* was
+  checked, so an anonymous request could reach `169.254.169.254` or any
+  internal address. Every hop is now DNS-resolved and rejected if it lands in
+  private, loopback, link-local, CGNAT or reserved space, and redirects are
+  followed manually (max 3) so the destination is validated too rather than
+  trusted because the first host looked reasonable. Residual: the resolve and
+  the fetch are separate lookups, so DNS rebinding is not covered.
+
+### Data minimisation
+- **The assistant prompt carries no direct identifiers.** It previously sent the
+  farmer's name, **phone number** and full postal address to Groq on every chat
+  turn. The phone was never used; the address is now coarsened to district and
+  state, which is all regional advice needs — the weather is already resolved
+  server-side from the coordinates. Data that is not sent cannot leak.
+- **Assistant questions are not logged.** The RAG retriever logged every query
+  verbatim on both the hit and miss branches, putting the most sensitive text in
+  the app into the platform log drain with no retention policy. Only the
+  numeric retrieval diagnostics are logged now.
 
 ### API routes
 - **Fixed-window rate limiting** (`src/lib/rateLimit.ts`, Postgres-backed) on
@@ -86,9 +105,17 @@ the manual (dashboard / platform) steps that back the in-repo configuration.
 `supabase/config.toml` records the target; the hosted project is dashboard-managed
 so these must also be set there:
 
-- [ ] **Auth → Providers → Email:** turn ON "Confirm email" and configure SMTP
-      (reuse the Resend account already wired for feedback). This also enables
-      password reset, which does not currently exist.
+- [ ] **Auth → Providers → Email:** turn ON "Confirm email" and configure SMTP.
+      This also enables password reset, which does not currently exist.
+      **Blocked on SMTP, and the order matters:** `RESEND_API_KEY` is not set in
+      any environment, so switching confirmation on today would fall back to
+      Supabase's built-in mailer (a few messages an hour, not for production)
+      and effectively break signup. Verified 2026-09-04 that confirmation is
+      still off: all 35 accounts were confirmed a mean of 0.05 s after signup,
+      which is auto-confirm, not delivery.
+      The client-side half is done — the signup form now enforces the 8
+      characters `[auth.password] min_length` already requires, in all nine
+      languages, instead of the 6 it had been asking for.
 - [ ] **Auth → Policies:** enable "Prevent use of leaked passwords" (HIBP);
       set minimum password length to 8 and require mixed character classes.
 - [ ] **Auth → Sessions:** confirm refresh-token rotation + reuse detection are ON.
@@ -116,7 +143,15 @@ so these must also be set there:
   bootstrap and this build has no nonce plumbing yet. External script origins
   are still blocked. Nonce-based CSP is a planned follow-up.
 - **`next@14.2.35`** closes CVE-2025-29927 (the middleware auth-bypass that is
-  load-bearing here) and the other 14.x advisories. `npm audit` still flags
-  Next-bundled issues whose only fix is Next 16 (a major migration); the
-  remaining ones are DoS / SSRF that require server configurations this app does
-  not use (custom server, attacker-controlled rewrites).
+  load-bearing here). `npm audit` still flags Next-bundled issues — including
+  `postcss` — whose only fix is Next 16, a major migration. Several of those
+  advisories are genuinely inapplicable (they need a custom server or
+  attacker-controlled rewrites, neither of which exists here), but **not all of
+  them are**: the Server Components DoS advisories apply to any App Router
+  build, so this is a deferred risk rather than an excluded one.
+- **`sharp@0.35.4`** (was `0.33.5`). This one was previously mischaracterised
+  here as Next-bundled and therefore unfixable. It is a direct dependency, it
+  was independently fixable, and it decodes attacker-supplied image bytes on
+  `/api/disease` and `/api/soil-reading` — the most reachable vulnerability in
+  the tree. Upgraded 2026-09-04 and the pipeline re-verified: EXIF/GPS still
+  stripped, output still capped at 2048 px, >25 MP still refused.
