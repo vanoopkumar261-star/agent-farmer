@@ -314,19 +314,21 @@ select:focus {
   }
 }
 
-/* ── Loading screen ─────────────────────────────────────────────────────────
-   The mark draws itself, then colour rises through the whole composition.
+/* ── Loading screen ─────────────────────────────────────────────
+   A plant grows, and the growth is the progress indicator. There is no bar.
 
    Everything is keyed off `pathLength="1"` in AgentFarmerMark, which normalises
    every curve to a length of 1 no matter its real geometry — so one rule draws
    all of them at the same rate and editing a curve never breaks the timing.
 
-   The mark draws ONCE and then holds. A loop that redraws every couple of
-   seconds reads as a stutter on a ten-second load, and the reference is a
-   single progression, not a cycle. Only the bar and a slow breath continue. */
+   The stage schedule lives in STAGE_START in that component and reaches here
+   through --s (when a stage appears) and --d (when a stroke draws). Timing is
+   never written in two places. */
 
 /* The 400ms hold before anything is visible. A page that resolves quickly
-   unmounts this before it ever paints, so fast navigation never flashes. */
+   unmounts this before it ever paints, so fast navigation never flashes.
+   This rule is load-bearing — changing the delay makes the whole app feel
+   heavier, because every quick click starts flashing a splash. */
 @keyframes af-loading-in {
   to { opacity: 1; }
 }
@@ -340,25 +342,14 @@ select:focus {
   from { stroke-dashoffset: 1; }
   to   { stroke-dashoffset: 0; }
 }
-/* Drafting guides being erased as the ink arrives. */
-@keyframes af-sketch-out {
-  0%   { opacity: .55; }
-  55%  { opacity: .4; }
-  100% { opacity: 0; }
+
+/* A stage arriving: it lifts and settles, hinged at the soil, so new growth
+   pushes up out of the ground instead of fading in where it already was. */
+@keyframes af-grow {
+  from { transform: scale(.94); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
 }
-/* The reveal: slides up from fully below the artwork to fully covering it. */
-@keyframes af-rise {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-/* Eases toward ~95% and stops. It never claims completion it cannot verify. */
-@keyframes af-bar {
-  0%   { width: 4%; }
-  25%  { width: 46%; }
-  55%  { width: 72%; }
-  80%  { width: 86%; }
-  100% { width: 95%; }
-}
+
 @keyframes af-breathe {
   0%, 100% { opacity: .55; }
   50%      { opacity: 1; }
@@ -368,6 +359,8 @@ select:focus {
   to   { width: 172px; }
 }
 
+.af-mark { overflow: visible; }
+
 .af-mark .af-ink {
   stroke: rgb(var(--af-ink));
   stroke-width: 3;
@@ -376,55 +369,120 @@ select:focus {
   fill: none;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: af-draw 900ms cubic-bezier(.6, .05, .3, 1) forwards;
+  animation: af-draw 640ms cubic-bezier(.6, .05, .3, 1) forwards;
   animation-delay: calc(400ms + var(--d, 0s));
 }
-.af-mark .af-arc { stroke-width: 2; opacity: .55; }
-.af-mark .af-node { stroke-width: 2.5; }
 
-/* The unfinished pass. Real elements rather than a <use> clone, because
-   document CSS does not reach into a <use> shadow tree — the ink pass silently
-   lost its classes and this pale pass painted over it. */
-.af-mark .af-pencil { opacity: .85; }
-.af-horizon .af-pencil-h { opacity: .85; }
+.af-mark .af-stage {
+  transform-box: view-box;
+  transform-origin: 60px 162px;
+  animation: af-grow 620ms cubic-bezier(.2, .8, .25, 1) both;
+  animation-delay: calc(400ms + var(--s, 0s));
+}
 
-.af-mark .af-sketch {
+/* Ground and roots are quieter than the plant — they are context, not subject.
+
+   The soil alpha is matched exactly by the full-bleed continuation drawn in
+   LoadingScreen, so the two read as one line. They do overlap under the plant,
+   where the doubled alpha reads as ground being denser where something is
+   growing out of it — which is the right emphasis, so it is left alone. */
+.af-mark .af-soil  { stroke-width: 1.4; opacity: .28; }
+.af-mark .af-root  { stroke-width: 1.6; opacity: .42; }
+.af-mark .af-tick  { stroke-width: 2; opacity: .6; }
+.af-mark .af-seed  { fill: rgb(var(--af-leaf)); opacity: .9; }
+
+/* Filled leaf tiers. At full strength, not the old .85: --af-leaf on the ivory
+   --af-bg is 3.8:1, and knocking it back to 85% drops it to 2.9:1, under the
+   3:1 floor for a graphical object. Mustard got away with reading as a wash;
+   green at 85% just looks washed out. */
+.af-mark .af-fill { fill: rgb(var(--af-leaf)); }
+
+/* Seed leaves fade back once the true leaves arrive — what actually happens to
+   a seedling, and it keeps them from crowding the tier above. */
+@keyframes af-cotyl-dim { to { opacity: .3; } }
+.af-mark .af-cotyl {
+  animation:
+    af-draw 640ms cubic-bezier(.6, .05, .3, 1) calc(400ms + var(--d, 0s)) forwards,
+    af-cotyl-dim 700ms ease-out calc(400ms + 0.98s) forwards;
+}
+
+/* The arcs stop 14% short and stay there, permanently.
+
+   Nothing here can know how far a server render has got, and an animation that
+   visibly finishes while someone is still waiting is the detail that makes a
+   loading screen feel like a lie. This is the old bar's 95% cap expressed as a
+   sweep that never closes — and it is stronger, because an easing curve that
+   asymptotes eventually rounds to done, whereas a keyframe terminating at .14
+   is still visibly open on a forty-second load. */
+@keyframes af-arc-hold {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: .14; }
+}
+.af-mark .af-arc {
+  stroke: rgb(var(--af-leaf));
+  stroke-width: 2;
   fill: none;
-  opacity: .55;
-  animation: af-sketch-out 1800ms ease-out 500ms forwards;
+  opacity: .5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: af-arc-hold 3200ms cubic-bezier(.15, .75, .25, 1) forwards;
+  animation-delay: calc(400ms + var(--d, 0s));
 }
 
-/* Both clips share one motion, so gold reaches the ear and the fields
-   together rather than in two passes that nearly line up. */
-.af-rise-rect,
-.af-rise-rect-h {
-  transform: translateY(100%);
-  animation: af-rise 2200ms cubic-bezier(.4, 0, .2, 1) 600ms forwards;
+/* Life during the hold: once the ear is grown it sways, so a twenty-second wait
+   shows a living plant rather than a frozen illustration. */
+@keyframes af-sway {
+  0%, 100% { transform: rotate(-.55deg); }
+  50%      { transform: rotate(.55deg); }
+}
+.af-mark .af-crown {
+  transform-box: view-box;
+  transform-origin: 60px 162px;
+  animation: af-sway 5.4s ease-in-out 3.95s infinite;
 }
 
-.af-mark .af-gold { opacity: .85; }
-.af-horizon .af-horizon-warm { opacity: .95; }
+/* The sensor node keeps its own slower pulse — the one element still working
+   under its own power after the plant has finished. */
+.af-mark .af-node-glow {
+  animation:
+    af-draw 640ms cubic-bezier(.6, .05, .3, 1) calc(400ms + var(--d, 0s)) forwards,
+    af-breathe 2.4s ease-in-out 5.8s infinite;
+}
 
 .af-wordmark { opacity: 0; animation: af-loading-in 700ms ease-out 900ms forwards; }
 .af-underline { width: 0; animation: af-underline 900ms cubic-bezier(.4, 0, .2, 1) 1500ms forwards; }
-.af-bar-fill { width: 4%; animation: af-bar 9s cubic-bezier(.1, .7, .2, 1) 500ms forwards; }
-.af-dot { animation: af-breathe 2s ease-in-out infinite; }
+
+/* The arrival, not the departure.
+
+   React unmounts a Suspense fallback synchronously the moment the boundary
+   resolves: the loading screen gets no signal, has no exit hook, and cannot
+   animate its own unmount. Fading it out would mean hoisting the whole thing
+   into a persistent client overlay driven by every navigation in the app —
+   a new global context and a real risk of the overlay outliving the route.
+
+   Animating what arrives buys the same perceived smoothness for four lines.
+   The eye tracks the incoming element, and because the splash and the shell
+   share --af-bg there is no colour flash at the cut, only the plant leaving. */
+@keyframes af-page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.af-page-in { animation: af-page-in 260ms cubic-bezier(.2, .7, .3, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
-  /* No drawing, no sweep, no breath: the finished mark, immediately.
-     The bar holds a static fill rather than animating — reduced motion means
-     no motion, and the "Loading…" label already carries the state. (The app's
-     `af-shimmer` is a translateX and would slide the fill out of the track, so
-     it is deliberately not reused here.) */
+  /* A finished plant, immediately: no germination, no draw, no sway. The arcs
+     keep their 14% gap as a static shape, so "still working" survives without
+     motion, and the "Loading…" label already carries the state. */
   .af-loading { opacity: 1; animation: none; }
   .af-mark .af-ink { stroke-dashoffset: 0; animation: none; }
-  .af-mark .af-sketch { opacity: 0; animation: none; }
-  .af-rise-rect,
-  .af-rise-rect-h { transform: translateY(0); animation: none; }
+  .af-mark .af-cotyl { stroke-dashoffset: 0; opacity: .3; animation: none; }
+  .af-mark .af-arc { stroke-dashoffset: .14; animation: none; }
+  .af-mark .af-stage { transform: none; opacity: 1; animation: none; }
+  .af-mark .af-crown { transform: none; animation: none; }
+  .af-mark .af-node-glow { stroke-dashoffset: 0; animation: none; }
   .af-wordmark { opacity: 1; animation: none; }
   .af-underline { width: 172px; animation: none; }
-  .af-dot { animation: none; }
-  .af-bar-fill { width: 62%; animation: none; }
+  .af-page-in { animation: none; }
 }
 
 /* ── Sidebar: warm inserts ───────────────────────────────────────────────────
