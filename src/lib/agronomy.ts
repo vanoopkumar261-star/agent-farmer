@@ -40,6 +40,14 @@ export type CropProfile = {
   yieldPerAcre: number; // typical, in quintals per acre
   waterHeavy: boolean; // needs standing water / heavy irrigation
   heatThreshold: number; // °C above which heat stress bites at sensitive stages
+  /**
+   * The soil-pH band this crop actually yields well in. Used by `soilFix()` to
+   * judge a reading against the crop that is standing in the field, instead of
+   * against a generic "most crops like 6-7.5" range — a paddy grower at pH 5.6
+   * is fine, a cotton grower at the same reading is not.
+   */
+  phMin: number;
+  phMax: number;
   oilseed?: boolean; // part of the oilseed group (mustard, groundnut, sesame…)
 };
 
@@ -49,36 +57,40 @@ const DEFAULT_PROFILE: CropProfile = {
   yieldPerAcre: 18,
   waterHeavy: false,
   heatThreshold: 38,
+  // The general Indian field-crop range. A crop typed freehand lands here, so
+  // the pH advice degrades to the old generic guidance rather than breaking.
+  phMin: 6.0,
+  phMax: 7.5,
 };
 
 // India-typical values. cycleDays = seeding → harvest; yieldPerAcre in quintals.
 // Rough but sensible for advisory/demo use — refine per state/variety later.
 const CROP_TABLE: Record<string, CropProfile> = {
-  paddy: { displayName: "Paddy", cycleDays: 120, yieldPerAcre: 25, waterHeavy: true, heatThreshold: 37 },
-  wheat: { displayName: "Wheat", cycleDays: 140, yieldPerAcre: 18, waterHeavy: false, heatThreshold: 33 },
-  maize: { displayName: "Maize", cycleDays: 100, yieldPerAcre: 24, waterHeavy: false, heatThreshold: 38 },
-  bajra: { displayName: "Bajra", cycleDays: 80, yieldPerAcre: 12, waterHeavy: false, heatThreshold: 42 },
-  jowar: { displayName: "Jowar", cycleDays: 110, yieldPerAcre: 14, waterHeavy: false, heatThreshold: 40 },
-  ragi: { displayName: "Ragi", cycleDays: 110, yieldPerAcre: 12, waterHeavy: false, heatThreshold: 38 },
-  groundnut: { displayName: "Groundnut", cycleDays: 110, yieldPerAcre: 10, waterHeavy: false, heatThreshold: 38, oilseed: true },
-  cotton: { displayName: "Cotton", cycleDays: 170, yieldPerAcre: 8, waterHeavy: false, heatThreshold: 40 },
-  soybean: { displayName: "Soybean", cycleDays: 100, yieldPerAcre: 12, waterHeavy: false, heatThreshold: 38, oilseed: true },
-  sugarcane: { displayName: "Sugarcane", cycleDays: 330, yieldPerAcre: 350, waterHeavy: true, heatThreshold: 40 },
-  onion: { displayName: "Onion", cycleDays: 140, yieldPerAcre: 120, waterHeavy: false, heatThreshold: 36 },
-  tomato: { displayName: "Tomato", cycleDays: 110, yieldPerAcre: 100, waterHeavy: false, heatThreshold: 35 },
-  potato: { displayName: "Potato", cycleDays: 100, yieldPerAcre: 100, waterHeavy: false, heatThreshold: 30 },
-  chilli: { displayName: "Chilli", cycleDays: 150, yieldPerAcre: 8, waterHeavy: false, heatThreshold: 38 },
-  mustard: { displayName: "Mustard", cycleDays: 120, yieldPerAcre: 6, waterHeavy: false, heatThreshold: 32, oilseed: true },
-  gram: { displayName: "Gram", cycleDays: 120, yieldPerAcre: 8, waterHeavy: false, heatThreshold: 33 },
-  pigeonpea: { displayName: "Pigeonpea", cycleDays: 160, yieldPerAcre: 6, waterHeavy: false, heatThreshold: 40 },
-  turmeric: { displayName: "Turmeric", cycleDays: 270, yieldPerAcre: 90, waterHeavy: true, heatThreshold: 38 },
-  banana: { displayName: "Banana", cycleDays: 330, yieldPerAcre: 250, waterHeavy: true, heatThreshold: 38 },
-  sunflower: { displayName: "Sunflower", cycleDays: 100, yieldPerAcre: 8, waterHeavy: false, heatThreshold: 38, oilseed: true },
-  sesame: { displayName: "Sesame", cycleDays: 90, yieldPerAcre: 3, waterHeavy: false, heatThreshold: 42, oilseed: true },
-  castor: { displayName: "Castor", cycleDays: 150, yieldPerAcre: 7, waterHeavy: false, heatThreshold: 42, oilseed: true },
-  safflower: { displayName: "Safflower", cycleDays: 130, yieldPerAcre: 5, waterHeavy: false, heatThreshold: 36, oilseed: true },
-  linseed: { displayName: "Linseed", cycleDays: 120, yieldPerAcre: 4, waterHeavy: false, heatThreshold: 33, oilseed: true },
-  niger: { displayName: "Niger", cycleDays: 100, yieldPerAcre: 2, waterHeavy: false, heatThreshold: 36, oilseed: true },
+  paddy: { displayName: "Paddy", cycleDays: 120, yieldPerAcre: 25, waterHeavy: true, heatThreshold: 37, phMin: 5.0, phMax: 6.5 },
+  wheat: { displayName: "Wheat", cycleDays: 140, yieldPerAcre: 18, waterHeavy: false, heatThreshold: 33, phMin: 6.0, phMax: 7.5 },
+  maize: { displayName: "Maize", cycleDays: 100, yieldPerAcre: 24, waterHeavy: false, heatThreshold: 38, phMin: 5.5, phMax: 7.5 },
+  bajra: { displayName: "Bajra", cycleDays: 80, yieldPerAcre: 12, waterHeavy: false, heatThreshold: 42, phMin: 6.0, phMax: 8.0 },
+  jowar: { displayName: "Jowar", cycleDays: 110, yieldPerAcre: 14, waterHeavy: false, heatThreshold: 40, phMin: 6.0, phMax: 7.5 },
+  ragi: { displayName: "Ragi", cycleDays: 110, yieldPerAcre: 12, waterHeavy: false, heatThreshold: 38, phMin: 5.0, phMax: 7.5 },
+  groundnut: { displayName: "Groundnut", cycleDays: 110, yieldPerAcre: 10, waterHeavy: false, heatThreshold: 38, phMin: 6.0, phMax: 7.0, oilseed: true },
+  cotton: { displayName: "Cotton", cycleDays: 170, yieldPerAcre: 8, waterHeavy: false, heatThreshold: 40, phMin: 6.0, phMax: 8.0 },
+  soybean: { displayName: "Soybean", cycleDays: 100, yieldPerAcre: 12, waterHeavy: false, heatThreshold: 38, phMin: 6.0, phMax: 7.5, oilseed: true },
+  sugarcane: { displayName: "Sugarcane", cycleDays: 330, yieldPerAcre: 350, waterHeavy: true, heatThreshold: 40, phMin: 6.0, phMax: 7.5 },
+  onion: { displayName: "Onion", cycleDays: 140, yieldPerAcre: 120, waterHeavy: false, heatThreshold: 36, phMin: 6.0, phMax: 7.0 },
+  tomato: { displayName: "Tomato", cycleDays: 110, yieldPerAcre: 100, waterHeavy: false, heatThreshold: 35, phMin: 6.0, phMax: 7.0 },
+  potato: { displayName: "Potato", cycleDays: 100, yieldPerAcre: 100, waterHeavy: false, heatThreshold: 30, phMin: 5.0, phMax: 6.5 },
+  chilli: { displayName: "Chilli", cycleDays: 150, yieldPerAcre: 8, waterHeavy: false, heatThreshold: 38, phMin: 6.0, phMax: 7.0 },
+  mustard: { displayName: "Mustard", cycleDays: 120, yieldPerAcre: 6, waterHeavy: false, heatThreshold: 32, phMin: 6.0, phMax: 7.5, oilseed: true },
+  gram: { displayName: "Gram", cycleDays: 120, yieldPerAcre: 8, waterHeavy: false, heatThreshold: 33, phMin: 6.0, phMax: 7.5 },
+  pigeonpea: { displayName: "Pigeonpea", cycleDays: 160, yieldPerAcre: 6, waterHeavy: false, heatThreshold: 40, phMin: 6.0, phMax: 7.5 },
+  turmeric: { displayName: "Turmeric", cycleDays: 270, yieldPerAcre: 90, waterHeavy: true, heatThreshold: 38, phMin: 5.0, phMax: 7.5 },
+  banana: { displayName: "Banana", cycleDays: 330, yieldPerAcre: 250, waterHeavy: true, heatThreshold: 38, phMin: 6.0, phMax: 7.5 },
+  sunflower: { displayName: "Sunflower", cycleDays: 100, yieldPerAcre: 8, waterHeavy: false, heatThreshold: 38, phMin: 6.0, phMax: 7.5, oilseed: true },
+  sesame: { displayName: "Sesame", cycleDays: 90, yieldPerAcre: 3, waterHeavy: false, heatThreshold: 42, phMin: 5.5, phMax: 8.0, oilseed: true },
+  castor: { displayName: "Castor", cycleDays: 150, yieldPerAcre: 7, waterHeavy: false, heatThreshold: 42, phMin: 5.5, phMax: 8.0, oilseed: true },
+  safflower: { displayName: "Safflower", cycleDays: 130, yieldPerAcre: 5, waterHeavy: false, heatThreshold: 36, phMin: 6.0, phMax: 8.0, oilseed: true },
+  linseed: { displayName: "Linseed", cycleDays: 120, yieldPerAcre: 4, waterHeavy: false, heatThreshold: 33, phMin: 6.0, phMax: 7.0, oilseed: true },
+  niger: { displayName: "Niger", cycleDays: 100, yieldPerAcre: 2, waterHeavy: false, heatThreshold: 36, phMin: 5.0, phMax: 6.5, oilseed: true },
 };
 
 // Map common synonyms/regional names onto the canonical table keys.

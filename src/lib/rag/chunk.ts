@@ -137,6 +137,7 @@ function agronomyChunks(): Chunk[] {
         `Typical yield is around ${p.yieldPerAcre} quintals per acre.`,
         water,
         `Heat stress becomes a risk above about ${p.heatThreshold}°C at sensitive stages.`,
+        `It grows best in soil with a pH between ${p.phMin} and ${p.phMax}.`,
         p.oilseed ? `${p.displayName} is an oilseed crop.` : "",
       ]
         .filter(Boolean)

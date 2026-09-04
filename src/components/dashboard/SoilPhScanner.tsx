@@ -16,9 +16,16 @@ import Card from "@/components/ui/Card";
 import { supabase } from "@/lib/supabase";
 import { useT } from "@/components/i18n/LanguageProvider";
 import { phBand } from "@/lib/soilPh";
+import { soilFix } from "@/lib/soilFix";
+import { cropStageFor } from "@/lib/agronomy";
 import type { PhReadingResult } from "@/lib/soilReading";
 
-type Farm = { id: string; farm_index: number };
+type Farm = {
+  id: string;
+  farm_index: number;
+  soil_type: string;
+  crop: { chosen_crop: string; seeding_date: string; estimated_harvest_date: string | null } | null;
+};
 
 export default function SoilPhScanner({
   farmerId,
@@ -40,7 +47,10 @@ export default function SoilPhScanner({
   const [detected, setDetected] = useState<PhReadingResult | null>(null);
   const [manual, setManual] = useState(false);
   const [phInput, setPhInput] = useState("");
-  const [farmId, setFarmId] = useState<string>(farms.length === 1 ? farms[0].id : "");
+  // Defaults to the first farm rather than blank. The reading is now the input
+  // to crop-specific advice, so "which field?" stopped being optional — and a
+  // null farm_id was also losing the link from reading to crop in the history.
+  const [farmId, setFarmId] = useState<string>(farms[0]?.id ?? "");
   const [note, setNote] = useState("");
 
   const [saving, setSaving] = useState(false);
@@ -50,6 +60,31 @@ export default function SoilPhScanner({
   const confirming = detected !== null || manual;
   const phNum = Number(phInput);
   const phValid = phInput !== "" && Number.isFinite(phNum) && phNum >= 0 && phNum <= 14;
+  /**
+   * The one-line version of the soil advice, for the field the farmer picked.
+   * Falls back to null (and so to the generic band advice) when the farm has no
+   * crop cycle or the pH is fine for it.
+   */
+  const cropLine = useMemo(() => {
+    if (!phValid) return null;
+    const farm = farms.find((f) => f.id === farmId);
+    if (!farm?.crop) return null;
+    const stage = cropStageFor(
+      farm.crop.chosen_crop,
+      farm.crop.seeding_date,
+      farm.crop.estimated_harvest_date
+    );
+    const fix = soilFix({
+      ph: phNum,
+      crop: farm.crop.chosen_crop,
+      soilType: farm.soil_type,
+      stage,
+    });
+    const first = fix.now[0];
+    return first ? t(first.key, first.params) : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phValid, phNum, farmId, farms, t]);
+
   const band = useMemo(() => (phValid ? phBand(phNum) : null), [phValid, phNum]);
 
   function pick(f: File | null | undefined) {
@@ -315,9 +350,13 @@ export default function SoilPhScanner({
                 placeholder="0.0 – 14.0"
                 className="mt-2 w-28 rounded-[10px] border border-af-border bg-af-bg px-3 py-2 text-sm font-mono text-af-ink outline-none focus:border-af-primary"
               />
+              {/* Crop-aware where we can be, generic where we cannot. The band
+                  advice is about soil in the abstract; once we know a wheat
+                  crop is standing in this field, the useful sentence is about
+                  wheat. */}
               {band && (
                 <p className="mt-2 text-meta text-af-ink-2 leading-relaxed">
-                  {t(`soilPh.band.${band.key}.advice`)}
+                  {cropLine ?? t(`soilPh.band.${band.key}.advice`)}
                 </p>
               )}
             </div>
@@ -332,7 +371,6 @@ export default function SoilPhScanner({
                   onChange={(e) => setFarmId(e.target.value)}
                   className="mt-1 w-full rounded-[10px] border border-af-border bg-af-bg px-3 py-2 text-sm text-af-ink outline-none focus:border-af-primary"
                 >
-                  <option value="">—</option>
                   {farms.map((f) => (
                     <option key={f.id} value={f.id}>
                       Farm {f.farm_index}

@@ -68,7 +68,13 @@ export const getDashboardData = cache(async (): Promise<DashboardData> => {
 
   const farms: FarmWithCrop[] = ((rawFarms ?? []) as any[])
     .map((f) => {
-      const cycles = (f.crop_cycles ?? []) as CropCycleRow[];
+      // Newest first. This used to take whatever Postgres returned, which was
+      // harmless while nothing created a second cycle per farm — but the soil
+      // advice now turns on "the crop growing NOW", and an unordered pick would
+      // happily correct a wheat farmer's pH for last season's paddy.
+      const cycles = [...((f.crop_cycles ?? []) as CropCycleRow[])].sort((a, b) =>
+        (b.seeding_date ?? "").localeCompare(a.seeding_date ?? "")
+      );
       const { crop_cycles, ...farmRow } = f;
       return { ...(farmRow as FarmRow), crop: cycles[0] ?? null };
     })

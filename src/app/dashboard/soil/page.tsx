@@ -6,12 +6,14 @@ import { getRecentSoilReadings } from "@/lib/history";
 import { phBand } from "@/lib/soilPh";
 import SoilPhScanner from "@/components/dashboard/SoilPhScanner";
 import SoilCropFit from "@/components/dashboard/SoilCropFit";
+import SoilPhFix from "@/components/dashboard/SoilPhFix";
 
 export const dynamic = "force-dynamic";
 
 export default async function SoilPage() {
   const { farmer, farms } = await getDashboardData();
   const readings = farmer ? await getRecentSoilReadings(farmer.id, 20) : [];
+  const fallowFarms = farms.filter((f) => !f.crop);
 
   return (
     <div className="max-w-[1100px] mx-auto">
@@ -27,7 +29,18 @@ export default async function SoilPage() {
       {farmer ? (
         <SoilPhScanner
           farmerId={farmer.id}
-          farms={farms.map((f) => ({ id: f.id, farm_index: f.farm_index }))}
+          farms={farms.map((f) => ({
+            id: f.id,
+            farm_index: f.farm_index,
+            soil_type: f.soil_type,
+            crop: f.crop
+              ? {
+                  chosen_crop: f.crop.chosen_crop,
+                  seeding_date: f.crop.seeding_date,
+                  estimated_harvest_date: f.crop.estimated_harvest_date,
+                }
+              : null,
+          }))}
         />
       ) : (
         <Card className="p-8 text-center text-sm text-af-ink-2">
@@ -86,12 +99,35 @@ export default async function SoilPage() {
             </Card>
           </div>
 
+          {/* What to do about the pH, for the crop that is actually growing.
+              The farm objects already carry their cycle — this page used to map
+              it away before handing them down. */}
           {farmer && farms.length > 0 && (
+            <SoilPhFix
+              ph={readings[0].ph}
+              farms={farms.map((f) => ({
+                farm_index: f.farm_index,
+                soil_type: f.soil_type,
+                crop: f.crop
+                  ? {
+                      chosen_crop: f.crop.chosen_crop,
+                      seeding_date: f.crop.seeding_date,
+                      estimated_harvest_date: f.crop.estimated_harvest_date,
+                    }
+                  : null,
+              }))}
+            />
+          )}
+
+          {/* "Which crops suit this pH" is the wrong question for a standing
+              crop and the right one for bare ground, so it survives only for
+              farms with no cycle. */}
+          {farmer && fallowFarms.length > 0 && (
             <SoilCropFit
               address={farmer.house_address ?? ""}
               preferOilseed={farmer.preferences?.["oilseed_ack"] === true}
               latestPh={readings[0].ph}
-              farms={farms.map((f) => ({
+              farms={fallowFarms.map((f) => ({
                 area: f.area,
                 soilType: f.soil_type,
                 irrigation: f.irrigation,

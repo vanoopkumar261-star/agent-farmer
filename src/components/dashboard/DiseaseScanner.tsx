@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import {
@@ -14,6 +15,8 @@ import {
   FlaskConical,
   Sparkles,
   RefreshCw,
+  MapPin,
+  ArrowRight,
   X,
 } from "lucide-react";
 import { useT } from "@/components/i18n/LanguageProvider";
@@ -284,6 +287,38 @@ function ResultView({ r }: { r: DiseaseResult }) {
             items={r.treatment.chemical}
           />
         </div>
+      )}
+
+      {/* Where to actually get it.
+
+          The scanner tells a farmer to buy neem oil or a fungicide and then
+          stops; until now nothing in the app connected "you need this" to
+          "here is where it is sold", and the locator was reachable only from
+          the sidebar. Shown on the same condition as the treatment blocks, so
+          it never appears on a healthy leaf.
+
+          The link is deliberately generic. Treatment steps are free prose -
+          there is no product field, no active ingredient, no dose - and the
+          locator lists shops around the farmer rather than searching them, so
+          there is nothing truthful to deep-link with. */}
+      {!r.healthy && (r.treatment.organic.length > 0 || r.treatment.chemical.length > 0) && (
+        <Link
+          href="/dashboard/store-locator"
+          className="group flex items-center justify-between gap-3 rounded-[14px] border border-af-primary/20 bg-af-primary/[0.06] px-4 py-3 transition hover:border-af-primary/40 hover:bg-af-primary/10 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
+        >
+          <span className="flex items-center gap-2.5 min-w-0">
+            <MapPin className="w-4 h-4 shrink-0 text-af-primary-deep" />
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-af-ink">
+                {t("diseaseScanner.findInShop")}
+              </span>
+              <span className="block text-meta text-af-ink-2">
+                {t("diseaseScanner.findInShopSub")}
+              </span>
+            </span>
+          </span>
+          <ArrowRight className="w-4 h-4 shrink-0 text-af-primary-deep transition-transform group-hover:translate-x-0.5" />
+        </Link>
       )}
 
       {/* recovery + prevention */}
