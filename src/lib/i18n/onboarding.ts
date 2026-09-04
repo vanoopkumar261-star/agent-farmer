@@ -10,6 +10,16 @@ type Dict = Record<string, string>;
    ──────────────────────────────────────────────────────────────────────────── */
 
 const en: Dict = {
+  "onboarding.review.placeUnknown": "your area",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "Please check this is right",
+  "onboarding.review.subtitle": "Nothing is saved until you press the green button.",
+  "onboarding.review.greeting": "{name}, here is what you told us",
+  "onboarding.review.sentence": "Farm {n} is in {place}. The soil is {soil} and water comes from {water}. It is {area} acres and you are growing {crop}.",
+  "onboarding.review.sownOn": "Sown on {date}",
+  "onboarding.review.confirm": "Yes, this is right",
+  "onboarding.review.change": "Go back and change",
+  "onboarding.step.review": "Check",
   "onboarding.badge.onboarding": "Agent Farmer · Onboarding",
   "onboarding.badge.getStarted": "Agent Farmer · Get started",
 
@@ -115,6 +125,16 @@ const en: Dict = {
 };
 
 const hi: Dict = {
+  "onboarding.review.placeUnknown": "आपका क्षेत्र",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "कृपया जाँच लें कि यह सही है",
+  "onboarding.review.subtitle": "जब तक आप हरा बटन नहीं दबाते, कुछ भी सहेजा नहीं जाएगा।",
+  "onboarding.review.greeting": "{name}, आपने हमें यह बताया है",
+  "onboarding.review.sentence": "खेत {n} {place} में है। मिट्टी {soil} है और पानी {water} से आता है। यह {area} एकड़ है और आप {crop} उगा रहे हैं।",
+  "onboarding.review.sownOn": "बुवाई {date} को",
+  "onboarding.review.confirm": "हाँ, यह सही है",
+  "onboarding.review.change": "वापस जाकर बदलें",
+  "onboarding.step.review": "जाँच",
   "onboarding.badge.onboarding": "एजेंट फार्मर · ऑनबोर्डिंग",
   "onboarding.badge.getStarted": "एजेंट फार्मर · शुरू करें",
 
@@ -220,6 +240,16 @@ const hi: Dict = {
 };
 
 const kn: Dict = {
+  "onboarding.review.placeUnknown": "ನಿಮ್ಮ ಪ್ರದೇಶ",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "ಇದು ಸರಿಯಾಗಿದೆಯೇ ಎಂದು ಪರಿಶೀಲಿಸಿ",
+  "onboarding.review.subtitle": "ನೀವು ಹಸಿರು ಗುಂಡಿ ಒತ್ತುವವರೆಗೆ ಏನೂ ಉಳಿಸಲಾಗುವುದಿಲ್ಲ.",
+  "onboarding.review.greeting": "{name}, ನೀವು ನಮಗೆ ಹೇಳಿದ್ದು ಇದು",
+  "onboarding.review.sentence": "ಹೊಲ {n} {place} ನಲ್ಲಿದೆ. ಮಣ್ಣು {soil} ಮತ್ತು ನೀರು {water} ನಿಂದ ಬರುತ್ತದೆ. ಇದು {area} ಎಕರೆ ಮತ್ತು ನೀವು {crop} ಬೆಳೆಯುತ್ತಿದ್ದೀರಿ.",
+  "onboarding.review.sownOn": "{date} ರಂದು ಬಿತ್ತನೆ",
+  "onboarding.review.confirm": "ಹೌದು, ಇದು ಸರಿ",
+  "onboarding.review.change": "ಹಿಂತಿರುಗಿ ಬದಲಾಯಿಸಿ",
+  "onboarding.step.review": "ಪರಿಶೀಲನೆ",
   "onboarding.badge.onboarding": "ಏಜೆಂಟ್ ಫಾರ್ಮರ್ · ಆನ್‌ಬೋರ್ಡಿಂಗ್",
   "onboarding.badge.getStarted": "ಏಜೆಂಟ್ ಫಾರ್ಮರ್ · ಪ್ರಾರಂಭಿಸಿ",
 
@@ -325,6 +355,16 @@ const kn: Dict = {
 };
 
 const ta: Dict = {
+  "onboarding.review.placeUnknown": "உங்கள் பகுதி",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "இது சரியாக உள்ளதா என்று பாருங்கள்",
+  "onboarding.review.subtitle": "பச்சை பொத்தானை அழுத்தும் வரை எதுவும் சேமிக்கப்படாது.",
+  "onboarding.review.greeting": "{name}, நீங்கள் எங்களிடம் சொன்னது இதுதான்",
+  "onboarding.review.sentence": "வயல் {n} {place} இல் உள்ளது. மண் {soil}, தண்ணீர் {water} இலிருந்து வருகிறது. இது {area} ஏக்கர், நீங்கள் {crop} பயிரிடுகிறீர்கள்.",
+  "onboarding.review.sownOn": "{date} அன்று விதைக்கப்பட்டது",
+  "onboarding.review.confirm": "ஆம், இது சரி",
+  "onboarding.review.change": "திரும்பிச் சென்று மாற்று",
+  "onboarding.step.review": "சரிபார்",
   "onboarding.badge.onboarding": "ஏஜென்ட் ஃபார்மர் · ஆன்போர்டிங்",
   "onboarding.badge.getStarted": "ஏஜென்ட் ஃபார்மர் · தொடங்குங்கள்",
 
@@ -430,6 +470,16 @@ const ta: Dict = {
 };
 
 const te: Dict = {
+  "onboarding.review.placeUnknown": "మీ ప్రాంతం",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "ఇది సరిగ్గా ఉందో చూడండి",
+  "onboarding.review.subtitle": "మీరు ఆకుపచ్చ బటన్ నొక్కే వరకు ఏమీ సేవ్ కాదు.",
+  "onboarding.review.greeting": "{name}, మీరు మాకు చెప్పింది ఇదే",
+  "onboarding.review.sentence": "పొలం {n} {place} లో ఉంది. నేల {soil}, నీరు {water} నుండి వస్తుంది. ఇది {area} ఎకరాలు, మీరు {crop} పండిస్తున్నారు.",
+  "onboarding.review.sownOn": "{date} న విత్తారు",
+  "onboarding.review.confirm": "అవును, ఇది సరైనది",
+  "onboarding.review.change": "వెనక్కి వెళ్లి మార్చండి",
+  "onboarding.step.review": "తనిఖీ",
   "onboarding.badge.onboarding": "ఏజెంట్ ఫార్మర్ · ఆన్‌బోర్డింగ్",
   "onboarding.badge.getStarted": "ఏజెంట్ ఫార్మర్ · ప్రారంభించండి",
 
@@ -535,6 +585,16 @@ const te: Dict = {
 };
 
 const ml: Dict = {
+  "onboarding.review.placeUnknown": "നിങ്ങളുടെ പ്രദേശം",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "ഇത് ശരിയാണോ എന്ന് പരിശോധിക്കുക",
+  "onboarding.review.subtitle": "പച്ച ബട്ടൺ അമർത്തുന്നത് വരെ ഒന്നും സേവ് ചെയ്യില്ല.",
+  "onboarding.review.greeting": "{name}, നിങ്ങൾ ഞങ്ങളോട് പറഞ്ഞത് ഇതാണ്",
+  "onboarding.review.sentence": "വയൽ {n} {place} ലാണ്. മണ്ണ് {soil}, വെള്ളം {water} ൽ നിന്ന് വരുന്നു. ഇത് {area} ഏക്കർ, നിങ്ങൾ {crop} കൃഷി ചെയ്യുന്നു.",
+  "onboarding.review.sownOn": "{date} ന് വിതച്ചു",
+  "onboarding.review.confirm": "അതെ, ഇത് ശരിയാണ്",
+  "onboarding.review.change": "തിരികെ പോയി മാറ്റുക",
+  "onboarding.step.review": "പരിശോധന",
   "onboarding.badge.onboarding": "ഏജന്റ് ഫാർമർ · ഓൺബോർഡിംഗ്",
   "onboarding.badge.getStarted": "ഏജന്റ് ഫാർമർ · ആരംഭിക്കുക",
 
@@ -640,6 +700,16 @@ const ml: Dict = {
 };
 
 const mr: Dict = {
+  "onboarding.review.placeUnknown": "तुमचा भाग",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "हे बरोबर आहे का ते तपासा",
+  "onboarding.review.subtitle": "तुम्ही हिरवे बटण दाबेपर्यंत काहीही जतन होणार नाही.",
+  "onboarding.review.greeting": "{name}, तुम्ही आम्हाला हे सांगितले",
+  "onboarding.review.sentence": "शेत {n} {place} मध्ये आहे. माती {soil} आहे आणि पाणी {water} मधून येते. ते {area} एकर आहे आणि तुम्ही {crop} पिकवत आहात.",
+  "onboarding.review.sownOn": "{date} रोजी पेरणी",
+  "onboarding.review.confirm": "होय, हे बरोबर आहे",
+  "onboarding.review.change": "मागे जाऊन बदला",
+  "onboarding.step.review": "तपासणी",
   "onboarding.badge.onboarding": "एजंट फार्मर · ऑनबोर्डिंग",
   "onboarding.badge.getStarted": "एजंट फार्मर · सुरू करा",
 
@@ -745,6 +815,16 @@ const mr: Dict = {
 };
 
 const bn: Dict = {
+  "onboarding.review.placeUnknown": "আপনার এলাকা",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "দয়া করে দেখে নিন এটি ঠিক আছে কিনা",
+  "onboarding.review.subtitle": "আপনি সবুজ বোতাম না চাপা পর্যন্ত কিছুই সংরক্ষণ হবে না।",
+  "onboarding.review.greeting": "{name}, আপনি আমাদের যা বলেছেন তা এই",
+  "onboarding.review.sentence": "জমি {n} {place}-এ আছে। মাটি {soil} এবং জল আসে {water} থেকে। এটি {area} একর এবং আপনি {crop} চাষ করছেন।",
+  "onboarding.review.sownOn": "{date} তারিখে বোনা",
+  "onboarding.review.confirm": "হ্যাঁ, এটি ঠিক আছে",
+  "onboarding.review.change": "ফিরে গিয়ে বদলান",
+  "onboarding.step.review": "যাচাই",
   "onboarding.badge.onboarding": "এজেন্ট ফার্মার · অনবোর্ডিং",
   "onboarding.badge.getStarted": "এজেন্ট ফার্মার · শুরু করুন",
 
@@ -850,6 +930,16 @@ const bn: Dict = {
 };
 
 const pa: Dict = {
+  "onboarding.review.placeUnknown": "ਤੁਹਾਡਾ ਇਲਾਕਾ",
+  // Final check screen — plain sentences, read aloud where a voice exists.
+  "onboarding.review.title": "ਕਿਰਪਾ ਕਰਕੇ ਵੇਖੋ ਕਿ ਇਹ ਸਹੀ ਹੈ",
+  "onboarding.review.subtitle": "ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ ਹਰਾ ਬਟਨ ਨਹੀਂ ਦਬਾਉਂਦੇ, ਕੁਝ ਵੀ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾਵੇਗਾ।",
+  "onboarding.review.greeting": "{name}, ਤੁਸੀਂ ਸਾਨੂੰ ਇਹ ਦੱਸਿਆ ਹੈ",
+  "onboarding.review.sentence": "ਖੇਤ {n} {place} ਵਿੱਚ ਹੈ। ਮਿੱਟੀ {soil} ਹੈ ਅਤੇ ਪਾਣੀ {water} ਤੋਂ ਆਉਂਦਾ ਹੈ। ਇਹ {area} ਏਕੜ ਹੈ ਅਤੇ ਤੁਸੀਂ {crop} ਉਗਾ ਰਹੇ ਹੋ।",
+  "onboarding.review.sownOn": "{date} ਨੂੰ ਬੀਜਿਆ",
+  "onboarding.review.confirm": "ਹਾਂ, ਇਹ ਸਹੀ ਹੈ",
+  "onboarding.review.change": "ਵਾਪਸ ਜਾ ਕੇ ਬਦਲੋ",
+  "onboarding.step.review": "ਜਾਂਚ",
   "onboarding.badge.onboarding": "ਏਜੰਟ ਫਾਰਮਰ · ਆਨਬੋਰਡਿੰਗ",
   "onboarding.badge.getStarted": "ਏਜੰਟ ਫਾਰਮਰ · ਸ਼ੁਰੂ ਕਰੋ",
 

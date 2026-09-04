@@ -14,6 +14,14 @@ import {
   Minus,
   Plus,
   Sparkles,
+  Layers,
+  Waves,
+  Mountain,
+  Grip,
+  CloudRain,
+  Droplets,
+  SprayCan,
+  ArrowDownToLine,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { SelectedLocation } from "@/components/MapSelector";
@@ -26,6 +34,8 @@ import { supabase } from "@/lib/supabase";
 import { getLiveUser } from "@/lib/session";
 import AuthPanel from "@/components/auth/AuthPanel";
 import CropRecCard from "@/components/onboarding/CropRecCard";
+import ChoiceCardGrid from "@/components/onboarding/ChoiceCardGrid";
+import ReviewStep from "@/components/onboarding/ReviewStep";
 import CropGuideModal from "@/components/onboarding/CropGuideModal";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 import {
@@ -84,6 +94,28 @@ const IRRIGATION_TYPE_KEYS: Record<string, string> = {
   Sprinkler: "onboarding.irrigation.sprinkler",
 };
 
+/**
+ * Slug and icon per option. The slug is the photo filename for irrigation and
+ * the swatch key for soil; the icon rides on top of both, because a borewell
+ * photo and a canal photo are hard to tell apart at thumbnail size.
+ */
+const SOIL_META: Record<string, { slug: string; Icon: typeof Layers }> = {
+  "Alluvial Soil": { slug: "alluvial", Icon: Waves },
+  "Black Soil": { slug: "black", Icon: Layers },
+  "Red Soil": { slug: "red", Icon: Mountain },
+  "Sandy Soil": { slug: "sandy", Icon: Grip },
+  "Clayey Soil": { slug: "clayey", Icon: Layers },
+};
+
+const IRRIGATION_META: Record<string, { slug: string; Icon: typeof Layers }> = {
+  Borewell: { slug: "borewell", Icon: ArrowDownToLine },
+  Canal: { slug: "canal", Icon: Waves },
+  River: { slug: "river", Icon: Waves },
+  "Rain-fed": { slug: "rainfed", Icon: CloudRain },
+  "Drip Irrigation": { slug: "drip", Icon: Droplets },
+  Sprinkler: { slug: "sprinkler", Icon: SprayCan },
+};
+
 type Farm = {
   area: string;
   soilType: string;
@@ -119,6 +151,7 @@ const STEPS = [
   { n: 1, labelKey: "onboarding.step.profile" },
   { n: 2, labelKey: "onboarding.step.farms" },
   { n: 3, labelKey: "onboarding.step.crops" },
+  { n: 4, labelKey: "onboarding.step.review" },
 ] as const;
 
 type Selection = {
@@ -131,7 +164,12 @@ type Selection = {
 };
 
 function makeFarm(): Farm {
-  return { area: "", soilType: "Alluvial Soil", irrigation: "Rain-fed" };
+  // Deliberately empty. These used to default to "Alluvial Soil" / "Rain-fed",
+  // and the live data showed 35 of 60 farms as Alluvial and 54 of 60 as
+  // Rain-fed — a pre-filled dropdown nobody opened. The validation at
+  // `canProceedCropSelection` already rejects empty values; it was simply
+  // unreachable while the defaults were here.
+  return { area: "", soilType: "", irrigation: "" };
 }
 
 function todayISO() {
@@ -156,7 +194,7 @@ function effectiveCrop(sel: Selection): string {
 function OnboardingContent() {
   const router = useRouter();
   const { t } = useT();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
   const [form, setForm] = useState<FarmerForm>({
     name: "",
@@ -170,6 +208,7 @@ function OnboardingContent() {
   });
 
   const [loadingAI, setLoadingAI] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [aiRecs, setAiRecs] = useState<CropRec[][] | null>(null);
 
   const [selections, setSelections] = useState<Selection[]>([makeSelection()]);
@@ -263,11 +302,11 @@ function OnboardingContent() {
   };
 
   const soilOptions = useMemo(
-    () => SOIL_TYPES.map((s) => ({ label: t(SOIL_TYPE_KEYS[s]), value: s })),
+    () => SOIL_TYPES.map((s) => ({ label: t(SOIL_TYPE_KEYS[s]), value: s, ...SOIL_META[s] })),
     [t]
   );
   const irrigationOptions = useMemo(
-    () => IRRIGATION_TYPES.map((s) => ({ label: t(IRRIGATION_TYPE_KEYS[s]), value: s })),
+    () => IRRIGATION_TYPES.map((s) => ({ label: t(IRRIGATION_TYPE_KEYS[s]), value: s, ...IRRIGATION_META[s] })),
     [t]
   );
 
@@ -451,7 +490,40 @@ function OnboardingContent() {
     return true;
   }, [aiRecs, termsAccepted, selections, form.numFarms]);
 
+  /**
+   * What the review screen reads back. Built here rather than in the component
+   * because this is where the canonical values and the label maps already live.
+   */
+  const reviewFarms = useMemo(
+    () =>
+      form.farms.map((f, i) => ({
+        index: i + 1,
+        area: f.area || "—",
+        soilLabel: f.soilType ? t(SOIL_TYPE_KEYS[f.soilType]) : "—",
+        irrigationLabel: f.irrigation ? t(IRRIGATION_TYPE_KEYS[f.irrigation]) : "—",
+        cropName: effectiveCrop(selections[i]) || "—",
+        seedingDate: selections[i]?.seedingDate || "—",
+      })),
+    [form.farms, selections, t]
+  );
+
+  /**
+   * District and state where the geocoder gave them, so the sentence reads
+   * "in Dharwad district, Karnataka" rather than reciting a postal address at
+   * someone who is checking it at a glance.
+   */
+  const reviewPlace = useMemo(() => {
+    const loc = form.location;
+    if (loc?.district && loc?.state) return `${loc.district}, ${loc.state}`;
+    if (loc?.address) {
+      return loc.address.split(",").map((x) => x.trim()).filter(Boolean).slice(-3, -1).join(", ");
+    }
+    return t("onboarding.review.placeUnknown");
+  }, [form.location, t]);
+
   const handleContinueDashboard = async () => {
+    if (saving) return;
+    setSaving(true);
     try {
       const farmer = await createFarmerProfile({
         name: form.name,
@@ -481,6 +553,7 @@ function OnboardingContent() {
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
+      setSaving(false);
       alert(t("onboarding.error.saveFailed"));
     }
   };
@@ -747,7 +820,7 @@ function OnboardingContent() {
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 gap-5">
                               <div className="space-y-1.5">
                                 <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
                                   {t("onboarding.field.farmArea")}
@@ -770,17 +843,21 @@ function OnboardingContent() {
                                 )}
                               </div>
 
-                              <TerraSelect
-                                label={t("onboarding.field.soilType")}
+                              <ChoiceCardGrid
+                                name={`soil-${idx}`}
+                                kind="soil"
+                                legend={t("onboarding.field.soilType")}
                                 value={f.soilType}
-                                onValueChange={(v) => updateFarm(idx, { soilType: v })}
+                                onChange={(v) => updateFarm(idx, { soilType: v })}
                                 options={soilOptions}
                               />
 
-                              <TerraSelect
-                                label={t("onboarding.field.irrigation")}
+                              <ChoiceCardGrid
+                                name={`irrigation-${idx}`}
+                                kind="irrigation"
+                                legend={t("onboarding.field.irrigation")}
                                 value={f.irrigation}
-                                onValueChange={(v) => updateFarm(idx, { irrigation: v })}
+                                onChange={(v) => updateFarm(idx, { irrigation: v })}
                                 options={irrigationOptions}
                               />
                             </div>
@@ -991,9 +1068,11 @@ function OnboardingContent() {
                           {t("onboarding.back")}
                         </button>
 
+                        {/* Opens the check screen. Nothing is written until the
+                            farmer confirms there. */}
                         <button
                           disabled={!canContinueDashboard}
-                          onClick={handleContinueDashboard}
+                          onClick={() => setStep(4)}
                           className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-bold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                         >
                           {t("onboarding.continueToDashboard")} <ArrowRight className="w-4 h-4" />
@@ -1001,6 +1080,17 @@ function OnboardingContent() {
                       </div>
                     </div>
                   </>
+                )}
+
+                {step === 4 && (
+                  <ReviewStep
+                    name={form.name}
+                    place={reviewPlace}
+                    farms={reviewFarms}
+                    saving={saving}
+                    onBack={() => setStep(3)}
+                    onConfirm={handleContinueDashboard}
+                  />
                 )}
 
                 <div className="mt-6 text-center text-xs text-af-muted">

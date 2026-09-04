@@ -1,0 +1,38 @@
+{
+  "borewell": {
+    "subject": "File:Water pump in Uttar Pardesh, India, 2014.jpg",
+    "article": "https://commons.wikimedia.org/wiki/File:Water_pump_in_Uttar_Pardesh,_India,_2014.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/7/72/Water_pump_in_Uttar_Pardesh%2C_India%2C_2014.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "canal": {
+    "subject": "File:Bhakra Main Canal.JPG",
+    "article": "https://commons.wikimedia.org/wiki/File:Bhakra_Main_Canal.JPG",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Bhakra_Main_Canal.JPG",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "river": {
+    "subject": "File:A Beautiful River.jpg",
+    "article": "https://commons.wikimedia.org/wiki/File:A_Beautiful_River.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/0/07/A_Beautiful_River.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "rainfed": {
+    "subject": "File:Dry sowing near Junee to east.jpg",
+    "article": "https://commons.wikimedia.org/wiki/File:Dry_sowing_near_Junee_to_east.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/3/30/Dry_sowing_near_Junee_to_east.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "drip": {
+    "subject": "Drip irrigation",
+    "article": "https://en.wikipedia.org/wiki/Drip_irrigation",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/a/ac/Button_dripper.JPG",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "sprinkler": {
+    "subject": "Irrigation sprinkler",
+    "article": "https://en.wikipedia.org/wiki/Irrigation_sprinkler",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Impact_Sprinkler_Mechanism_2.jpg",
+    "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  }
+}
