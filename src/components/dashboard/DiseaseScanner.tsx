@@ -55,11 +55,30 @@ export default function DiseaseScanner() {
     setPreview(URL.createObjectURL(f));
   }
 
+  /**
+   * Clearing the scan is also when the history below is refreshed.
+   *
+   * This used to call `router.refresh()` the moment a result arrived, to pick
+   * up the new row in "Recent Scans". That was harmless for months and then
+   * quietly became a bug: a dashboard `template.tsx` now wraps every page, and
+   * `router.refresh()` rebuilds the router cache from the root, tearing that
+   * wrapper down and recreating it. The diagnosis went with it — the farmer
+   * saw treatment steps for about a second and then an empty panel.
+   *
+   * (The giveaway was the page-entry animation replaying. A re-render cannot
+   * restart a CSS animation, so that element was definitely being recreated.)
+   *
+   * Refreshing here instead means it never fires while a result is on screen,
+   * which holds regardless of exactly which boundary is doing the tearing. The
+   * history list sits below the fold and gaining a row is not something anyone
+   * is waiting on, so deferring it to the reset costs nothing.
+   */
   function reset() {
     setPreview(null);
     setFile(null);
     setResult(null);
     setError(null);
+    router.refresh();
   }
 
   async function analyze() {
@@ -76,8 +95,6 @@ export default function DiseaseScanner() {
         setError(data?.error ?? t("diseaseScanner.diagnosisFailed"));
       } else {
         setResult(data as DiseaseResult);
-        // Refresh the server-rendered "Recent Scans" list with the saved record.
-        router.refresh();
       }
     } catch {
       setError(t("diseaseScanner.networkError"));

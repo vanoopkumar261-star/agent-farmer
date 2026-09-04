@@ -74,6 +74,24 @@ export async function uploadLeafImage(
  * Returns null rather than throwing so one unsignable row cannot take down the
  * whole scan history.
  */
+/**
+ * Signed URLs, cached per storage path.
+ *
+ * `createSignedUrl` mints a fresh token every call, so signing on each render
+ * returned a DIFFERENT string for the same image every time. Every `<img src>`
+ * in the scan history changed on any re-render, so the browser dropped and
+ * refetched all of them and the list visibly blanked — which is a good part of
+ * why the disease page felt like it was reloading itself. It also put eight
+ * sequential signing round-trips on the critical path of every render.
+ *
+ * The TTL is kept well below the token's own expiry so a cached URL can never
+ * be handed out close to death. Process-local and unbounded only in the sense
+ * that a long-lived server accumulates one small entry per image viewed; the
+ * sweep on write keeps that from growing without limit.
+ */
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const SIGNED_URL_TTL_MS = 45 * 60 * 1000; // vs. the 3600s token
+
 export async function signLeafImage(
   stored: string | null,
   expiresInSec = 3600
@@ -87,13 +105,25 @@ export async function signLeafImage(
     : stored;
   if (!path || (stored.startsWith("http") && !stored.includes(marker))) return null;
 
+  const now = Date.now();
+  const hit = signedUrlCache.get(path);
+  if (hit && hit.expiresAt > now) return hit.url;
+
   try {
     const supabase = createSupabaseServer();
     const { data, error } = await supabase.storage
       .from(LEAF_BUCKET)
       .createSignedUrl(decodeURIComponent(path), expiresInSec);
     if (error) return null;
-    return data?.signedUrl ?? null;
+    const url = data?.signedUrl ?? null;
+    if (url) {
+      for (const [k, v] of signedUrlCache) if (v.expiresAt <= now) signedUrlCache.delete(k);
+      signedUrlCache.set(path, {
+        url,
+        expiresAt: now + Math.min(SIGNED_URL_TTL_MS, expiresInSec * 1000 * 0.75),
+      });
+    }
+    return url;
   } catch {
     return null;
   }

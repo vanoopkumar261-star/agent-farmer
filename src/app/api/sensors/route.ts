@@ -25,7 +25,7 @@ const THINGSPEAK = "https://api.thingspeak.com";
 // Enough history for the modal chart; the readings table shows the last 20.
 const RESULTS = 100;
 
-export type MetricKey = "temperature" | "humidity" | "soilMoisture";
+export type MetricKey = "temperature" | "humidity" | "soilMoisture" | "npk";
 
 export type SensorReading = { at: string; value: number };
 
@@ -38,6 +38,17 @@ export type SensorMetric = {
   latest: SensorReading | null;
   /** Newest first, up to RESULTS entries. */
   readings: SensorReading[];
+  /**
+   * A stand-in value shown because no hardware reports this metric yet.
+   *
+   * Deliberately separate from `configured`: a placeholder must render a value
+   * without ever counting as a live channel. Marking it `configured` would make
+   * the "no sensor connected" empty state unreachable, and giving it a
+   * timestamp would pin the Live badge on for ever with the ESP32 unplugged.
+   */
+  placeholder?: boolean;
+  /** For metrics that are several numbers rather than one, e.g. N / P / K. */
+  parts?: { label: string; value: number }[];
 };
 
 export type SensorSnapshot = {
@@ -48,19 +59,31 @@ export type SensorSnapshot = {
   metrics: SensorMetric[];
 };
 
-const METRIC_KEYS: MetricKey[] = ["temperature", "humidity", "soilMoisture"];
+const METRIC_KEYS: MetricKey[] = ["temperature", "humidity", "soilMoisture", "npk"];
 
 const UNITS: Record<MetricKey, string> = {
   temperature: "°C",
   humidity: "%",
   soilMoisture: "%",
+  npk: "kg/ha",
 };
 
 const ENV_SUFFIX: Record<MetricKey, string> = {
   temperature: "TEMPERATURE",
   humidity: "HUMIDITY",
   soilMoisture: "SOIL_MOISTURE",
+  npk: "NPK",
 };
+
+/**
+ * Soil Health Card sufficiency levels for Indian soils — the "healthy" end of
+ * the medium band for available N, P₂O₅ and K₂O.
+ */
+const NPK_BASELINE = [
+  { label: "N", value: 280 },
+  { label: "P", value: 22 },
+  { label: "K", value: 180 },
+];
 
 type ChannelCfg = {
   id: string;
@@ -168,6 +191,25 @@ export async function GET(req: Request) {
 
   const metrics: SensorMetric[] = METRIC_KEYS.map((key) => {
     const owner = channels.find((c) => c.fields[key] != null);
+
+    // Nobody sells a cheap NPK probe that a farmer can leave in a field, so
+    // until one is wired up this reports the sufficiency levels a Soil Health
+    // Card would call healthy. It is not a reading and never claims to be:
+    // no timestamp, not `configured`, and flagged so the UI and the assistant
+    // both say where it came from. Wire `..._FIELD_NPK` to a real field and
+    // this branch stops running.
+    if (!owner && key === "npk") {
+      return {
+        key,
+        configured: false,
+        placeholder: true,
+        unit: UNITS.npk,
+        latest: null,
+        readings: [],
+        parts: NPK_BASELINE,
+      };
+    }
+
     if (!owner) {
       return { key, configured: false, unit: UNITS[key], latest: null, readings: [] };
     }
@@ -181,8 +223,11 @@ export async function GET(req: Request) {
     };
   });
 
+  // Placeholders are excluded on purpose. A synthetic timestamp here would keep
+  // the Live badge lit even when the real feed has been dead for hours.
   const updatedAt =
     metrics
+      .filter((m) => !m.placeholder)
       .map((m) => m.latest?.at)
       .filter((a): a is string => Boolean(a))
       .sort()

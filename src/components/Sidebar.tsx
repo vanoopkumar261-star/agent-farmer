@@ -12,7 +12,6 @@ import {
   Microscope,
   Plus,
   User,
-  Leaf,
   Newspaper,
   Library,
   FlaskConical,
@@ -83,9 +82,20 @@ export default function Sidebar() {
       <div className="flex flex-col gap-8">
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-2">
-          <div className="w-9 h-9 rounded-xl bg-af-primary flex items-center justify-center shadow-af-sm">
-            <Leaf className="w-5 h-5 text-white" />
-          </div>
+          {/* The mark carries its own dark-green disc, so there is no
+              `bg-af-primary` behind it. The PNG is RGBA with transparent
+              corners; `rounded-full` is belt-and-braces against any edge fringe
+              and keeps the shape right if the file is ever swapped for a JPEG.
+              `alt=""` + `aria-hidden` because the wordmark beside it already
+              names the product — a screen reader should not hear it twice. */}
+          <img
+            src="/images/logo_circle.png"
+            alt=""
+            aria-hidden="true"
+            width={36}
+            height={36}
+            className="w-9 h-9 rounded-full object-cover shadow-af-sm shrink-0"
+          />
           <div>
             <span className="font-sans font-semibold text-[15px] text-af-ink tracking-[-0.02em] leading-none block">
               Agent Farmer

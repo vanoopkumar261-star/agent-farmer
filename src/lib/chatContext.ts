@@ -4,6 +4,7 @@ import { harvestInfo } from "./agronomy";
 import { getWeather } from "./weather";
 import { getRecentDiagnoses, getLatestSoilReading } from "./history";
 import { phBand } from "./soilPh";
+import { npkContextLineEn } from "./npk";
 
 /**
  * Builds the "memory" the AI assistant is given on every turn — farmer profile,
@@ -78,6 +79,10 @@ export async function buildAssistantContext(): Promise<string> {
     ...farmLines,
     weatherLine,
     ...(soilLine ? [soilLine] : []),
+    // Nutrients. Unlike every other line here this one is not a measurement,
+    // and it says so in its own text — the system prompt forbids inventing farm
+    // data, so the provenance has to travel with the numbers.
+    npkContextLineEn(),
     ...diagnosisLines,
   ].join("\n");
 }

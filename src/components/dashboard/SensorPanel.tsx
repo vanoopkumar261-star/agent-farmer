@@ -10,8 +10,7 @@ import {
   Thermometer,
   Wifi,
   WifiOff,
-  X,
-} from "lucide-react";
+  X, FlaskConical,} from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -36,9 +35,10 @@ const META: Record<MetricKey, { Icon: typeof Thermometer; color: string }> = {
   temperature: { Icon: Thermometer, color: "#B58A18" }, // Mustard
   humidity: { Icon: Droplets, color: "#3E6FB8" }, // Field Blue
   soilMoisture: { Icon: Sprout, color: "#3F7A2E" }, // Crop Green
+  npk: { Icon: FlaskConical, color: "#7A5C2E" }, // Earth Brown
 };
 
-const ORDER: MetricKey[] = ["temperature", "humidity", "soilMoisture"];
+const ORDER: MetricKey[] = ["temperature", "humidity", "soilMoisture", "npk"];
 
 /**
  * How long a channel may go quiet before the panel stops calling it "Live".
@@ -212,7 +212,7 @@ export default function SensorPanel() {
       {/* Body */}
       <div className="mt-5">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {ORDER.map((k) => (
               <Skeleton key={k} className="h-[132px] rounded-xl" />
             ))}
@@ -227,7 +227,7 @@ export default function SensorPanel() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {ORDER.map((key) => {
               const m = metrics.find((x) => x.key === key);
               return (
@@ -239,6 +239,7 @@ export default function SensorPanel() {
                   label={t(`sensorPanel.metric.${key}`)}
                   showMoreLabel={t("sensorPanel.showMore")}
                   noDataLabel={t("sensorPanel.noData")}
+                  noSensorLabel={t("sensorPanel.noNpkSensor")}
                   updatedLabel={(iso: string) => t("sensorPanel.updated", { time: timeAgo(iso) })}
                   onShowMore={() => setOpen(key)}
                 />
@@ -264,6 +265,7 @@ function MetricTile({
   label,
   showMoreLabel,
   noDataLabel,
+  noSensorLabel,
   updatedLabel,
   onShowMore,
 }: {
@@ -271,11 +273,13 @@ function MetricTile({
   label: string;
   showMoreLabel: string;
   noDataLabel: string;
+  noSensorLabel: string;
   updatedLabel: (iso: string) => string;
   onShowMore: () => void;
 }) {
   const { Icon, color } = META[metric.key];
   const has = metric.configured && metric.latest != null;
+  const parts = metric.placeholder ? metric.parts ?? [] : [];
 
   return (
     <div className="flex flex-col rounded-xl border border-af-border bg-af-bg p-4">
@@ -291,21 +295,40 @@ function MetricTile({
         </span>
       </div>
 
-      <div className="mt-3 flex items-baseline gap-1">
-        {has ? (
-          <>
-            <span className="font-mono text-3xl font-semibold text-af-ink leading-none">
-              {metric.latest!.value}
+      {/* Three numbers do not fit the one-big-figure shape the other tiles use,
+          so a metric that arrives as parts renders them side by side. */}
+      {parts.length > 0 ? (
+        <div className="mt-3 flex items-baseline gap-3">
+          {parts.map((p) => (
+            <span key={p.label} className="flex items-baseline gap-1">
+              <span className="text-[11px] font-semibold text-af-muted">{p.label}</span>
+              <span className="font-mono text-xl font-semibold text-af-ink leading-none">
+                {p.value}
+              </span>
             </span>
-            <span className="text-sm font-semibold text-af-muted">{metric.unit}</span>
-          </>
-        ) : (
-          <span className="text-sm text-af-muted">{noDataLabel}</span>
-        )}
-      </div>
+          ))}
+          <span className="text-[11px] font-semibold text-af-muted">{metric.unit}</span>
+        </div>
+      ) : (
+        <div className="mt-3 flex items-baseline gap-1">
+          {has ? (
+            <>
+              <span className="font-mono text-3xl font-semibold text-af-ink leading-none">
+                {metric.latest!.value}
+              </span>
+              <span className="text-sm font-semibold text-af-muted">{metric.unit}</span>
+            </>
+          ) : (
+            <span className="text-sm text-af-muted">{noDataLabel}</span>
+          )}
+        </div>
+      )}
 
+      {/* Where the number came from. A value with no sensor behind it has to say
+          so on the tile itself — the same rule the market board follows with its
+          "Demo prices" pill. */}
       <div className="mt-1 text-[11px] text-af-muted min-h-[15px]">
-        {has ? updatedLabel(metric.latest!.at) : ""}
+        {metric.placeholder ? noSensorLabel : has ? updatedLabel(metric.latest!.at) : ""}
       </div>
 
       <button

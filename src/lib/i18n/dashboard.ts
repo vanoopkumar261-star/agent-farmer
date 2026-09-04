@@ -11,6 +11,9 @@ type Dict = Record<string, string>;
    ──────────────────────────────────────────────────────────────────────────── */
 
 const en: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "Soil NPK",
+  "sensorPanel.noNpkSensor": "No NPK sensor connected yet",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "What to do about this soil",
   "soilFix.forCrop": "{crop} · day {day} of {cycle}",
@@ -535,7 +538,7 @@ const en: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "Field Sensors",
   "sensorPanel.title": "Live Sensor Readings",
-  "sensorPanel.subtitle": "Temperature, humidity and soil moisture from your field",
+  "sensorPanel.subtitle": "Temperature, humidity, soil moisture and nutrients from your field",
   "sensorPanel.live": "Live",
   "sensorPanel.offline": "Offline",
   "sensorPanel.refresh": "Refresh readings",
@@ -709,6 +712,9 @@ const en: Dict = {
 };
 
 const hi: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "मिट्टी NPK",
+  "sensorPanel.noNpkSensor": "अभी कोई NPK सेंसर नहीं जुड़ा है",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "इस मिट्टी के लिए क्या करें",
   "soilFix.forCrop": "{crop} · {cycle} में से {day}वाँ दिन",
@@ -1158,7 +1164,7 @@ const hi: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "खेत सेंसर",
   "sensorPanel.title": "लाइव सेंसर रीडिंग",
-  "sensorPanel.subtitle": "आपके खेत से तापमान, हवा की नमी और मिट्टी की नमी",
+  "sensorPanel.subtitle": "आपके खेत का तापमान, नमी, मिट्टी की नमी और पोषक तत्व",
   "sensorPanel.live": "लाइव",
   "sensorPanel.offline": "ऑफ़लाइन",
   "sensorPanel.refresh": "रीडिंग रीफ़्रेश करें",
@@ -1325,6 +1331,9 @@ const hi: Dict = {
   "soilPh.band.alkaline.advice": "जिप्सम डालें, सहनशील फ़सलें (जौ, सरसों) उगाएँ, और पूरी मृदा जाँच कराएँ।",
 };
 const kn: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "ಮಣ್ಣಿನ NPK",
+  "sensorPanel.noNpkSensor": "ಇನ್ನೂ NPK ಸಂವೇದಕ ಸಂಪರ್ಕಗೊಂಡಿಲ್ಲ",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "ಈ ಮಣ್ಣಿಗೆ ಏನು ಮಾಡಬೇಕು",
   "soilFix.forCrop": "{crop} · {cycle}ರಲ್ಲಿ {day}ನೇ ದಿನ",
@@ -1774,7 +1783,7 @@ const kn: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "ಹೊಲದ ಸೆನ್ಸರ್‌ಗಳು",
   "sensorPanel.title": "ಲೈವ್ ಸೆನ್ಸರ್ ರೀಡಿಂಗ್‌ಗಳು",
-  "sensorPanel.subtitle": "ನಿಮ್ಮ ಹೊಲದ ತಾಪಮಾನ, ತೇವಾಂಶ ಮತ್ತು ಮಣ್ಣಿನ ತೇವಾಂಶ",
+  "sensorPanel.subtitle": "ನಿಮ್ಮ ಹೊಲದ ತಾಪಮಾನ, ತೇವಾಂಶ, ಮಣ್ಣಿನ ತೇವ ಮತ್ತು ಪೋಷಕಾಂಶಗಳು",
   "sensorPanel.live": "ಲೈವ್",
   "sensorPanel.offline": "ಆಫ್‌ಲೈನ್",
   "sensorPanel.refresh": "ರೀಡಿಂಗ್‌ಗಳನ್ನು ರಿಫ್ರೆಶ್ ಮಾಡಿ",
@@ -1941,6 +1950,9 @@ const kn: Dict = {
   "soilPh.band.alkaline.advice": "ಜಿಪ್ಸಂ ಹಾಕಿ, ಸಹಿಷ್ಣು ಬೆಳೆಗಳನ್ನು (ಜವೆ, ಸಾಸಿವೆ) ಬೆಳೆಯಿರಿ, ಪೂರ್ಣ ಮಣ್ಣಿನ ಪರೀಕ್ಷೆ ಮಾಡಿಸಿ.",
 };
 const ta: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "மண் NPK",
+  "sensorPanel.noNpkSensor": "இன்னும் NPK உணரி இணைக்கப்படவில்லை",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "இந்த மண்ணுக்கு என்ன செய்ய வேண்டும்",
   "soilFix.forCrop": "{crop} · {cycle}இல் {day}ஆம் நாள்",
@@ -2390,7 +2402,7 @@ const ta: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "வயல் சென்சார்கள்",
   "sensorPanel.title": "நேரடி சென்சார் அளவீடுகள்",
-  "sensorPanel.subtitle": "உங்கள் வயலின் வெப்பநிலை, ஈரப்பதம் மற்றும் மண் ஈரப்பதம்",
+  "sensorPanel.subtitle": "உங்கள் வயலின் வெப்பநிலை, ஈரப்பதம், மண் ஈரம் மற்றும் ஊட்டச்சத்துகள்",
   "sensorPanel.live": "நேரடி",
   "sensorPanel.offline": "ஆஃப்லைன்",
   "sensorPanel.refresh": "அளவீடுகளைப் புதுப்பிக்கவும்",
@@ -2557,6 +2569,9 @@ const ta: Dict = {
   "soilPh.band.alkaline.advice": "ஜிப்சம் இடுங்கள், தாங்கும் பயிர்களை (பார்லி, கடுகு) பயிரிடுங்கள், முழு மண் பரிசோதனை செய்யுங்கள்.",
 };
 const te: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "నేల NPK",
+  "sensorPanel.noNpkSensor": "ఇంకా NPK సెన్సార్ కనెక్ట్ కాలేదు",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "ఈ నేలకు ఏమి చేయాలి",
   "soilFix.forCrop": "{crop} · {cycle}లో {day}వ రోజు",
@@ -3006,7 +3021,7 @@ const te: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "పొలం సెన్సార్‌లు",
   "sensorPanel.title": "లైవ్ సెన్సార్ రీడింగ్‌లు",
-  "sensorPanel.subtitle": "మీ పొలం నుండి ఉష్ణోగ్రత, తేమ మరియు నేల తేమ",
+  "sensorPanel.subtitle": "మీ పొలం ఉష్ణోగ్రత, తేమ, నేల తేమ మరియు పోషకాలు",
   "sensorPanel.live": "లైవ్",
   "sensorPanel.offline": "ఆఫ్‌లైన్",
   "sensorPanel.refresh": "రీడింగ్‌లను రిఫ్రెష్ చేయండి",
@@ -3173,6 +3188,9 @@ const te: Dict = {
   "soilPh.band.alkaline.advice": "జిప్సం వేయండి, తట్టుకునే పంటలు (బార్లీ, ఆవాలు) పండించండి, పూర్తి నేల పరీక్ష చేయించండి.",
 };
 const ml: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "മണ്ണിലെ NPK",
+  "sensorPanel.noNpkSensor": "NPK സെൻസർ ഇതുവരെ ബന്ധിപ്പിച്ചിട്ടില്ല",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "ഈ മണ്ണിന് എന്ത് ചെയ്യണം",
   "soilFix.forCrop": "{crop} · {cycle}ൽ {day}-ാം ദിവസം",
@@ -3622,7 +3640,7 @@ const ml: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "വയൽ സെൻസറുകൾ",
   "sensorPanel.title": "തത്സമയ സെൻസർ റീഡിംഗുകൾ",
-  "sensorPanel.subtitle": "നിങ്ങളുടെ വയലിലെ താപനില, ആർദ്രത, മണ്ണിലെ ഈർപ്പം",
+  "sensorPanel.subtitle": "നിങ്ങളുടെ വയലിലെ താപനില, ഈർപ്പം, മണ്ണിലെ ഈർപ്പം, പോഷകങ്ങൾ",
   "sensorPanel.live": "തത്സമയം",
   "sensorPanel.offline": "ഓഫ്‌ലൈൻ",
   "sensorPanel.refresh": "റീഡിംഗുകൾ പുതുക്കുക",
@@ -3789,6 +3807,9 @@ const ml: Dict = {
   "soilPh.band.alkaline.advice": "ജിപ്സം ചേർക്കുക, സഹിഷ്ണുതയുള്ള വിളകൾ (ബാർലി, കടുക്) വളർത്തുക, പൂർണ മണ്ണ് പരിശോധന നടത്തുക.",
 };
 const mr: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "माती NPK",
+  "sensorPanel.noNpkSensor": "अद्याप NPK सेन्सर जोडलेला नाही",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "या मातीसाठी काय करावे",
   "soilFix.forCrop": "{crop} · {cycle} पैकी {day}वा दिवस",
@@ -4238,7 +4259,7 @@ const mr: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "शेत सेन्सर",
   "sensorPanel.title": "थेट सेन्सर रीडिंग",
-  "sensorPanel.subtitle": "तुमच्या शेतातील तापमान, आर्द्रता आणि जमिनीतील ओलावा",
+  "sensorPanel.subtitle": "तुमच्या शेतातील तापमान, आर्द्रता, मातीतील ओलावा आणि अन्नद्रव्ये",
   "sensorPanel.live": "थेट",
   "sensorPanel.offline": "ऑफलाइन",
   "sensorPanel.refresh": "रीडिंग रिफ्रेश करा",
@@ -4405,6 +4426,9 @@ const mr: Dict = {
   "soilPh.band.alkaline.advice": "जिप्सम टाका, सहनशील पिके (जव, मोहरी) घ्या आणि संपूर्ण माती चाचणी करा.",
 };
 const bn: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "মাটির NPK",
+  "sensorPanel.noNpkSensor": "এখনও কোনো NPK সেন্সর যুক্ত নেই",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "এই মাটির জন্য কী করবেন",
   "soilFix.forCrop": "{crop} · {cycle}-এর মধ্যে {day}তম দিন",
@@ -4854,7 +4878,7 @@ const bn: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "মাঠ সেন্সর",
   "sensorPanel.title": "লাইভ সেন্সর রিডিং",
-  "sensorPanel.subtitle": "আপনার মাঠ থেকে তাপমাত্রা, আর্দ্রতা এবং মাটির আর্দ্রতা",
+  "sensorPanel.subtitle": "আপনার জমির তাপমাত্রা, আর্দ্রতা, মাটির আর্দ্রতা ও পুষ্টি উপাদান",
   "sensorPanel.live": "লাইভ",
   "sensorPanel.offline": "অফলাইন",
   "sensorPanel.refresh": "রিডিং রিফ্রেশ করুন",
@@ -5021,6 +5045,9 @@ const bn: Dict = {
   "soilPh.band.alkaline.advice": "জিপসাম প্রয়োগ করুন, সহনশীল ফসল (বার্লি, সরিষা) চাষ করুন এবং সম্পূর্ণ মাটি পরীক্ষা করান।",
 };
 const pa: Dict = {
+  // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).
+  "sensorPanel.metric.npk": "ਮਿੱਟੀ NPK",
+  "sensorPanel.noNpkSensor": "ਹਾਲੇ ਕੋਈ NPK ਸੈਂਸਰ ਨਹੀਂ ਜੁੜਿਆ",
   // Soil pH: what to do about it, for the crop already in the ground.
   "soilFix.title": "ਇਸ ਮਿੱਟੀ ਲਈ ਕੀ ਕਰੀਏ",
   "soilFix.forCrop": "{crop} · {cycle} ਵਿੱਚੋਂ {day}ਵਾਂ ਦਿਨ",
@@ -5470,7 +5497,7 @@ const pa: Dict = {
   // components/dashboard/SensorPanel.tsx
   "sensorPanel.label": "ਖੇਤ ਸੈਂਸਰ",
   "sensorPanel.title": "ਲਾਈਵ ਸੈਂਸਰ ਰੀਡਿੰਗ",
-  "sensorPanel.subtitle": "ਤੁਹਾਡੇ ਖੇਤ ਤੋਂ ਤਾਪਮਾਨ, ਨਮੀ ਅਤੇ ਮਿੱਟੀ ਦੀ ਨਮੀ",
+  "sensorPanel.subtitle": "ਤੁਹਾਡੇ ਖੇਤ ਦਾ ਤਾਪਮਾਨ, ਨਮੀ, ਮਿੱਟੀ ਦੀ ਨਮੀ ਅਤੇ ਪੌਸ਼ਟਿਕ ਤੱਤ",
   "sensorPanel.live": "ਲਾਈਵ",
   "sensorPanel.offline": "ਆਫ਼ਲਾਈਨ",
   "sensorPanel.refresh": "ਰੀਡਿੰਗ ਰੀਫ੍ਰੈਸ਼ ਕਰੋ",
