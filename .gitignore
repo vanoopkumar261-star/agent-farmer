@@ -75,3 +75,8 @@ scripts/.cache/
 
 # Supabase CLI scratch, written when deploying an edge function.
 /supabase/.temp/
+
+# Full-resolution source art (soil photographs etc). The committed,
+# optimised output lives in public/images/; these megabyte originals are
+# kept locally and must never be served or deployed.
+/design-assets/

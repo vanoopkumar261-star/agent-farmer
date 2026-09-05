@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { BadgeCheck } from "lucide-react";
-import SoilSwatch, { type SoilKey } from "./SoilSwatch";
 
 /**
  * The picture picker that replaced the soil and irrigation dropdowns.
@@ -16,8 +15,11 @@ import SoilSwatch, { type SoilKey } from "./SoilSwatch";
  * So: no default, and nothing to read in order to choose. The picture carries
  * the meaning and the label underneath confirms it for whoever can read it.
  *
- * Irrigation cards are photographs; soil cards are drawn. That split is not a
- * style choice, it is what could be sourced honestly — see SoilSwatch.tsx.
+ * Both soil and irrigation cards are photographs. Soil used to be drawn (see
+ * SoilSwatch.tsx in the history) purely because no honest photo source existed;
+ * once real top-down photographs of the five soils were available the drawings
+ * were replaced, because a farmer recognises their own field's soil far faster
+ * from a photo than from an illustration of one.
  *
  * Icons sit over both, because a borewell photo and a canal photo are genuinely
  * hard to tell apart at thumbnail size on a phone. The photo carries
@@ -81,20 +83,16 @@ export default function ChoiceCardGrid({
               {/* Tall enough to be recognisable, short enough that six fit on a
                   phone screen without scrolling past the Continue button. */}
               <div className="relative h-[86px] w-full bg-af-sage">
-                {kind === "soil" ? (
-                  <SoilSwatch soil={o.slug as SoilKey} className="h-full w-full" />
-                ) : (
-                  <Image
-                    src={`/images/irrigation/${o.slug}.webp`}
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 45vw, 200px"
-                    className="object-cover"
-                  />
-                )}
+                <Image
+                  src={`/images/${kind}/${o.slug}.webp`}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 45vw, 200px"
+                  className="object-cover"
+                />
 
-                {/* The disambiguator. Photos of water infrastructure look alike
-                    at this size; the icon does not. */}
+                {/* The disambiguator. Water infrastructure — and, at 86px, red
+                    and alluvial soil — look alike; the icon does not. */}
                 <span className="absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-af-card/90 shadow-af-sm">
                   <o.Icon className="h-3.5 w-3.5 text-af-primary-deep" />
                 </span>
