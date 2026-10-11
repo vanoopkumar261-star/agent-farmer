@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
-import { Send, Brain, CloudSun, Sprout, User, Loader2, Leaf, AudioLines, BookOpen, Check } from "lucide-react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { Send, Brain, CloudSun, Sprout, User, Loader2, Leaf, AudioLines, BookOpen, Check, Languages } from "lucide-react";
+import { ThinkingOrb } from "thinking-orbs";
 import { useAssistant } from "./AssistantProvider";
 import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
-import DictateButton from "./DictateButton";
 import dynamic from "next/dynamic";
 import { toSpeakableText } from "@/lib/plainText";
 
@@ -20,8 +20,8 @@ import { toSpeakableText } from "@/lib/plainText";
  * the chunk arrives — no flash of asterisks, no empty bubble.
  */
 const AssistantMarkdown = dynamic(() => import("./AssistantMarkdown"), { ssr: false });
-import { voiceEnabledFor } from "@/lib/speech";
 import SpeakButton from "./SpeakButton";
+import { localeFromScript } from "@/lib/speech";
 
 const MEMORY_CHIPS = [
   { icon: User, labelKey: "assistant.memoryChip.profile" },
@@ -50,9 +50,10 @@ export default function AssistantChat({
   const { messages, input, setInput, streaming, send, farmerName, suggestions, openVoice, chatLocale, setChatLocale } =
     useAssistant();
   const { t, locale } = useT();
-  // Voice is English-only (see VOICE_LOCALES in lib/speech.ts). The text
-  // assistant still works in all nine languages.
-  const voiceEnabled = voiceEnabledFor(locale);
+  // Replies are written in the chat language, so that is the language they are
+  // read aloud in.
+  const replyLocale = chatLocale ?? locale;
+  const [langOpen, setLangOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const drawer = variant === "drawer";
 
@@ -188,8 +189,8 @@ export default function AssistantChat({
                   <div className="flex items-end gap-1">
                     <div className="rounded-2xl rounded-bl-md bg-af-bg border border-af-border px-4 py-2.5 text-[14px] text-af-ink leading-relaxed min-w-0">
                       {waitingFirstToken && i === messages.length - 1 ? (
-                        <span className="inline-flex items-center gap-1 text-af-muted">
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("assistant.thinking")}
+                        <span className="inline-flex items-center gap-1.5 text-af-muted">
+                          <ThinkingOrb state="solving" size={20} theme="auto" /> {t("assistant.thinking")}
                         </span>
                       ) : (
                         /* Markdown, not raw text. `whitespace-pre-wrap` is gone
@@ -201,8 +202,17 @@ export default function AssistantChat({
                         </Suspense>
                       )}
                     </div>
-                    {/* Renders nothing when this language has no installed voice. */}
-                    {!streaming && m.content && <SpeakButton text={toSpeakableText(m.content)} />}
+                    {/* `m.locale` is the language this reply was actually
+                        written in, which is not always the current one — the
+                        farmer can switch mid-conversation. Replies restored
+                        from history predate that record, so fall back to
+                        reading the script rather than assuming. */}
+                    {!streaming && m.content && (
+                      <SpeakButton
+                        text={toSpeakableText(m.content)}
+                        locale={m.locale ?? localeFromScript(m.content, replyLocale)}
+                      />
+                    )}
                   </div>
 
                   {/* Where the answer came from. Absent when the knowledge base
@@ -247,6 +257,44 @@ export default function AssistantChat({
       {/* Follow-up chips — only once there's something to follow up on. */}
       {!empty && (
         <div className="px-5 pb-1 flex flex-wrap gap-2 shrink-0">
+          {/* The language is changeable for the whole conversation, not just at
+              the start. Asking in words ("talk to me in Kannada") works too and
+              is what most farmers will do, but a farmer who cannot write the
+              request still needs a control they can press. */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setLangOpen((v) => !v)}
+              aria-expanded={langOpen}
+              className="inline-flex items-center gap-1.5 rounded-full bg-af-sage border border-af-border px-3.5 py-1.5 text-[12px] font-semibold text-af-secondary hover:border-af-primary/45 transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
+            >
+              <Languages className="w-3.5 h-3.5" />
+              {LOCALES.find((l) => l.code === replyLocale)?.label ?? replyLocale}
+            </button>
+            {langOpen && (
+              <div className="absolute bottom-full left-0 z-20 mb-2 w-max max-w-[18rem] rounded-[14px] border border-af-border bg-af-card p-2 shadow-af-sm">
+                <div className="flex flex-wrap gap-1.5">
+                  {LOCALES.map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={() => {
+                        setChatLocale(l.code as Locale);
+                        setLangOpen(false);
+                      }}
+                      className={`rounded-full border px-3 py-1.5 text-[12px] font-semibold transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 ${
+                        l.code === replyLocale
+                          ? "border-af-primary/45 bg-af-sage text-af-secondary"
+                          : "border-af-border bg-af-bg text-af-ink-2 hover:border-af-primary/45 hover:text-af-secondary"
+                      }`}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           {QUICK_CHIP_KEYS.map((k) => (
             <button
               key={k}
@@ -275,24 +323,18 @@ export default function AssistantChat({
             placeholder={t("assistant.inputPlaceholder")}
             className="flex-1 bg-transparent py-2.5 text-sm text-af-ink placeholder:text-af-muted outline-none"
           />
-          <DictateButton
+          {/* The one voice control: a full spoken conversation. Replies can
+              also be played individually from the speaker under each one. */}
+          <button
+            type="button"
+            onClick={openVoice}
             disabled={streaming}
-            onText={(text) =>
-              setInput(input.trim() ? `${input.trim()} ${text}` : text)
-            }
-          />
-          {voiceEnabled && (
-            <button
-              type="button"
-              onClick={openVoice}
-              disabled={streaming}
-              aria-label={t("voice.start")}
-              title={t("voice.start")}
-              className="flex items-center justify-center w-10 h-10 rounded-full text-af-muted shrink-0 transition hover:bg-af-sage hover:text-af-secondary active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 disabled:opacity-40 disabled:pointer-events-none"
-            >
-              <AudioLines className="w-4 h-4" />
-            </button>
-          )}
+            aria-label={t("voice.start")}
+            title={t("voice.start")}
+            className="flex items-center justify-center w-10 h-10 rounded-full text-af-muted shrink-0 transition hover:bg-af-sage hover:text-af-secondary active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <AudioLines className="w-4 h-4" />
+          </button>
           <button
             type="submit"
             disabled={!input.trim() || streaming}

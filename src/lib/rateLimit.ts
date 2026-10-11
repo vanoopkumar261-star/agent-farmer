@@ -35,13 +35,18 @@ export type RateLimitResult = {
 /** Per-endpoint budgets. Tightest where a single call is most expensive. */
 export const LIMITS = {
   chat: { limit: 20, windowSec: 60 },
+  agent: { limit: 20, windowSec: 60 },
   disease: { limit: 10, windowSec: 60 },
   recommendations: { limit: 10, windowSec: 60 },
   "crop-guide": { limit: 20, windowSec: 60 },
   "market-advice": { limit: 20, windowSec: 60 },
   "scheme-match": { limit: 20, windowSec: 60 },
   transcribe: { limit: 30, windowSec: 60 },
-  tts: { limit: 30, windowSec: 60 },
+  // One spoken reply is several requests, not one: the text is cut into
+  // sentence-sized chunks so sound starts before the whole reply is synthesised.
+  // A long answer can be eight or ten calls, so this budget is per-reply
+  // generous while still capping GPU time per farmer.
+  tts: { limit: 90, windowSec: 60 },
   feedback: { limit: 5, windowSec: 60 },
   market: { limit: 30, windowSec: 60 },
   news: { limit: 15, windowSec: 60 },

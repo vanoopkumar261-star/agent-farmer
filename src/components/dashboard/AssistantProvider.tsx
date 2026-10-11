@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { useT } from "@/components/i18n/LanguageProvider";
-import type { Locale } from "@/lib/i18n/config";
+import { LOCALES, type Locale } from "@/lib/i18n/config";
 
 /** A citation the assistant drew on, surfaced under its reply. */
 export type Source = {
@@ -24,7 +24,23 @@ export type Msg = {
   content: string;
   /** Set only on assistant turns that actually retrieved something. */
   sources?: Source[];
+  /**
+   * The language this reply was written in. Stored per message because the
+   * farmer can change language mid-conversation, and the speaker button has to
+   * read each reply in the language it was actually written in — reading an
+   * earlier Hindi answer with a Kannada voice is gibberish.
+   */
+  locale?: Locale;
 };
+
+/**
+ * The assistant marks a language switch with a leading `[[lang:kn]]`, because
+ * the farmer asks for it in words ("now talk to me in Kannada") rather than
+ * reaching for a menu. The tag is stripped here and never reaches the screen.
+ */
+const LANG_TAG = /^\s*\[\[lang:([a-z]{2})\]\]/i;
+/** Longest prefix of the tag we might be holding when a chunk splits mid-tag. */
+const TAG_MAX = 14;
 
 /**
  * The one and only assistant state for the whole dashboard.
@@ -159,13 +175,38 @@ export default function AssistantProvider({
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let acc = "";
+        // Which language this reply is in, until a [[lang:xx]] tag says otherwise.
+        let replyLocale = (localeOverride ?? chatLocale ?? locale) as Locale;
+        let tagHandled = false;
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           acc += decoder.decode(value, { stream: true });
+
+          if (!tagHandled) {
+            const m = acc.match(LANG_TAG);
+            if (m) {
+              const code = m[1].toLowerCase();
+              acc = acc.slice(m[0].length).trimStart();
+              tagHandled = true;
+              if (LOCALES.some((l) => l.code === code)) {
+                replyLocale = code as Locale;
+                // Persist it, so the NEXT question is answered in it too.
+                setChatLocale(code as Locale);
+              }
+            } else if (acc.trimStart().length >= TAG_MAX || !"[[lang:".startsWith(acc.trimStart().slice(0, 7))) {
+              // Long enough, or clearly not a tag — stop holding back the text.
+              tagHandled = true;
+            } else {
+              // Possibly a tag split across chunks; wait for more before painting.
+              continue;
+            }
+          }
+
+          const content = acc;
           setMessages((m) => {
             const copy = [...m];
-            copy[copy.length - 1] = { role: "assistant", content: acc, sources };
+            copy[copy.length - 1] = { role: "assistant", content, sources, locale: replyLocale };
             return copy;
           });
         }

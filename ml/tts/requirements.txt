@@ -1,0 +1,11 @@
+# Speech server environment. Python 3.11 (what Chatterbox is tested on).
+# Install torch FIRST for your GPU — the Chatterbox fork deliberately does not pin it:
+#   RTX 50-series (Blackwell):  pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu128
+#   RTX 30/40-series:           pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
+# Then:
+#   pip install -r requirements.txt
+git+https://github.com/reenigne314/chatterbox-indic-lora.git
+fastapi
+uvicorn
+soundfile
+indic-numtowords

@@ -1,22 +1,26 @@
 import { getSessionFarmer } from "@/lib/auth";
-import { inferenceBaseUrl } from "@/lib/inference";
+import { ttsBaseUrl } from "@/lib/inference";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
 
-/** Matches the cap the Python server applies, so we fail fast rather than there. */
-const MAX_CHARS = 1200;
+/**
+ * Matches MAX_TTS_CHARS in ml/tts/server.py, so a long chunk is refused here
+ * rather than silently truncated mid-sentence there. The client sends chunks of
+ * at most ~160 characters, so this is only ever a backstop.
+ */
+const MAX_CHARS = 600;
 
 /**
- * Speech synthesis for languages the browser cannot speak.
+ * Speech synthesis for the assistant: every spoken reply and the onboarding
+ * read-aloud come through here, one sentence-sized chunk per request.
  *
- * The client tries the device voice first and only reaches this route when the
- * farmer's language has no installed voice — seven of the app's nine on desktop
- * Windows. The heavy lifting is Meta's MMS-TTS running in `ml/server.py`, the
- * same FastAPI process that serves disease predictions.
+ * The voice is the Chatterbox Indic LoRA model running in `ml/tts/server.py`
+ * (Malayalam and Punjabi fall back to MMS-TTS there, since Chatterbox cannot
+ * speak them). This route only authenticates, rate-limits and proxies.
  *
- * A 503 here is expected and not an error state: the Python server is optional,
+ * A 503 here is expected and not an error state: the speech server is optional,
  * and the client falls back to showing the reply as text when it is not running.
  */
 export async function POST(req: Request) {
@@ -42,7 +46,7 @@ export async function POST(req: Request) {
 
   if (!text) return new Response("No text supplied.", { status: 400 });
 
-  const inferenceUrl = inferenceBaseUrl();
+  const inferenceUrl = ttsBaseUrl();
   if (!inferenceUrl) {
     // No speech server in this environment. 503 is the contract the client
     // already understands: it falls back to the reply as text, silently.
@@ -54,9 +58,9 @@ export async function POST(req: Request) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, locale }),
-      // A cold model load is slow (~30s the first time a language is used);
-      // afterwards it is well under a second.
-      signal: AbortSignal.timeout(60_000),
+      // One sentence-sized chunk. The server warms the model at startup, but
+      // a busy GPU queues requests, so leave generous headroom.
+      signal: AbortSignal.timeout(90_000),
     });
 
     if (!res.ok) {

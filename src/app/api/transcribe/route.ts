@@ -2,14 +2,23 @@ import { getSessionFarmer } from "@/lib/auth";
 import { iso639 } from "@/lib/speech";
 import { fetchWithRetry } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { transcribePromptFor } from "@/lib/transcribePrompts";
 
 export const dynamic = "force-dynamic";
 
 /** Groq rejects large uploads anyway; refuse early rather than proxy 40 MB. */
 const MAX_BYTES = 10 * 1024 * 1024;
 
-/** Container magic bytes we accept — the declared MIME is not trusted. */
-function sniffAudio(head: Uint8Array): boolean {
+/**
+ * Container magic bytes we accept — the declared MIME is not trusted. Returns
+ * the real extension so the upstream filename matches the real container:
+ * Groq's (OpenAI-compatible) transcription endpoint picks a demuxer from the
+ * filename extension, so labeling real M4A bytes "speech.webm" — which this
+ * route did unconditionally until now — hands it the wrong decoder for every
+ * mobile recording (expo-audio's HIGH_QUALITY preset is always .m4a, on both
+ * Android and iOS; nothing here ever actually produces WebM).
+ */
+function sniffAudioExt(head: Uint8Array): string | null {
   const ascii = (o: number, s: string) => {
     for (let i = 0; i < s.length; i++) {
       if (head[o + i] !== s.charCodeAt(i)) return false;
@@ -17,17 +26,17 @@ function sniffAudio(head: Uint8Array): boolean {
     return true;
   };
   // WebM / Matroska (EBML)
-  if (head[0] === 0x1a && head[1] === 0x45 && head[2] === 0xdf && head[3] === 0xa3) return true;
+  if (head[0] === 0x1a && head[1] === 0x45 && head[2] === 0xdf && head[3] === 0xa3) return "webm";
   // Ogg
-  if (ascii(0, "OggS")) return true;
+  if (ascii(0, "OggS")) return "ogg";
   // WAV (RIFF....WAVE)
-  if (ascii(0, "RIFF") && ascii(8, "WAVE")) return true;
+  if (ascii(0, "RIFF") && ascii(8, "WAVE")) return "wav";
   // MP3 (ID3 tag, or a frame sync)
-  if (ascii(0, "ID3")) return true;
-  if (head[0] === 0xff && (head[1] & 0xe0) === 0xe0) return true;
+  if (ascii(0, "ID3")) return "mp3";
+  if (head[0] === 0xff && (head[1] & 0xe0) === 0xe0) return "mp3";
   // MP4 / M4A (....ftyp)
-  if (ascii(4, "ftyp")) return true;
-  return false;
+  if (ascii(4, "ftyp")) return "m4a";
+  return null;
 }
 
 /**
@@ -82,18 +91,21 @@ export async function POST(req: Request) {
   // Check the container magic bytes instead so this can't be used as a generic
   // "post bytes to Groq" proxy.
   const head = new Uint8Array(await audio.slice(0, 16).arrayBuffer());
-  if (!sniffAudio(head)) {
+  const ext = sniffAudioExt(head);
+  if (!ext) {
     return Response.json({ error: "That doesn't look like an audio recording." }, { status: 415 });
   }
 
   const upstream = new FormData();
-  upstream.append("file", audio, "speech.webm");
+  upstream.append("file", audio, `speech.${ext}`);
   upstream.append("model", "whisper-large-v3-turbo");
   upstream.append("language", iso639(locale));
   upstream.append("response_format", "json");
-  // Nudges the model toward this app's subject matter, which measurably helps
-  // with crop and scheme names in short clips.
-  upstream.append("prompt", "Indian farming: crops, soil, irrigation, mandi prices, weather.");
+  // Per-locale prompt strategy, chosen by a 384-call benchmark rather than
+  // guessed — see transcribePromptFor()'s docstring for the measured numbers
+  // and why a single English prompt broke six of the nine languages.
+  const prompt = transcribePromptFor(locale);
+  if (prompt) upstream.append("prompt", prompt);
 
   try {
     const res = await fetchWithRetry("https://api.groq.com/openai/v1/audio/transcriptions", {

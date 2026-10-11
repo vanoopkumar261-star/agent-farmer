@@ -4,23 +4,24 @@ import { useEffect } from "react";
 import { Mic, Loader2, Volume2, X, VolumeX } from "lucide-react";
 import { useAssistant } from "./AssistantProvider";
 import { useT } from "@/components/i18n/LanguageProvider";
-import { useVoiceConversation, type VoicePhase } from "@/hooks/useVoiceConversation";
+import { useVoiceChat, type VoicePhase } from "@/hooks/useVoiceChat";
 
 /**
- * Hands-free voice conversation.
+ * Full voice chat.
  *
  * One button opens this and the loop runs itself — listen, send, speak the
- * reply, listen again — until the farmer ends it. Everything said still lands
- * in the normal chat transcript underneath, so closing voice mode leaves a
- * readable conversation rather than something that vanished.
+ * reply, listen again — until the farmer ends it. The farmer speaks, and is
+ * answered aloud, in the language they chose for the chat. Everything said still
+ * lands in the normal chat transcript underneath, so closing voice mode leaves
+ * a readable conversation rather than something that vanished.
  */
 export default function VoiceMode() {
-  const { voiceOpen, closeVoice, send } = useAssistant();
-  const { t } = useT();
+  const { voiceOpen, closeVoice, send, chatLocale } = useAssistant();
+  const { t, locale } = useT();
 
-  // No `locale` here on purpose — the loop is pinned to English end to end.
-  const { phase, interim, lastQuestion, lastReply, error, begin, end, canSpeak } =
-    useVoiceConversation({ send, active: voiceOpen });
+  const { phase, level, lastQuestion, lastReply, error, begin, end, interrupt, voiceFailed } =
+    useVoiceChat({ send, active: voiceOpen, locale: chatLocale ?? locale });
+  const canSpeak = !voiceFailed;
 
   // The click that opened voice mode is the user gesture browsers require
   // before they will play synthesised speech, so start the loop right here.
@@ -66,14 +67,12 @@ export default function VoiceMode() {
 
       {/* What the farmer just said — kept on screen so they can see it landed. */}
       <div className="w-full max-w-2xl min-h-[3.5rem] text-center">
-        {(interim || lastQuestion) && (
-          <p className="text-[15px] text-white/60">
-            &ldquo;{interim || lastQuestion}&rdquo;
-          </p>
+        {lastQuestion && (
+          <p className="text-[15px] text-white/60">&ldquo;{lastQuestion}&rdquo;</p>
         )}
       </div>
 
-      <Orb phase={phase} />
+      <Orb phase={phase} level={level} onTap={interrupt} />
 
       <p className="mt-6 font-mono text-[11px] tracking-[0.16em] uppercase text-af-sage">
         {phaseLabel(phase, t)}
@@ -96,7 +95,7 @@ export default function VoiceMode() {
         // row instead strands the icon at the far left of the container.
         <div className="mt-2 flex max-w-md items-start justify-center gap-2 text-[12px] text-white/55">
           <VolumeX className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          <span className="text-left">{t("voice.noVoice")}</span>
+          <span className="text-left">{t("voice.unavailable")}</span>
         </div>
       )}
 
@@ -115,20 +114,25 @@ export default function VoiceMode() {
 }
 
 /** State indicator — the one thing on screen that says what is happening. */
-function Orb({ phase }: { phase: VoicePhase }) {
+function Orb({ phase, level, onTap }: { phase: VoicePhase; level: number; onTap: () => void }) {
   const listening = phase === "listening";
   const speaking = phase === "speaking";
   const working = phase === "thinking" || phase === "transcribing";
 
   return (
-    <div className="relative mt-8 flex items-center justify-center w-40 h-40">
-      {/* Halo pulses only while the mic is actually open, so the farmer can
-          tell at a glance whether it is their turn to talk. */}
+    <button
+      type="button"
+      onClick={onTap}
+      disabled={!listening && !speaking}
+      className="relative mt-8 flex items-center justify-center w-40 h-40 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-default"
+    >
+      {/* The halo follows the microphone level, so the farmer sees they are
+          being heard — and can tell at a glance whether it is their turn. */}
       {listening && (
-        <>
-          <span className="absolute inset-0 rounded-full bg-af-leaf/25 animate-ping" />
-          <span className="absolute inset-4 rounded-full bg-af-leaf/20 animate-pulse" />
-        </>
+        <span
+          className="absolute inset-0 rounded-full bg-af-leaf/25 transition-transform duration-100"
+          style={{ transform: `scale(${0.7 + level * 0.3})` }}
+        />
       )}
       {speaking && <span className="absolute inset-2 rounded-full bg-af-sage/25 animate-pulse" />}
 
@@ -145,7 +149,7 @@ function Orb({ phase }: { phase: VoicePhase }) {
           <Mic className="w-10 h-10 text-white" />
         )}
       </span>
-    </div>
+    </button>
   );
 }
 
