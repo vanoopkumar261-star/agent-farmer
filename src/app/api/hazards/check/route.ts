@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase-server";
+import { getSessionUser } from "@/lib/auth";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { checkHazards } from "@/lib/hazards/check";
 
@@ -26,9 +27,12 @@ export async function POST(req: Request) {
 
   const supabase = createSupabaseServer();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // NOT createSupabaseServer()'s own `.auth.getUser()` (no-arg) — that reads
+  // only the cookie-backed session, which is empty on every mobile request.
+  // getSessionUser() explicitly forwards the Bearer token GoTrue needs to
+  // verify it; skipping it here previously meant the mobile app's Alerts card
+  // 401'd on every check, despite this route claiming Bearer support.
+  const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: "not signed in" }, { status: 401 });
   }

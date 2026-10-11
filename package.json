@@ -27,7 +27,8 @@
     "react-markdown": "^10.1.0",
     "recharts": "^2.15.0",
     "remark-gfm": "^4.0.1",
-    "sharp": "^0.35.4"
+    "sharp": "^0.35.4",
+    "thinking-orbs": "^0.3.2"
   },
   "devDependencies": {
     "@types/node": "^20",

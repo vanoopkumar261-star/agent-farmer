@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AgentFarmerMark from "./AgentFarmerMark";
+import { ThinkingOrb } from "thinking-orbs";
 import { STORAGE_KEY } from "@/lib/i18n/config";
 
 /**
@@ -19,14 +19,9 @@ import { STORAGE_KEY } from "@/lib/i18n/config";
  * a CSS delay, not a timer, so there is nothing to leak or cancel and a page
  * that resolves in 200ms unmounts it before it was ever painted.
  *
- * ── Why the arcs never close ─────────────────────────────────────────────────
- * Nothing here can know how far a server render has got. The plant grows to
- * full — a plant is not a percentage, and one frozen half-grown reads as broken
- * rather than as honest — but the two arcs sweeping it stop about 14% short and
- * stay open for as long as the wait lasts. Completion is shown by the loader
- * disappearing and the page arriving. An indicator sitting at 100% while
- * someone is still waiting is the detail that makes a loading screen feel like
- * a lie.
+ * The visual is `thinking-orbs`' `ThinkingOrb` (`state="working"`), which loops
+ * for as long as this stays mounted — no progress fraction to fake, so nothing
+ * here can sit frozen at 100% while a fetch is still running underneath it.
  */
 
 /**
@@ -48,10 +43,6 @@ const LOADING_WORD: Record<string, string> = {
   bn: "লোড হচ্ছে",
   pa: "ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ",
 };
-
-/** Rendered width of the mark on the full-bleed splash, in px. The soil-line
- *  offset is derived from it, so the two cannot drift apart. */
-const MARK_W = 200;
 
 export default function LoadingScreen({
   variant = "inline",
@@ -87,29 +78,7 @@ export default function LoadingScreen({
       }
     >
       <div className="relative flex flex-col items-center">
-        {/* The mark's own soil line, continued to the screen edges, so the plant
-            grows out of the page rather than out of a small illustration. Only
-            on the full-bleed splash; inline it would draw a rule across the
-            dashboard content area.
-
-            The offset is derived, not eyeballed. The mark is a 120×200 viewBox
-            at `h-auto`, so its rendered height is width × 200/120, and the soil
-            sits at y=162 of 200 — which lands at width × (200/120) × (162/200),
-            i.e. width × 1.35. Hard-coding 200px here was wrong by 60px because
-            it treated the box as square. */}
-        {full && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 -translate-x-1/2 h-px w-[min(78vw,720px)]
-                       bg-[linear-gradient(90deg,transparent,rgb(var(--af-ink)/0.28),transparent)]"
-            style={{ top: `${MARK_W * 1.35}px` }}
-          />
-        )}
-
-        <AgentFarmerMark
-          className="h-auto"
-          style={{ width: full ? MARK_W : 132 }}
-        />
+        <ThinkingOrb state="working" size={64} theme="auto" />
 
         {/* The wordmark. `font-reckless` is the serif already in the Tailwind
             config — the reference's serif, at no extra font request. */}
