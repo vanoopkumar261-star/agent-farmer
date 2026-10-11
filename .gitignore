@@ -43,6 +43,7 @@ next-env.d.ts
 
 # ML training artifacts
 /ml/.venv/
+/ml/tts/.venv/
 /ml/data/
 /ml/models/
 /ml/*.zip
@@ -80,3 +81,13 @@ scripts/.cache/
 # optimised output lives in public/images/; these megabyte originals are
 # kept locally and must never be served or deployed.
 /design-assets/
+scripts/dryrun/out/
+
+# Local-only scratch, never part of a build.
+#   Stitch_mockups/  design mockups handed over for reference
+#   graphify-out/    generated knowledge graph, rebuilt with `graphify update .`
+#   *ref*.png        screenshots used while matching a design, not assets
+Stitch_mockups/
+graphify-out/
+/public/images/Loading screen ref*.png
+/public/images/logo_agent farmer.jpeg
