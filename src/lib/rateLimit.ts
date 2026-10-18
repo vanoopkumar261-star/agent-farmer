@@ -39,6 +39,7 @@ export const LIMITS = {
   disease: { limit: 10, windowSec: 60 },
   recommendations: { limit: 10, windowSec: 60 },
   "crop-guide": { limit: 20, windowSec: 60 },
+  "irrigation-advice": { limit: 20, windowSec: 60 },
   "market-advice": { limit: 20, windowSec: 60 },
   "scheme-match": { limit: 20, windowSec: 60 },
   transcribe: { limit: 30, windowSec: 60 },
@@ -49,6 +50,10 @@ export const LIMITS = {
   tts: { limit: 90, windowSec: 60 },
   feedback: { limit: 5, windowSec: 60 },
   market: { limit: 30, windowSec: 60 },
+  // Far tighter than the rest, and for a different reason: every call starts a
+  // billable TinyFish browser run that can take over a minute. This is the only
+  // endpoint here where an unthrottled loop spends money rather than CPU.
+  "live-mandi": { limit: 3, windowSec: 300 },
   news: { limit: 15, windowSec: 60 },
   sensors: { limit: 60, windowSec: 60 },
   geocode: { limit: 30, windowSec: 60 },

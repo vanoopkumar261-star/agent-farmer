@@ -21,9 +21,25 @@ import { suggestHarvestDate } from "@/lib/agronomy";
 import { supabase } from "@/lib/supabase";
 import { validateArea } from "@/lib/validation";
 import { useT } from "@/components/i18n/LanguageProvider";
+import {
+  IRRIGATION_METHODS,
+  IRRIGATION_SOURCES,
+  METHOD_KEY,
+  SOURCE_KEY,
+  WATER_REGIMES,
+  REGIME_KEY,
+  composeIrrigationLabel,
+  type IrrigationMethod,
+  type IrrigationSource,
+  type WaterRegime,
+} from "@/lib/irrigationCatalog";
 
 const SOIL_TYPES = ["Alluvial Soil", "Black Soil", "Red Soil", "Sandy Soil", "Clayey Soil"];
-const IRRIGATION_TYPES = ["Borewell", "Canal", "River", "Rain-fed", "Drip Irrigation", "Sprinkler"];
+
+// The irrigation vocabulary is imported, not redeclared. This file used to keep
+// its own copy of a six-value list and the two drifted: onboarding dropped its
+// "Rain-fed" default after the live data showed 54 of 60 farms rain-fed, while
+// this modal kept defaulting to it for months afterwards.
 
 type Profile = { id: string; house_address: string | null; preferences: Record<string, unknown> | null };
 
@@ -56,7 +72,13 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
   const [area, setArea] = useState("");
   const [areaTouched, setAreaTouched] = useState(false);
   const [soilType, setSoilType] = useState(SOIL_TYPES[0]);
-  const [irrigation, setIrrigation] = useState("Rain-fed");
+  // No default. A pre-filled answer nobody opens is how the farm table ended up
+  // claiming most plots were rain-fed, and the irrigation engine computes
+  // directly off these three fields now.
+  const [regime, setRegime] = useState<WaterRegime | "">("");
+  const [source, setSource] = useState<IrrigationSource | "">("");
+  const [method, setMethod] = useState<IrrigationMethod | "">("");
+  const irrigation = regime ? composeIrrigationLabel(regime, source || null, method || null) : "";
 
   const [recs, setRecs] = useState<CropRec[] | null>(null);
   const [loadingAI, setLoadingAI] = useState(false);
@@ -133,8 +155,11 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
   }, [effectiveCrop, seedingDate, harvestTouched]);
 
   const canFetchAI = useMemo(
-    () => !validateArea(area, "Farm area") && Boolean(soilType && irrigation && profile),
-    [area, soilType, irrigation, profile]
+    () =>
+      !validateArea(area, "Farm area") &&
+      Boolean(soilType && profile && regime) &&
+      (regime !== "irrigated" || Boolean(source && method)),
+    [area, soilType, profile, regime, source, method]
   );
 
   const fetchRecommendations = async () => {
@@ -189,7 +214,9 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
     try {
       // createFarms continues the farmer's existing farm numbering, so the new
       // field becomes "Farm 4" rather than a second "Farm 1".
-      const inserted = await createFarms(profile.id, [{ area: Number(area), soilType, irrigation }]);
+      const inserted = await createFarms(profile.id, [
+        { area: Number(area), soilType, irrigation, regime, source, method },
+      ]);
       await createCropCycles(inserted, [
         {
           chosenCrop,
@@ -290,11 +317,39 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
                   options={SOIL_TYPES.map((s) => ({ label: s, value: s }))}
                 />
                 <TerraSelect
-                  label={t("addFarmModal.irrigation")}
-                  value={irrigation}
-                  onValueChange={setIrrigation}
-                  options={IRRIGATION_TYPES.map((s) => ({ label: s, value: s }))}
+                  label={t("onboarding.field.irrigation")}
+                  value={regime}
+                  onValueChange={(v) => {
+                    setRegime(v as WaterRegime);
+                    // Going back to rain-fed clears the detail rather than
+                    // quietly keeping a borewell the farmer just said they
+                    // do not have.
+                    if (v === "rainfed") {
+                      setSource("");
+                      setMethod("");
+                    }
+                  }}
+                  options={WATER_REGIMES.map((r) => ({ label: t(REGIME_KEY[r]), value: r }))}
+                  placeholder={t("onboarding.field.choosePlaceholder")}
                 />
+                {regime === "irrigated" && (
+                  <>
+                    <TerraSelect
+                      label={t("onboarding.field.irrigationSource")}
+                      value={source}
+                      onValueChange={(v) => setSource(v as IrrigationSource)}
+                      options={IRRIGATION_SOURCES.map((x) => ({ label: t(SOURCE_KEY[x]), value: x }))}
+                      placeholder={t("onboarding.field.choosePlaceholder")}
+                    />
+                    <TerraSelect
+                      label={t("onboarding.field.irrigationMethod")}
+                      value={method}
+                      onValueChange={(v) => setMethod(v as IrrigationMethod)}
+                      options={IRRIGATION_METHODS.map((x) => ({ label: t(METHOD_KEY[x]), value: x }))}
+                      placeholder={t("onboarding.field.choosePlaceholder")}
+                    />
+                  </>
+                )}
               </div>
             </div>
           ) : (

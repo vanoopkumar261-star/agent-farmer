@@ -86,19 +86,48 @@ export async function createFarms(farmerId: string, farms: any[]) {
 
   const startIndex = (existing?.[0]?.farm_index ?? 0) + 1;
 
-  const { data, error } = await supabase
-    .from("farms")
-    .insert(
-      farms.map((f, idx) => ({
-        farmer_id: farmerId,
-        farm_index: startIndex + idx,
-        area: f.area,
-        soil_type: f.soilType,
-        irrigation: f.irrigation
-      }))
-    )
-    .select();
+  const base = farms.map((f, idx) => ({
+    farmer_id: farmerId,
+    farm_index: startIndex + idx,
+    area: f.area,
+    soil_type: f.soilType,
+    // The legacy composite stays populated: it is `not null`, and a dozen read
+    // sites (farm chips, the assistant's context, three LLM prompts) still take
+    // their wording from it. Two of those are behavioural — `isRainFed()` and
+    // the health score's water-risk factor both match /rain[\s-]?fed/i against
+    // this string.
+    irrigation: f.irrigation
+  }));
 
+  // The split columns the irrigation engine computes with. They arrive in
+  // migration 029, and PostgREST rejects an insert naming a column that does
+  // not exist — so a deployment running this build against an un-migrated
+  // database would fail at the last step of onboarding, after the farmer has
+  // filled in everything. Hence: try with them, and fall back to the legacy
+  // shape if the schema has not caught up. The farm is still usable; the
+  // engine just parses the composite instead.
+  const withSplit = base.map((row, idx) => ({
+    ...row,
+    ...(farms[idx].regime ? { water_regime: farms[idx].regime } : {}),
+    ...(farms[idx].source ? { irrigation_source: farms[idx].source } : {}),
+    ...(farms[idx].method ? { irrigation_method: farms[idx].method } : {})
+  }));
+
+  const first = await supabase.from("farms").insert(withSplit).select();
+  if (!first.error) return first.data;
+
+  const missingColumn =
+    first.error.code === "PGRST204" ||
+    first.error.code === "42703" ||
+    /water_regime|irrigation_source|irrigation_method/.test(first.error.message ?? "");
+
+  if (!missingColumn) {
+    console.error("SUPABASE ERROR:", first.error);
+    throw first.error;
+  }
+
+  console.warn("farms: migration 029 not applied — writing the legacy irrigation column only");
+  const { data, error } = await supabase.from("farms").insert(base).select();
   if (error) { console.error("SUPABASE ERROR:", error); throw error; }
   return data;
 }

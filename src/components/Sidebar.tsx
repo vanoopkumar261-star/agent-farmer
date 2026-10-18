@@ -15,6 +15,7 @@ import {
   Newspaper,
   Library,
   FlaskConical,
+  Droplets,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useT } from "@/components/i18n/LanguageProvider";
@@ -49,6 +50,7 @@ const navGroups: {
     items: [
       { icon: Microscope, labelKey: "nav.disease", href: "/dashboard/disease" },
       { icon: FlaskConical, labelKey: "nav.soilPh", href: "/dashboard/soil" },
+      { icon: Droplets, labelKey: "nav.irrigation", href: "/dashboard/irrigation" },
       { icon: ShoppingCart, labelKey: "nav.market", href: "/dashboard/market" },
       { icon: Newspaper, labelKey: "nav.news", href: "/dashboard/news" },
       { icon: MapPin, labelKey: "nav.storeLocator", href: "/dashboard/store-locator" },

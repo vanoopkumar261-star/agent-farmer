@@ -23,6 +23,22 @@ export type DiagnosisRecord = {
 
 export type ChatRow = { role: "user" | "assistant"; content: string };
 
+export type IrrigationEventRow = {
+  id: string;
+  farm_id: string | null;
+  applied_at: string;
+  /** Net depth applied, mm. Null when the farmer logged only a duration. */
+  depth_mm: number | null;
+  volume_litres: number | null;
+  duration_minutes: number | null;
+  /** 'manual' typed in, 'scheduled' accepted from the plan, 'sensor' inferred. */
+  source: "manual" | "scheduled" | "sensor";
+  /** Pump electricity or diesel, so savings can be shown in rupees too. */
+  cost_rupees: number | null;
+  note: string | null;
+  created_at: string;
+};
+
 export type SoilReading = {
   id: string;
   ph: number;
@@ -233,4 +249,57 @@ export async function getRecentSoilReadings(farmerId: string, limit = 20): Promi
 export async function getLatestSoilReading(farmerId: string): Promise<SoilReading | null> {
   const rows = await getRecentSoilReadings(farmerId, 1);
   return rows[0] ?? null;
+}
+
+/**
+ * Irrigation events a farmer has recorded, newest first. Empty until migration
+ * 029 is applied — the page shows its empty state and the engine falls back to
+ * an assumed starting depletion, which it labels as such.
+ *
+ * Scoped by farm because the water balance is per-field: two plots on the same
+ * holding can be on different crops, soils and methods, and mixing their
+ * watering history would corrupt both schedules.
+ */
+export async function getIrrigationEvents(
+  farmerId: string,
+  opts: { farmId?: string | null; limit?: number } = {}
+): Promise<IrrigationEventRow[]> {
+  const { farmId = null, limit = 30 } = opts;
+  try {
+    const supabase = createSupabaseServer();
+    let q = supabase
+      .from("irrigation_events")
+      .select(
+        "id, farm_id, applied_at, depth_mm, volume_litres, duration_minutes, source, cost_rupees, note, created_at"
+      )
+      .eq("farmer_id", farmerId)
+      .order("applied_at", { ascending: false })
+      .limit(limit);
+    if (farmId) q = q.eq("farm_id", farmId);
+
+    const { data, error } = await q;
+    if (error || !data) return [];
+    return (data as any[]).map((r) => ({
+      ...r,
+      depth_mm: r.depth_mm == null ? null : Number(r.depth_mm),
+      volume_litres: r.volume_litres == null ? null : Number(r.volume_litres),
+      cost_rupees: r.cost_rupees == null ? null : Number(r.cost_rupees),
+    })) as IrrigationEventRow[];
+  } catch {
+    return [];
+  }
+}
+
+/** Every irrigation event for the holding, grouped by farm id. One query. */
+export async function getIrrigationEventsByFarm(
+  farmerId: string,
+  limit = 200
+): Promise<Record<string, IrrigationEventRow[]>> {
+  const rows = await getIrrigationEvents(farmerId, { limit });
+  const out: Record<string, IrrigationEventRow[]> = {};
+  for (const r of rows) {
+    const k = r.farm_id ?? "unassigned";
+    (out[k] ??= []).push(r);
+  }
+  return out;
 }

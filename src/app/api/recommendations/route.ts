@@ -24,7 +24,9 @@ export async function POST(req: Request) {
       return {
         area: Number(f?.area) || 0,
         soilType: clampStr(f?.soilType, 40),
-        irrigation: clampStr(f?.irrigation, 40),
+        // 80, not 40: the value is now a composite like
+        // "Lift irrigation · Manual hose" and the old limit cut it mid-word.
+        irrigation: clampStr(f?.irrigation, 80),
         soilPh: Number.isFinite(ph) && ph >= 0 && ph <= 14 ? ph : undefined,
       };
     });

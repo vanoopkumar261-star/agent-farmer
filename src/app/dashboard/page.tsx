@@ -4,6 +4,7 @@ import { getExpensesData } from "@/lib/expenses-server";
 import { generateTasks, cropStageFor, harvestInfo, getCropProfile } from "@/lib/agronomy";
 import { computeFarmHealth } from "@/lib/health";
 import { deriveAlerts } from "@/lib/alerts";
+import { computeIrrigationPlan, irrigationAlerts, irrigationTaskSeeds } from "@/lib/irrigation";
 import { extractStateFromAddress } from "@/lib/market";
 import { getMarketForState } from "@/lib/market-server";
 import { syncNotifications } from "@/lib/notifications-server";
@@ -12,6 +13,7 @@ import { recordDayTasks, tallyDayTasks, serverYesterday } from "@/lib/tasks-serv
 import WeatherCard from "@/components/dashboard/WeatherCard";
 import SensorPanel from "@/components/dashboard/SensorPanel";
 import SoilPhCard from "@/components/dashboard/SoilPhCard";
+import IrrigationCard from "@/components/dashboard/IrrigationCard";
 import LibraryCard from "@/components/dashboard/LibraryCard";
 import AiSummaryCard from "@/components/dashboard/AiSummaryCard";
 import FarmCard from "@/components/dashboard/FarmCard";
@@ -96,8 +98,28 @@ export default async function DashboardPage() {
 
   const rainSoon = weather?.daily.slice(0, 3).some((d) => d.precipProb >= 50) ?? false;
 
-  // Crop-stage + weather aware tasks from the agronomy engine.
-  const taskSeeds = generateTasks(farms, weather);
+  // The same water balance the irrigation page runs, so the home page's
+  // tasks and alerts agree with it rather than offering a second opinion.
+  // Events are not loaded here: the starting depletion is then "assumed"
+  // instead of "modelled", which only widens the refill estimate slightly
+  // and is not worth another query on the heaviest page in the app.
+  const irrigationPlans = farms.map((f) =>
+    computeIrrigationPlan({
+      farm: f,
+      crop: f.crop
+        ? {
+            chosen_crop: f.crop.chosen_crop,
+            seeding_date: f.crop.seeding_date,
+            estimated_harvest_date: f.crop.estimated_harvest_date,
+          }
+        : null,
+      weather,
+    })
+  );
+
+  // Crop-stage + weather aware tasks from the agronomy engine, plus the
+  // watering the balance actually calls for today.
+  const taskSeeds = [...generateTasks(farms, weather), ...irrigationTaskSeeds(irrigationPlans)];
 
   // Record today's list so the day leaves a trace. Tasks are derived, not
   // stored, so without this yesterday's list is unrecoverable and "you missed
@@ -137,7 +159,10 @@ export default async function DashboardPage() {
   const health = healthResult.score;
 
   // Weather + crop-stage aware alerts (empty when there's nothing real to flag).
-  const alerts: Alert[] = deriveAlerts({ farms, weather, missedYesterday: yesterdayTally });
+  const alerts: Alert[] = [
+    ...deriveAlerts({ farms, weather, missedYesterday: yesterdayTally }),
+    ...irrigationAlerts(irrigationPlans),
+  ];
 
   // Persist today's alerts + top tasks as notifications (deduped by day).
   const today = new Date().toISOString().slice(0, 10);
@@ -321,6 +346,11 @@ export default async function DashboardPage() {
           </Reveal>
           <Reveal>
             <SoilPhCard farmerId={farmer.id} />
+          </Reveal>
+          <Reveal>
+            {/* Takes the plans computed above rather than recomputing — two
+                water balances on one page could disagree. */}
+            <IrrigationCard plans={irrigationPlans} />
           </Reveal>
 
           <div>

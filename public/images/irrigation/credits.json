@@ -34,5 +34,11 @@
     "article": "https://en.wikipedia.org/wiki/Irrigation_sprinkler",
     "image": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Impact_Sprinkler_Mechanism_2.jpg",
     "note": "Wikimedia Commons — check the file page for the exact licence and author."
+  },
+  "irrigated": {
+    "subject": "Irrigation sprinkler",
+    "article": "https://en.wikipedia.org/wiki/Irrigation_sprinkler",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Impact_Sprinkler_Mechanism_2.jpg",
+    "note": "Same Wikimedia Commons file as `sprinkler` — reused for the \"Irrigated cropland\" choice card, which needs a photo that reads as irrigation in general. Replace with a dedicated image via `node scripts/fetch-field-images.mjs` if one is wanted."
   }
 }

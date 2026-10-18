@@ -12,6 +12,8 @@ import { supabase } from "@/lib/supabase";
 const SEARCH_NAV: [RegExp, string][] = [
   [/crop|stage|harvest|field/i, "/dashboard/crops"],
   [/market|price|mandi|sell/i, "/dashboard/market"],
+  [/irrigat|water|moisture|drip|sprinkl|pump/i, "/dashboard/irrigation"],
+  [/soil|ph|acid|alkal/i, "/dashboard/soil"],
   [/disease|scan|leaf|pest|infect/i, "/dashboard/disease"],
   [/expense|money|income|profit|cost|ledger/i, "/dashboard/expenses"],
   [/scheme|subsidy|loan|govern|pm-?kisan/i, "/dashboard/schemes"],

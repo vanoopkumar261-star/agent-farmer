@@ -7,7 +7,7 @@
  */
 import type { WeatherData } from "./weather";
 import type { FarmWithCrop } from "./dashboard";
-import { cropStageFor, getCropProfile } from "./agronomy";
+import { cropStageFor, getCropProfile, isRainFed } from "./agronomy";
 
 export type HealthFactor = { label: string; delta: number };
 
@@ -97,7 +97,7 @@ export function computeFarmHealth({
       const p = getCropProfile(f.crop!.chosen_crop);
       const st = cropStageFor(f.crop!.chosen_crop, f.crop!.seeding_date, f.crop!.estimated_harvest_date);
       const growing = st.label === "Vegetative" || st.label === "Flowering";
-      return p.waterHeavy && growing && /rain[\s-]?fed/i.test(f.irrigation ?? "");
+      return p.waterHeavy && growing && isRainFed(f.irrigation);
     });
     if (noRainAhead && thirstyRainFed) {
       score -= 7;

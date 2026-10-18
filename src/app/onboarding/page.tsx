@@ -20,8 +20,6 @@ import {
   Grip,
   CloudRain,
   Droplets,
-  SprayCan,
-  ArrowDownToLine,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { SelectedLocation } from "@/components/MapSelector";
@@ -29,6 +27,18 @@ const MapSelector = dynamic(() => import("@/components/MapSelector"), { ssr: fal
 import TerraSelect from "@/components/TerraSelect";
 import { createFarmerProfile, createFarms, createCropCycles } from "@/lib/db";
 import { suggestHarvestDate } from "@/lib/agronomy";
+import {
+  IRRIGATION_METHODS,
+  IRRIGATION_SOURCES,
+  METHOD_KEY,
+  SOURCE_KEY,
+  WATER_REGIMES,
+  REGIME_KEY,
+  composeIrrigationLabel,
+  type IrrigationMethod,
+  type IrrigationSource,
+  type WaterRegime,
+} from "@/lib/irrigationCatalog";
 import { OILSEED_ACK_KEY, loadOilseedAck } from "@/lib/oilseed";
 import { supabase } from "@/lib/supabase";
 import { getLiveUser } from "@/lib/session";
@@ -85,13 +95,18 @@ const SOIL_TYPE_KEYS: Record<string, string> = {
   "Clayey Soil": "onboarding.soilType.clayey",
 };
 
-const IRRIGATION_TYPE_KEYS: Record<string, string> = {
-  Borewell: "onboarding.irrigation.borewell",
-  Canal: "onboarding.irrigation.canal",
-  River: "onboarding.irrigation.river",
-  "Rain-fed": "onboarding.irrigation.rainfed",
-  "Drip Irrigation": "onboarding.irrigation.drip",
-  Sprinkler: "onboarding.irrigation.sprinkler",
+/**
+ * Stage one of the water question: is there irrigation at all?
+ *
+ * This used to be one flat grid of six cards mixing water sources with
+ * application methods, which meant a farmer on a borewell *and* drip had to
+ * throw away half their answer. Asking the yes/no question first also lets the
+ * detail below it stay hidden from the ~40% of plots that are rain-fed and have
+ * nothing to add.
+ */
+const REGIME_META: Record<WaterRegime, { slug: string; Icon: typeof Layers }> = {
+  rainfed: { slug: "rainfed", Icon: CloudRain },
+  irrigated: { slug: "irrigated", Icon: Droplets },
 };
 
 /**
@@ -107,20 +122,37 @@ const SOIL_META: Record<string, { slug: string; Icon: typeof Layers }> = {
   "Clayey Soil": { slug: "clayey", Icon: Layers },
 };
 
-const IRRIGATION_META: Record<string, { slug: string; Icon: typeof Layers }> = {
-  Borewell: { slug: "borewell", Icon: ArrowDownToLine },
-  Canal: { slug: "canal", Icon: Waves },
-  River: { slug: "river", Icon: Waves },
-  "Rain-fed": { slug: "rainfed", Icon: CloudRain },
-  "Drip Irrigation": { slug: "drip", Icon: Droplets },
-  Sprinkler: { slug: "sprinkler", Icon: SprayCan },
-};
-
 type Farm = {
   area: string;
   soilType: string;
-  irrigation: string;
+  /** Stage one: rain-fed or irrigated. Empty until the farmer answers. */
+  regime: WaterRegime | "";
+  /** Stage two, irrigated only: where the water comes from. */
+  source: IrrigationSource | "";
+  /** Stage two, irrigated only: how it reaches the crop. Sets efficiency. */
+  method: IrrigationMethod | "";
 };
+
+/**
+ * The composite stored in the legacy `farms.irrigation` column and shown on
+ * chips. Rain-fed renders as exactly "Rain-fed" — two downstream rules match
+ * on that literal string (see `irrigationCatalog.ts`).
+ */
+function farmIrrigationLabel(f: Farm): string {
+  if (!f.regime) return "";
+  return composeIrrigationLabel(f.regime, f.source || null, f.method || null);
+}
+
+/** The same composite, in the farmer's own language, for anything on screen. */
+function translatedIrrigationLabel(f: Farm, t: (k: string) => string): string {
+  if (!f.regime) return "";
+  if (f.regime === "rainfed") return t(REGIME_KEY.rainfed);
+  const parts = [
+    f.source ? t(SOURCE_KEY[f.source]) : null,
+    f.method ? t(METHOD_KEY[f.method]) : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : t(REGIME_KEY.irrigated);
+}
 
 type FarmerForm = {
   name: string;
@@ -145,7 +177,6 @@ type CropRec = {
 };
 
 const SOIL_TYPES = ["Alluvial Soil", "Black Soil", "Red Soil", "Sandy Soil", "Clayey Soil"];
-const IRRIGATION_TYPES = ["Borewell", "Canal", "River", "Rain-fed", "Drip Irrigation", "Sprinkler"];
 
 const STEPS = [
   { n: 1, labelKey: "onboarding.step.profile" },
@@ -169,7 +200,7 @@ function makeFarm(): Farm {
   // Rain-fed — a pre-filled dropdown nobody opened. The validation at
   // `canProceedCropSelection` already rejects empty values; it was simply
   // unreachable while the defaults were here.
-  return { area: "", soilType: "", irrigation: "" };
+  return { area: "", soilType: "", regime: "", source: "", method: "" };
 }
 
 function todayISO() {
@@ -251,14 +282,16 @@ function OnboardingContent() {
     // getLiveUser, not getUser — an access token stays valid until it expires,
     // so a token whose account has since been deleted would otherwise slip past
     // this gate and only fail much later, on the owner_id foreign key.
-    getLiveUser().then((user) => {
-      setAuthed(!!user);
-      setAccountEmail(user?.email ?? null);
-      // Accounts are real email addresses now, so this always prefills.
-      if (user?.email) {
-        setForm((p) => (p.email ? p : { ...p, email: user.email! }));
-      }
-    });
+    getLiveUser()
+      .catch(() => null)
+      .then((user) => {
+        setAuthed(!!user);
+        setAccountEmail(user?.email ?? null);
+        // Accounts are real email addresses now, so this always prefills.
+        if (user?.email) {
+          setForm((p) => (p.email ? p : { ...p, email: user.email! }));
+        }
+      });
   }, []);
 
   /** Drops the session and returns to step 0 so another farmer can sign in. */
@@ -305,8 +338,21 @@ function OnboardingContent() {
     () => SOIL_TYPES.map((s) => ({ label: t(SOIL_TYPE_KEYS[s]), value: s, ...SOIL_META[s] })),
     [t]
   );
-  const irrigationOptions = useMemo(
-    () => IRRIGATION_TYPES.map((s) => ({ label: t(IRRIGATION_TYPE_KEYS[s]), value: s, ...IRRIGATION_META[s] })),
+  const regimeOptions = useMemo(
+    () =>
+      WATER_REGIMES.map((r) => ({ label: t(REGIME_KEY[r]), value: r, ...REGIME_META[r] })),
+    [t]
+  );
+  // Plain dropdowns rather than photo cards: the card grid reads its image from
+  // `/images/<kind>/<slug>.webp`, so every option needs a committed photo, and
+  // fourteen more field photographs is a lot of weight for a question asked
+  // once. Dropdowns also keep the detail compact under the card it belongs to.
+  const sourceOptions = useMemo(
+    () => IRRIGATION_SOURCES.map((s) => ({ label: t(SOURCE_KEY[s]), value: s })),
+    [t]
+  );
+  const methodOptions = useMemo(
+    () => IRRIGATION_METHODS.map((m) => ({ label: t(METHOD_KEY[m]), value: m })),
     [t]
   );
 
@@ -349,7 +395,12 @@ function OnboardingContent() {
     for (let i = 0; i < form.farms.length; i++) {
       if (farmAreaErrors[i]) return false;
       if (!form.farms[i].soilType) return false;
-      if (!form.farms[i].irrigation) return false;
+      // Regime is always required. Source and method are required only when
+      // there is irrigation to describe — a rain-fed plot has neither, and
+      // demanding them would make the step impossible to finish.
+      const { regime, source, method } = form.farms[i];
+      if (!regime) return false;
+      if (regime === "irrigated" && (!source || !method)) return false;
     }
     return true;
   }, [form.numFarms, form.farms, totalAreaError, farmAreaErrors]);
@@ -424,7 +475,7 @@ function OnboardingContent() {
         farms: form.farms.map((f) => ({
           area: Number(f.area),
           soilType: f.soilType,
-          irrigation: f.irrigation,
+          irrigation: farmIrrigationLabel(f),
         })),
         // Acknowledging the awareness page asks the engine to surface a
         // suitable oilseed among the options; "No thanks" changes nothing.
@@ -500,7 +551,8 @@ function OnboardingContent() {
         index: i + 1,
         area: f.area || "—",
         soilLabel: f.soilType ? t(SOIL_TYPE_KEYS[f.soilType]) : "—",
-        irrigationLabel: f.irrigation ? t(IRRIGATION_TYPE_KEYS[f.irrigation]) : "—",
+        irrigationLabel: translatedIrrigationLabel(f, t) || "—",
+        rainfed: f.regime === "rainfed",
         cropName: effectiveCrop(selections[i]) || "—",
         seedingDate: selections[i]?.seedingDate || "—",
       })),
@@ -538,7 +590,10 @@ function OnboardingContent() {
         oilseedAck,
       });
 
-      const farmsInserted = await createFarms(farmer.id, form.farms);
+      const farmsInserted = await createFarms(
+        farmer.id,
+        form.farms.map((f) => ({ ...f, irrigation: farmIrrigationLabel(f) }))
+      );
 
       await createCropCycles(farmsInserted, selections);
 
@@ -856,10 +911,47 @@ function OnboardingContent() {
                                 name={`irrigation-${idx}`}
                                 kind="irrigation"
                                 legend={t("onboarding.field.irrigation")}
-                                value={f.irrigation}
-                                onChange={(v) => updateFarm(idx, { irrigation: v })}
-                                options={irrigationOptions}
+                                value={f.regime}
+                                onChange={(v) =>
+                                  // Switching back to rain-fed clears the
+                                  // detail, so a farmer who picks irrigated,
+                                  // fills it in and changes their mind does not
+                                  // silently keep a borewell they do not have.
+                                  updateFarm(
+                                    idx,
+                                    v === "rainfed"
+                                      ? { regime: "rainfed", source: "", method: "" }
+                                      : { regime: v as WaterRegime }
+                                  )
+                                }
+                                options={regimeOptions}
                               />
+
+                              {f.regime === "irrigated" && (
+                                <div className="grid sm:grid-cols-2 gap-4 rounded-[16px] bg-af-bg border border-af-border p-4">
+                                  <div className="sm:col-span-2 text-xs text-af-muted">
+                                    {t("onboarding.irrigation.detailHint")}
+                                  </div>
+                                  <TerraSelect
+                                    label={t("onboarding.field.irrigationSource")}
+                                    value={f.source}
+                                    onValueChange={(v) =>
+                                      updateFarm(idx, { source: v as IrrigationSource })
+                                    }
+                                    options={sourceOptions}
+                                    placeholder={t("onboarding.field.choosePlaceholder")}
+                                  />
+                                  <TerraSelect
+                                    label={t("onboarding.field.irrigationMethod")}
+                                    value={f.method}
+                                    onValueChange={(v) =>
+                                      updateFarm(idx, { method: v as IrrigationMethod })
+                                    }
+                                    options={methodOptions}
+                                    placeholder={t("onboarding.field.choosePlaceholder")}
+                                  />
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -934,7 +1026,7 @@ function OnboardingContent() {
                                     <div className="font-sans font-bold text-af-ink">{t("onboarding.farm.n", { n: idx + 1 })}</div>
                                     <div className="text-xs text-af-muted">
                                       {(SOIL_TYPE_KEYS[f.soilType] ? t(SOIL_TYPE_KEYS[f.soilType]) : f.soilType)} ·{" "}
-                                      {(IRRIGATION_TYPE_KEYS[f.irrigation] ? t(IRRIGATION_TYPE_KEYS[f.irrigation]) : f.irrigation)} · {f.area} {t("onboarding.acresUnit")}
+                                      {translatedIrrigationLabel(f, t)} · {f.area} {t("onboarding.acresUnit")}
                                     </div>
                                   </div>
                                 </div>
@@ -966,7 +1058,9 @@ function OnboardingContent() {
                                         setGuideCrop({
                                           crop: r.cropName,
                                           soil: form.farms[idx]?.soilType,
-                                          irrigation: form.farms[idx]?.irrigation,
+                                          irrigation: form.farms[idx]
+                                            ? farmIrrigationLabel(form.farms[idx])
+                                            : "",
                                         })
                                       }
                                     />

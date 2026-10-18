@@ -36,7 +36,12 @@ export async function buildAssistantContext(): Promise<string> {
           return `, ${kind} ${h.harvestDate.toISOString().slice(0, 10)} (~${h.daysLeft} days away)`;
         })()
       : "";
-    return `- Farm ${f.farm_index}: ${f.area} acres, ${f.soil_type}, ${f.irrigation} irrigation${
+    // "Rain-fed irrigation" is a contradiction, and the assistant used to say
+    // it on every rain-fed plot. The water phrase is built to suit the value.
+    const water = /rain[\s-]?fed/i.test(f.irrigation ?? "")
+      ? "rain-fed (no irrigation)"
+      : `irrigated by ${f.irrigation}`;
+    return `- Farm ${f.farm_index}: ${f.area} acres, ${f.soil_type}, ${water}${
       crop
         ? `, growing ${crop.chosen_crop} (seeded ${crop.seeding_date}, day ${days}, ${stage?.label} stage)${harvest}`
         : ", no crop selected yet"

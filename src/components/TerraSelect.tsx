@@ -10,11 +10,18 @@ export default function TerraSelect({
   value,
   onValueChange,
   options,
+  placeholder,
 }: {
   label: string;
   value: string;
   onValueChange: (v: string) => void;
   options: Option[];
+  /**
+   * Shown while `value` is empty. Radix forbids an Item with an empty value, so
+   * "nothing chosen yet" has to be expressed here rather than as an option —
+   * without it an unanswered select renders as a blank box that looks broken.
+   */
+  placeholder?: string;
 }) {
   return (
     <div className="space-y-1.5">
@@ -27,7 +34,7 @@ export default function TerraSelect({
           className="w-full inline-flex items-center justify-between gap-3 rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm text-af-ink outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition"
           aria-label={label}
         >
-          <Select.Value />
+          <Select.Value placeholder={placeholder} />
           <Select.Icon className="text-af-muted">
             <ChevronDown className="w-4 h-4" />
           </Select.Icon>

@@ -20,7 +20,20 @@ export type FarmRow = {
   farm_index: number;
   area: number;
   soil_type: string;
+  /**
+   * Human-readable composite, e.g. "Borewell · Drip" or exactly "Rain-fed".
+   * Still the value shown on chips and fed to the LLM prompts, and still what
+   * `isRainFed()` matches on.
+   */
   irrigation: string;
+  /**
+   * The structured form, added in migration 029. Optional because the select
+   * is `farms(*)` and an un-migrated database simply will not return them —
+   * `resolveIrrigationSetup()` falls back to parsing `irrigation` when absent.
+   */
+  water_regime?: string | null;
+  irrigation_source?: string | null;
+  irrigation_method?: string | null;
 };
 
 export type CropCycleRow = {

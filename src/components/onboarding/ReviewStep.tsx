@@ -26,6 +26,12 @@ export type ReviewFarm = {
   area: string;
   soilLabel: string;
   irrigationLabel: string;
+  /**
+   * Chooses the sentence template. "water comes from Rain-fed" is what the one
+   * template used to produce — wrong in English and worse once spoken aloud,
+   * since this same string is what the TTS voice reads back.
+   */
+  rainfed: boolean;
   cropName: string;
   seedingDate: string;
 };
@@ -58,7 +64,7 @@ export default function ReviewStep({
   const { speak, cancel, speaking, available, unlock } = useTextToSpeech(locale);
 
   const sentences = farms.map((f) =>
-    t("onboarding.review.sentence", {
+    t(f.rainfed ? "onboarding.review.sentenceRainfed" : "onboarding.review.sentence", {
       n: f.index,
       place,
       soil: f.soilLabel,

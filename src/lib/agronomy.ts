@@ -34,7 +34,57 @@ const STAGE_BOUNDS: { label: StageLabel; end: number }[] = [
   { label: "Maturity", end: 1.0 },
 ];
 
-export type CropProfile = {
+/**
+ * What a crop does with water, in FAO-56 terms.
+ *
+ * ── Why these four numbers ───────────────────────────────────────────────────
+ * `waterHeavy` below is a boolean, which is enough to say "paddy drinks more
+ * than wheat" and nothing else. It cannot answer the only question a farmer
+ * standing in a field actually has: how much, today. These can.
+ *
+ *   Kc  — crop coefficient. Reference ET says how thirsty the *weather* is;
+ *         Kc scales it to this crop at this stage. A seedling covering bare
+ *         soil transpires a fraction of what a closed canopy does, so one
+ *         number per crop would be wrong for most of the season — hence three,
+ *         interpolated across the cycle.
+ *   rootDepthM — how deep the crop can draw from, which sets the size of the
+ *         soil reservoir. Shallow-rooted onion runs out of water on a sandy
+ *         soil days before deep-rooted cotton on the same field.
+ *   depletionFraction (p) — how much of that reservoir the crop can empty
+ *         before it starts to suffer. Below this it is still alive but is
+ *         already losing yield, so it is the refill trigger, not a danger line.
+ *
+ * ── Provenance ───────────────────────────────────────────────────────────────
+ * Tables 12, 17 and 22 of FAO Irrigation & Drainage Paper 56, with Indian
+ * extension values where FAO has no entry (pigeonpea, turmeric, niger). These
+ * are typical values for a well-managed crop, not measurements of anyone's
+ * field — the same standing as the soil-amendment rates in `soilFix.ts`, and
+ * callers carry the same caveat.
+ */
+export type CropWater = {
+  /** Initial stage — bare soil, mostly evaporation. */
+  kcIni: number;
+  /** Mid-season — full canopy, peak demand. */
+  kcMid: number;
+  /** Late season — senescing, drying down for harvest. */
+  kcEnd: number;
+  /** Maximum effective rooting depth, metres. */
+  rootDepthM: number;
+  /** p — fraction of available water that may be depleted before stress. */
+  depletionFraction: number;
+  /**
+   * Grown under standing water rather than to a depletion trigger.
+   *
+   * Paddy is not "a thirsty crop" — it is a different irrigation problem.
+   * Scheduling it by root-zone depletion would tell a farmer to let a puddled
+   * field dry out, which is wrong, so the engine branches on this instead.
+   */
+  ponded?: boolean;
+};
+
+export type CropProfile = CropBase & { water: CropWater };
+
+type CropBase = {
   displayName: string;
   cycleDays: number; // seeding → harvest
   yieldPerAcre: number; // typical, in quintals per acre
@@ -51,7 +101,7 @@ export type CropProfile = {
   oilseed?: boolean; // part of the oilseed group (mustard, groundnut, sesame…)
 };
 
-const DEFAULT_PROFILE: CropProfile = {
+const DEFAULT_PROFILE: CropBase = {
   displayName: "Crop",
   cycleDays: 120,
   yieldPerAcre: 18,
@@ -65,7 +115,7 @@ const DEFAULT_PROFILE: CropProfile = {
 
 // India-typical values. cycleDays = seeding → harvest; yieldPerAcre in quintals.
 // Rough but sensible for advisory/demo use — refine per state/variety later.
-const CROP_TABLE: Record<string, CropProfile> = {
+const CROP_TABLE: Record<string, CropBase> = {
   paddy: { displayName: "Paddy", cycleDays: 120, yieldPerAcre: 25, waterHeavy: true, heatThreshold: 37, phMin: 5.0, phMax: 6.5 },
   wheat: { displayName: "Wheat", cycleDays: 140, yieldPerAcre: 18, waterHeavy: false, heatThreshold: 33, phMin: 6.0, phMax: 7.5 },
   maize: { displayName: "Maize", cycleDays: 100, yieldPerAcre: 24, waterHeavy: false, heatThreshold: 38, phMin: 5.5, phMax: 7.5 },
@@ -130,6 +180,54 @@ const ALIASES: Record<string, string> = {
 };
 
 /**
+ * Per-crop water behaviour, keyed by the same canonical names as CROP_TABLE.
+ *
+ * Kept as a second table rather than six more columns on CROP_TABLE so the
+ * agronomic provenance sits in one place and the existing rows — which four
+ * other features already read — did not all have to be rewritten to add a
+ * feature none of them use.
+ */
+const WATER_TABLE: Record<string, CropWater> = {
+  paddy:      { kcIni: 1.05, kcMid: 1.20, kcEnd: 0.90, rootDepthM: 0.6, depletionFraction: 0.20, ponded: true },
+  wheat:      { kcIni: 0.30, kcMid: 1.15, kcEnd: 0.30, rootDepthM: 1.2, depletionFraction: 0.55 },
+  maize:      { kcIni: 0.30, kcMid: 1.20, kcEnd: 0.50, rootDepthM: 1.2, depletionFraction: 0.55 },
+  bajra:      { kcIni: 0.30, kcMid: 1.00, kcEnd: 0.30, rootDepthM: 1.2, depletionFraction: 0.55 },
+  jowar:      { kcIni: 0.30, kcMid: 1.05, kcEnd: 0.55, rootDepthM: 1.2, depletionFraction: 0.55 },
+  ragi:       { kcIni: 0.30, kcMid: 1.00, kcEnd: 0.35, rootDepthM: 0.8, depletionFraction: 0.55 },
+  groundnut:  { kcIni: 0.40, kcMid: 1.15, kcEnd: 0.60, rootDepthM: 0.7, depletionFraction: 0.50 },
+  cotton:     { kcIni: 0.35, kcMid: 1.18, kcEnd: 0.60, rootDepthM: 1.3, depletionFraction: 0.65 },
+  soybean:    { kcIni: 0.40, kcMid: 1.15, kcEnd: 0.50, rootDepthM: 1.0, depletionFraction: 0.50 },
+  sugarcane:  { kcIni: 0.40, kcMid: 1.25, kcEnd: 0.75, rootDepthM: 1.5, depletionFraction: 0.65 },
+  onion:      { kcIni: 0.70, kcMid: 1.05, kcEnd: 0.75, rootDepthM: 0.4, depletionFraction: 0.30 },
+  tomato:     { kcIni: 0.60, kcMid: 1.15, kcEnd: 0.80, rootDepthM: 0.9, depletionFraction: 0.40 },
+  potato:     { kcIni: 0.50, kcMid: 1.15, kcEnd: 0.75, rootDepthM: 0.5, depletionFraction: 0.35 },
+  chilli:     { kcIni: 0.60, kcMid: 1.05, kcEnd: 0.90, rootDepthM: 0.7, depletionFraction: 0.30 },
+  mustard:    { kcIni: 0.35, kcMid: 1.10, kcEnd: 0.35, rootDepthM: 1.1, depletionFraction: 0.60 },
+  gram:       { kcIni: 0.40, kcMid: 1.00, kcEnd: 0.35, rootDepthM: 0.8, depletionFraction: 0.50 },
+  pigeonpea:  { kcIni: 0.40, kcMid: 1.05, kcEnd: 0.35, rootDepthM: 1.0, depletionFraction: 0.50 },
+  turmeric:   { kcIni: 0.50, kcMid: 1.05, kcEnd: 0.80, rootDepthM: 0.5, depletionFraction: 0.40 },
+  banana:     { kcIni: 0.50, kcMid: 1.10, kcEnd: 1.00, rootDepthM: 0.7, depletionFraction: 0.35 },
+  sunflower:  { kcIni: 0.35, kcMid: 1.15, kcEnd: 0.35, rootDepthM: 1.0, depletionFraction: 0.45 },
+  sesame:     { kcIni: 0.35, kcMid: 1.10, kcEnd: 0.25, rootDepthM: 1.0, depletionFraction: 0.60 },
+  castor:     { kcIni: 0.35, kcMid: 1.15, kcEnd: 0.55, rootDepthM: 1.2, depletionFraction: 0.50 },
+  safflower:  { kcIni: 0.35, kcMid: 1.10, kcEnd: 0.25, rootDepthM: 1.2, depletionFraction: 0.60 },
+  linseed:    { kcIni: 0.35, kcMid: 1.10, kcEnd: 0.25, rootDepthM: 1.0, depletionFraction: 0.60 },
+  niger:      { kcIni: 0.35, kcMid: 1.00, kcEnd: 0.35, rootDepthM: 0.8, depletionFraction: 0.55 },
+};
+
+/**
+ * The generic field crop an unrecognised name falls back to. Mid-range on every
+ * axis, so a freehand crop gets advice that is vague rather than wrong.
+ */
+const DEFAULT_WATER: CropWater = {
+  kcIni: 0.4,
+  kcMid: 1.05,
+  kcEnd: 0.6,
+  rootDepthM: 1.0,
+  depletionFraction: 0.5,
+};
+
+/**
  * Every crop the engine has real data for, by display name.
  *
  * This is the app's crop vocabulary and three things depend on it agreeing:
@@ -181,8 +279,57 @@ export function normalizeCrop(name: string): string {
 
 export function getCropProfile(name: string): CropProfile {
   const key = normalizeCrop(name);
-  if (!key) return { ...DEFAULT_PROFILE, displayName: name?.trim() || "Crop" };
-  return CROP_TABLE[key];
+  if (!key) {
+    return { ...DEFAULT_PROFILE, displayName: name?.trim() || "Crop", water: DEFAULT_WATER };
+  }
+  return { ...CROP_TABLE[key], water: WATER_TABLE[key] ?? DEFAULT_WATER };
+}
+
+/**
+ * Crop coefficient at a point in the cycle, interpolated rather than stepped.
+ *
+ * FAO-56 draws Kc as four straight segments: flat through establishment, a ramp
+ * up as the canopy closes, flat at peak, then a ramp down into senescence. The
+ * stage boundaries in STAGE_BOUNDS already mark those corners, so the curve is
+ * read straight off them.
+ *
+ * Interpolating matters: stepping Kc from 0.30 to 1.15 on a single day would
+ * put a false 3 mm jump in the water balance and schedule an irrigation the
+ * crop did not ask for.
+ */
+export function kcAt(profile: CropProfile, progress: number): number {
+  const { kcIni, kcMid, kcEnd } = profile.water;
+  const p = Math.max(0, Math.min(1, progress));
+
+  // Establishment: flat at the initial value through germination + seedling.
+  const devStart = STAGE_BOUNDS[1].end; // end of Seedling
+  const midStart = STAGE_BOUNDS[2].end; // end of Vegetative — canopy closed
+  const lateStart = STAGE_BOUNDS[3].end; // end of Flowering
+
+  if (p <= devStart) return kcIni;
+  if (p < midStart) return kcIni + ((kcMid - kcIni) * (p - devStart)) / (midStart - devStart);
+  if (p <= lateStart) return kcMid;
+  return kcMid + ((kcEnd - kcMid) * (p - lateStart)) / (1 - lateStart);
+}
+
+/**
+ * Effective rooting depth at a point in the cycle.
+ *
+ * Roots are not at full depth on day one — a crop that will eventually draw
+ * from 1.2 m starts at about 15 cm, so its usable soil reservoir grows through
+ * the season. Treating the reservoir as full-size from sowing would badly
+ * overestimate how long a young crop can go between waterings.
+ *
+ * Expansion is complete by the time the canopy closes, which is also when
+ * demand peaks.
+ */
+export function rootDepthAt(profile: CropProfile, progress: number): number {
+  const max = profile.water.rootDepthM;
+  const MIN_DEPTH_M = 0.15;
+  const full = STAGE_BOUNDS[2].end; // end of Vegetative
+  const p = Math.max(0, Math.min(1, progress));
+  if (p >= full) return max;
+  return MIN_DEPTH_M + (max - MIN_DEPTH_M) * (p / full);
 }
 
 function daysSinceDate(dateISO: string): number {
@@ -355,8 +502,15 @@ type FarmLike = {
   } | null;
 };
 
-/** Rain-fed plots depend on stored soil moisture rather than a water source. */
-function isRainFed(irrigation?: string | null): boolean {
+/**
+ * Rain-fed plots depend on stored soil moisture rather than a water source.
+ *
+ * Exported so `health.ts` can share it instead of keeping its own copy of this
+ * regex — the two had drifted apart as duplicated literals, and the string it
+ * matches ("Rain-fed", written by `composeIrrigationLabel`) is a contract
+ * between three files now.
+ */
+export function isRainFed(irrigation?: string | null): boolean {
   return /rain[\s-]?fed/i.test(irrigation ?? "");
 }
 
