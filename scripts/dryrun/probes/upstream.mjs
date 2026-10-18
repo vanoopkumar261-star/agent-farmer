@@ -62,6 +62,134 @@ export async function upstreamProbes() {
     )
   );
 
+  // ── Open-Meteo agronomy fields — what the irrigation engine computes on ──
+  //
+  // Separate from the forecast probe above on purpose. These two parameters
+  // are the entire reason a FAO-56 water balance is possible without a paid
+  // service, and they are easy to lose silently: Open-Meteo would still return
+  // 200 with the rest of the forecast intact if either were renamed or
+  // withdrawn, and the engine would quietly fall to ET0 = 0 — producing "no
+  // watering needed", for ever, on every farm. A failure here must be loud.
+  out.push(
+    await runProbe(
+      {
+        id: "upstream.openmeteo.agronomy",
+        layer: "upstream",
+        title: "Open-Meteo ET₀ + rainfall (irrigation engine)",
+        expected: [STATUS.LIVE],
+      },
+      async () => {
+        const r = await probeJson({
+          url:
+            "https://api.open-meteo.com/v1/forecast?latitude=12.30&longitude=76.65" +
+            "&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=auto&forecast_days=7",
+        });
+        if (r.status) return r;
+        const et0 = r.json?.daily?.et0_fao_evapotranspiration;
+        const rain = r.json?.daily?.precipitation_sum;
+        const et0Ok = Array.isArray(et0) && et0.length > 0 && et0.every((v) => typeof v === "number");
+        const rainOk = Array.isArray(rain) && rain.length > 0;
+        const missing = [!et0Ok && "et0_fao_evapotranspiration", !rainOk && "precipitation_sum"].filter(Boolean);
+        return {
+          status: r.ok && et0Ok && rainOk ? STATUS.LIVE : STATUS.FAIL,
+          ms: r.ms,
+          attempts: r.attempts,
+          evidence: {
+            status: r.res.status,
+            days: r.json?.daily?.time?.length,
+            et0Today: Array.isArray(et0) ? et0[0] : null,
+            et0Units: r.json?.daily_units?.et0_fao_evapotranspiration,
+            rainToday: Array.isArray(rain) ? rain[0] : null,
+            missing,
+          },
+          verdict: missing.length
+            ? `${r.res.status} but missing ${missing.join(" + ")} — the water balance cannot run`
+            : `${r.res.status}; ET₀ today ${Array.isArray(et0) ? et0[0] : "?"} ${r.json?.daily_units?.et0_fao_evapotranspiration ?? "mm"}; rain ${Array.isArray(rain) ? rain[0] : "?"} mm; ${r.json?.daily?.time?.length ?? 0} days`,
+        };
+      }
+    )
+  );
+
+  // ── NVIDIA Riva Translate — the Hindi half of the irrigation page ────────
+  //
+  // Checks the one thing about this endpoint that fails silently. The language
+  // pair is passed as a system-message tag (`en-hi`), and when the model does
+  // not recognise it the request still returns 200 with a confident-looking
+  // translation into the wrong language — `en-hi-in` returns Danish, and a
+  // plain-prose instruction returns Danish too. Nothing downstream can detect
+  // that: `translate.ts` would cache it and the page would render Danish under
+  // a Hindi UI.
+  //
+  // So the assertion is on the script of the reply, not merely on the status
+  // code: Devanagari present, and the English not echoed back unchanged.
+  out.push(
+    await runProbe(
+      {
+        id: "upstream.nvidia.translate",
+        layer: "upstream",
+        title: "NVIDIA Riva Translate (en→hi)",
+        expected: [STATUS.LIVE, STATUS.SKIP],
+      },
+      async () => {
+        if (!env.NVIDIA_API_KEY) {
+          return {
+            status: STATUS.SKIP,
+            evidence: { NVIDIA_API_KEY: "unset" },
+            verdict:
+              "NVIDIA_API_KEY unset — the irrigation engine's prose stays English in every locale, which is the documented fallback",
+          };
+        }
+
+        const source = "Irrigate today";
+        const r = await probeJson({
+          url: "https://integrate.api.nvidia.com/v1/chat/completions",
+          init: {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${env.NVIDIA_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: env.NVIDIA_TRANSLATE_MODEL || "nvidia/riva-translate-4b-instruct-v2",
+              messages: [
+                { role: "system", content: "en-hi" },
+                { role: "user", content: source },
+              ],
+              temperature: 0,
+              max_tokens: 128,
+            }),
+          },
+        });
+        if (r.status) return r;
+
+        const text = r.json?.choices?.[0]?.message?.content?.trim() ?? "";
+        const devanagari = /[ऀ-ॿ]/.test(text);
+        const echoed = text.toLowerCase() === source.toLowerCase();
+
+        return {
+          status: r.ok && devanagari && !echoed ? STATUS.LIVE : STATUS.FAIL,
+          ms: r.ms,
+          attempts: r.attempts,
+          evidence: {
+            status: r.res.status,
+            model: r.json?.model,
+            source,
+            translated: text,
+            devanagari,
+            echoed,
+          },
+          verdict: !r.ok
+            ? `${r.res.status}; translation unavailable`
+            : echoed
+              ? `${r.res.status} but the English came back unchanged — the en-hi tag was not applied`
+              : !devanagari
+                ? `${r.res.status} but the reply is not Devanagari ("${text}") — wrong target language`
+                : `${r.res.status}; "${source}" → "${text}"`,
+        };
+      }
+    )
+  );
+
   // ── Nominatim — 1 req/s policy, real User-Agent required ─────────────────
   await sleep(1100);
   out.push(

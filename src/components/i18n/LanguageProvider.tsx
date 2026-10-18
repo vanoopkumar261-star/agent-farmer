@@ -24,7 +24,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-      if (saved) setLocaleState(saved);
+      if (!saved) return;
+      setLocaleState(saved);
+
+      // Mirror the stored choice into the cookie that server components read
+      // (`getServerLocale`). `setLocale` writes both, but anyone who chose a
+      // language before that cookie existed has only the localStorage half —
+      // and for them the server would render English prose under a Hindi UI.
+      // Backfilling on mount repairs that silently, once.
+      if (!document.cookie.includes(`${STORAGE_KEY}=${saved}`)) {
+        document.cookie = `${STORAGE_KEY}=${saved};path=/;max-age=31536000`;
+      }
     } catch {}
   }, []);
 
