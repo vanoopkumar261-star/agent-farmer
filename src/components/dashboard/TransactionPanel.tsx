@@ -7,12 +7,11 @@ import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, Txn } from "@/lib/expenses";
 import Card from "@/components/ui/Card";
 import { Plus, Trash2, ArrowDownRight, ArrowUpRight, Loader2, Receipt } from "lucide-react";
 import { useT } from "@/components/i18n/LanguageProvider";
+import { rupee, formatDayMonth } from "@/lib/format";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
-
-const rupee = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
 
 export default function TransactionPanel({
   farmerId,
@@ -22,7 +21,7 @@ export default function TransactionPanel({
   txns: Txn[];
 }) {
   const router = useRouter();
-  const { t } = useT();
+  const { t, locale } = useT();
   const [kind, setKind] = useState<"expense" | "income">("expense");
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
   const [desc, setDesc] = useState("");
@@ -129,7 +128,7 @@ export default function TransactionPanel({
             />
           </Labeled>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Labeled label={t("transactionPanel.amount")}>
               <input
                 type="number"
@@ -178,10 +177,10 @@ export default function TransactionPanel({
           </div>
         ) : (
           <ul className="divide-y divide-af-border max-h-[460px] overflow-auto -mr-1 pr-1">
-            {txns.map((t) => {
-              const income = t.kind === "income";
+            {txns.map((txn) => {
+              const income = txn.kind === "income";
               return (
-                <li key={t.id} className="group flex items-center gap-3 py-3">
+                <li key={txn.id} className="group flex items-center gap-3 py-3">
                   <span
                     className={`flex items-center justify-center w-9 h-9 rounded-xl shrink-0 ${
                       income ? "bg-af-primary/10 text-af-primary-deep" : "bg-af-amber/10 text-af-amber-ink"
@@ -190,21 +189,28 @@ export default function TransactionPanel({
                     {income ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-af-ink truncate">{t.item_name}</div>
+                    <div className="text-sm font-semibold text-af-ink truncate">{txn.item_name}</div>
                     <div className="text-[11px] text-af-muted">
-                      {t.category} · {t.txn_date}
+                      {txn.category} · {formatDayMonth(txn.txn_date, locale)}
                     </div>
                   </div>
                   <div className={`font-mono text-sm font-semibold ${income ? "text-af-primary-deep" : "text-af-ink"}`}>
                     {income ? "+" : "−"}
-                    {rupee(t.amount)}
+                    {rupee(txn.amount)}
                   </div>
+                  {/*
+                    Visible by default, revealed-on-hover only where hover
+                    exists. It was `opacity-0 group-hover:opacity-100`, and a
+                    phone has no hover — so a mistyped ₹50,000 expense could
+                    not be deleted at all on the device most farmers use.
+                  */}
                   <button
-                    onClick={() => remove(t.id)}
-                    disabled={deletingId === t.id}
-                    className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-8 h-8 rounded-lg text-af-muted hover:text-af-danger hover:bg-af-danger/10 transition"
+                    onClick={() => remove(txn.id)}
+                    disabled={deletingId === txn.id}
+                    aria-label={t("transactionPanel.delete")}
+                    className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg text-af-muted hover:text-af-danger hover:bg-af-danger/10 transition opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus-visible:opacity-100 outline-none focus-visible:ring-2 focus-visible:ring-af-danger/40"
                   >
-                    {deletingId === t.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    {deletingId === txn.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   </button>
                 </li>
               );

@@ -26,6 +26,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { rupee } from "@/lib/format";
 import { Crown, Radio, ExternalLink, Loader2, TriangleAlert } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -50,7 +51,6 @@ type State =
   | { phase: "ok"; data: Extract<LiveMandiResponse, { success: true }> }
   | { phase: "error"; message: string };
 
-const rupee = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
 
 export default function LiveMandiCard({
   crop,
@@ -168,7 +168,7 @@ export default function LiveMandiCard({
                   }`}
                 >
                   <span
-                    className={`flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-bold shrink-0 ${
+                    className={`flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-semibold shrink-0 ${
                       isBest
                         ? "bg-af-primary text-white"
                         : "bg-af-card text-af-muted border border-af-border"

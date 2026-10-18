@@ -55,7 +55,7 @@ export default function ChoiceCardGrid({
 }) {
   return (
     <fieldset className="min-w-0">
-      <legend className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted mb-2">
+      <legend className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted mb-2">
         {legend}
       </legend>
 

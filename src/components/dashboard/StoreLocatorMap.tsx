@@ -8,6 +8,7 @@ import { MapPin, Navigation, Store as StoreIcon, Home, Layers } from "lucide-rea
 import type { Store } from "@/lib/stores";
 import { directionsUrl } from "@/lib/storeDirections";
 import { SEARCH_RADIUS_KM } from "@/lib/storeConfig";
+import { MAP } from "@/lib/chartTheme";
 import { useT } from "@/components/i18n/LanguageProvider";
 
 const houseIcon = L.divIcon({
@@ -167,9 +168,9 @@ export default function StoreLocatorMap({
               center={[house.lat, house.lng]}
               radius={SEARCH_RADIUS_KM * 1000}
               pathOptions={{
-                color: satellite ? "#F7F6F0" : "#668653",
+                color: satellite ? MAP.radiusOnSatellite : MAP.radius,
                 weight: 1,
-                fillColor: "#668653",
+                fillColor: MAP.radius,
                 fillOpacity: satellite ? 0 : 0.04,
               }}
             />

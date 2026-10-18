@@ -138,9 +138,39 @@ export const SEQUENTIAL_GREEN = [
   "#A9C4B0",
 ] as const;
 
+/**
+ * Overlay colours for the Leaflet map.
+ *
+ * Leaflet's `pathOptions` take literal colour strings and cannot read Tailwind
+ * classes, so these mirror the `af-leaf` and `af-bg` tokens by value. Kept here
+ * rather than inline in `StoreLocatorMap` so a palette change has one place to
+ * look — the previous literals were the only app colours living inside a
+ * component with no token reference at all.
+ */
+export const MAP = {
+  /** Search-radius ring and fill over the default tiles. */
+  radius: "#668653",
+  /** Same ring over satellite imagery, where a dark green disappears. */
+  radiusOnSatellite: "#F7F6F0",
+} as const;
+
 /** Recessive chart furniture, on the v2 border/muted tokens. */
 export const GRID = "#E3E4D9";
 export const AXIS = "#7C8A78";
+
+/**
+ * Ink for legend labels.
+ *
+ * Recharts colours a legend's text with its series colour by default, which
+ * puts mustard type at 2.2:1 — unreadable. The dot carries the identity and
+ * the text stays ink:
+ *
+ *   formatter={(v) => <span style={{ color: LEGEND_INK }}>{v}</span>}
+ *
+ * Exported because `AnalyticsCard` and `ExpenseCharts` had each inlined this
+ * same literal, so the one value guaranteeing legend legibility lived nowhere.
+ */
+export const LEGEND_INK = "#3F5347";
 
 /** Shared Recharts tooltip chrome — 16px radius and the faint forest shadow. */
 export const tooltipStyle = {

@@ -114,7 +114,7 @@ function AlertBlock({ alert }: { alert: MatchedAlert }) {
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold text-af-ink">{alert.event}</span>
             <span
-              className={`font-mono text-[10px] font-bold tracking-[0.12em] uppercase rounded px-1.5 py-0.5 ${cfg.chip}`}
+              className={`font-mono text-[10px] font-semibold tracking-[0.12em] uppercase rounded px-1.5 py-0.5 ${cfg.chip}`}
             >
               {t(`hazardCheck.band${alert.band[0].toUpperCase()}${alert.band.slice(1)}`)}
             </span>
@@ -170,7 +170,7 @@ function Section({
       }
     >
       <div
-        className={`font-mono text-[10px] font-bold tracking-[0.18em] uppercase mb-2.5 ${
+        className={`font-mono text-[10px] font-semibold tracking-[0.18em] uppercase mb-2.5 ${
           emphasised ? "text-af-danger" : "text-af-muted"
         }`}
       >

@@ -127,7 +127,7 @@ function ArticleCard({
           {/* Category badge on image */}
           <div className="absolute top-3 left-3">
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.12em] uppercase backdrop-blur-sm bg-black/30 border border-white/20 text-white`}
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold font-mono tracking-[0.12em] uppercase backdrop-blur-sm bg-black/30 border border-white/20 text-white`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
               <T k={cfg.labelKey} />
@@ -144,7 +144,7 @@ function ArticleCard({
 
           {/* Title on image bottom */}
           <div className="absolute bottom-0 left-0 right-0 p-4">
-            <h3 className="font-sans font-bold text-white text-[15px] leading-snug line-clamp-2">
+            <h3 className="font-sans font-semibold text-white text-[15px] leading-snug line-clamp-2">
               {article.title}
             </h3>
           </div>
@@ -199,7 +199,7 @@ function ArticleCard({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 mb-1">
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold font-mono tracking-[0.12em] uppercase ${cfg.bg} ${cfg.color}`}
+            className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold font-mono tracking-[0.12em] uppercase ${cfg.bg} ${cfg.color}`}
           >
             <span className={`w-1 h-1 rounded-full ${cfg.dot}`} />
             <T k={cfg.labelKey} />
@@ -299,7 +299,7 @@ export default function NewsCard({
         <div className="flex items-center gap-2">
           {/* Source badge */}
           <div
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold font-mono tracking-[0.12em] uppercase ${
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-semibold font-mono tracking-[0.12em] uppercase ${
               dataSource === "live"
                 ? "bg-af-primary/10 border-af-primary/20 text-af-primary-deep"
                 : dataSource === "ai"
@@ -319,6 +319,7 @@ export default function NewsCard({
           {/* Refresh button */}
           <button
             onClick={() => fetchNews(true)}
+            aria-label={t("newsCard.refresh")}
             disabled={refreshing || loading}
             className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-card border border-af-border text-af-muted hover:text-af-ink hover:border-af-primary/40 transition disabled:opacity-40"
             title={t("newsCard.refresh")}
@@ -455,7 +456,7 @@ function SectionDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3">
       <div className="h-px flex-1 bg-af-border" />
-      <span className="font-mono text-[10px] font-bold tracking-[0.16em] uppercase text-af-muted whitespace-nowrap">
+      <span className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted whitespace-nowrap">
         {label}
       </span>
       <div className="h-px flex-1 bg-af-border" />

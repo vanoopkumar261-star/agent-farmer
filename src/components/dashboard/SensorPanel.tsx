@@ -22,7 +22,7 @@ import {
 } from "recharts";
 import Card from "@/components/ui/Card";
 import Skeleton from "@/components/ui/Skeleton";
-import { AXIS, GRID, tooltipStyle } from "@/lib/chartTheme";
+import { AXIS, CATEGORICAL, GRID, tooltipStyle } from "@/lib/chartTheme";
 import { useT } from "@/components/i18n/LanguageProvider";
 import type {
   MetricKey,
@@ -30,12 +30,19 @@ import type {
   SensorSnapshot,
 } from "@/app/api/sensors/route";
 
-/** Per-metric identity — icon + a saturated hue from the app chart palette. */
+/**
+ * Per-metric identity — icon + a slot from the validated chart palette.
+ *
+ * Indexed rather than retyped. Three of these were copies of CATEGORICAL by
+ * value, but the fourth had drifted to #7A5C2E from the validated #A35A2E —
+ * which quietly broke the colour-vision separation the palette was checked
+ * for, in the one place nobody would look for it.
+ */
 const META: Record<MetricKey, { Icon: typeof Thermometer; color: string }> = {
-  temperature: { Icon: Thermometer, color: "#B58A18" }, // Mustard
-  humidity: { Icon: Droplets, color: "#3E6FB8" }, // Field Blue
-  soilMoisture: { Icon: Sprout, color: "#3F7A2E" }, // Crop Green
-  npk: { Icon: FlaskConical, color: "#7A5C2E" }, // Earth Brown
+  temperature: { Icon: Thermometer, color: CATEGORICAL[1] }, // Mustard
+  humidity: { Icon: Droplets, color: CATEGORICAL[2] }, // Field Blue
+  soilMoisture: { Icon: Sprout, color: CATEGORICAL[0] }, // Crop Green
+  npk: { Icon: FlaskConical, color: CATEGORICAL[3] }, // Earth Brown
 };
 
 const ORDER: MetricKey[] = ["temperature", "humidity", "soilMoisture", "npk"];
@@ -172,7 +179,7 @@ export default function SensorPanel() {
               </span>
               {!loading && anyConfigured && (
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold font-mono tracking-[0.12em] uppercase ${
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold font-mono tracking-[0.12em] uppercase ${
                     live
                       ? "bg-af-primary/10 text-af-primary-deep"
                       : "bg-af-bg text-af-muted"
@@ -413,7 +420,7 @@ function SensorDetailModal({
 
         <div className="overflow-y-auto px-6 py-5">
           {/* Graph */}
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
+          <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-af-muted">
             {t("sensorPanel.history")}
           </div>
           <div className="mt-3 h-[220px] w-full">
@@ -461,7 +468,7 @@ function SensorDetailModal({
           </div>
 
           {/* Last 20 readings */}
-          <div className="mt-6 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
+          <div className="mt-6 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-af-muted">
             {t("sensorPanel.recentReadings", { n: last20.length })}
           </div>
           <div className="mt-3 overflow-hidden rounded-[14px] border border-af-border">

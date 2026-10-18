@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { rupee } from "@/lib/format";
 import {
   X, Truck, Package, Calculator,
   CheckCircle, AlertTriangle, TrendingUp,
@@ -8,7 +9,6 @@ import {
 import type { MandiRow } from "@/lib/market";
 import { useT } from "@/components/i18n/LanguageProvider";
 
-const rupee = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
 
 const VEHICLES = [
   {
@@ -125,16 +125,17 @@ export default function TransportPlanner({
               <Truck className="w-5 h-5 text-af-secondary" />
             </div>
             <div>
-              <h2 className="font-sans text-lg font-extrabold text-af-ink">
+              <h2 className="font-sans text-lg font-semibold text-af-ink">
                 {t("transportPlanner.title")}
               </h2>
-              <p className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+              <p className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
                 {cropName} · {mandi.mandi}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
+            aria-label={t("a11y.close")}
             className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-bg border border-af-border text-af-muted hover:text-af-ink hover:border-af-primary/40 transition"
           >
             <X className="w-4 h-4" />
@@ -147,7 +148,7 @@ export default function TransportPlanner({
           {/* Mandi summary */}
           <div className="flex items-center justify-between rounded-[16px] bg-af-bg border border-af-border px-4 py-3">
             <div>
-              <div className="text-sm font-bold text-af-ink">{mandi.mandi}</div>
+              <div className="text-sm font-semibold text-af-ink">{mandi.mandi}</div>
               <div className="text-[12px] text-af-muted mt-0.5">
                 {t("transportPlanner.distanceVerified", { km: mandi.distanceKm })}
               </div>
@@ -156,7 +157,7 @@ export default function TransportPlanner({
               <div className="font-mono text-[11px] text-af-muted uppercase tracking-wide">
                 {t("transportPlanner.netAtGate")}
               </div>
-              <div className="font-mono text-lg font-extrabold text-af-primary">
+              <div className="font-mono text-lg font-semibold text-af-primary">
                 {rupee(mandi.netPrice)}/qtl
               </div>
             </div>
@@ -164,7 +165,7 @@ export default function TransportPlanner({
 
           {/* Harvest weight input */}
           <div className="space-y-2">
-            <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+            <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
               {t("transportPlanner.harvestQty")}
             </label>
             <div className="flex items-center gap-3">
@@ -177,9 +178,9 @@ export default function TransportPlanner({
                   const v = parseFloat(e.target.value);
                   if (!isNaN(v) && v > 0) setWeight(v);
                 }}
-                className="w-full rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm font-bold text-af-ink outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition font-mono"
+                className="w-full rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm font-semibold text-af-ink outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition font-mono"
               />
-              <div className="shrink-0 rounded-[14px] bg-af-sage border border-af-border px-4 py-3 text-sm font-bold text-af-secondary">
+              <div className="shrink-0 rounded-[14px] bg-af-sage border border-af-border px-4 py-3 text-sm font-semibold text-af-secondary">
                 {t("transportPlanner.quintals")}
               </div>
             </div>
@@ -190,7 +191,7 @@ export default function TransportPlanner({
 
           {/* Vehicle selection */}
           <div className="space-y-2">
-            <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+            <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
               {t("transportPlanner.selectVehicle")}
             </label>
             <p className="text-[11px] text-af-muted -mt-1">
@@ -214,7 +215,7 @@ export default function TransportPlanner({
                   >
                     {/* Recommended badge */}
                     {isRec && (
-                      <span className="absolute top-0 right-0 rounded-bl-[12px] bg-af-secondary px-2 py-0.5 text-[9px] font-bold font-mono tracking-[0.15em] uppercase text-af-bg">
+                      <span className="absolute top-0 right-0 rounded-bl-[12px] bg-af-secondary px-2 py-0.5 text-[9px] font-semibold font-mono tracking-[0.15em] uppercase text-af-bg">
                         {t("transportPlanner.recommended")}
                       </span>
                     )}
@@ -222,26 +223,26 @@ export default function TransportPlanner({
                     <div className="flex items-center gap-3 pr-20">
                       <span className="text-2xl">{v.icon}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-bold text-af-ink">{v.name}</div>
+                        <div className="text-sm font-semibold text-af-ink">{v.name}</div>
                         <div className="text-[11px] text-af-muted">{t(v.descKey)}</div>
                       </div>
                     </div>
 
                     <div className="mt-2.5 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center rounded-full bg-af-bg border border-af-border px-2 py-0.5 text-[10px] font-bold text-af-muted">
+                        <span className="inline-flex items-center rounded-full bg-af-bg border border-af-border px-2 py-0.5 text-[10px] font-semibold text-af-muted">
                           {t("transportPlanner.cap", { n: v.capacity })}
                         </span>
-                        <span className="inline-flex items-center rounded-full bg-af-bg border border-af-border px-2 py-0.5 text-[10px] font-bold text-af-muted">
+                        <span className="inline-flex items-center rounded-full bg-af-bg border border-af-border px-2 py-0.5 text-[10px] font-semibold text-af-muted">
                           ₹{v.ratePerKm}/km
                         </span>
                         {v.tripsNeeded > 1 && (
-                          <span className="inline-flex items-center rounded-full bg-af-amber/10 border border-af-amber/20 px-2 py-0.5 text-[10px] font-bold text-af-amber">
+                          <span className="inline-flex items-center rounded-full bg-af-amber/10 border border-af-amber/20 px-2 py-0.5 text-[10px] font-semibold text-af-amber">
                             {t("transportPlanner.trips", { n: v.tripsNeeded })}
                           </span>
                         )}
                       </div>
-                      <div className="font-mono text-sm font-extrabold text-af-ink">
+                      <div className="font-mono text-sm font-semibold text-af-ink">
                         {rupee(v.totalCost)}
                       </div>
                     </div>
@@ -253,7 +254,7 @@ export default function TransportPlanner({
 
           {/* Multi-trip warning */}
           {activeVehicle.tripsNeeded > 1 && (
-            <div className="flex items-start gap-2.5 rounded-[14px] bg-af-amber/8 border border-af-amber/20 px-4 py-3">
+            <div className="flex items-start gap-2.5 rounded-[14px] bg-af-amber/10 border border-af-amber/20 px-4 py-3">
               <AlertTriangle className="w-4 h-4 text-af-amber shrink-0 mt-0.5" />
               <p className="text-[12px] text-af-ink-2">
                 {t("transportPlanner.overloadWarning", {
@@ -271,7 +272,7 @@ export default function TransportPlanner({
             <div className="px-4 py-3 border-b border-af-border">
               <div className="flex items-center gap-2">
                 <Calculator className="w-4 h-4 text-af-primary" />
-                <span className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+                <span className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
                   {t("transportPlanner.invoice")}
                 </span>
               </div>
@@ -296,14 +297,14 @@ export default function TransportPlanner({
               <div className="h-px bg-af-border" />
 
               {/* Net profit */}
-              <div className="flex items-center justify-between rounded-[12px] bg-af-primary/8 border border-af-primary/20 px-3 py-2.5">
+              <div className="flex items-center justify-between rounded-[12px] bg-af-primary/10 border border-af-primary/20 px-3 py-2.5">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-af-primary" />
-                  <span className="text-sm font-bold text-af-ink">
+                  <span className="text-sm font-semibold text-af-ink">
                     {t("transportPlanner.estimatedEarnings")}
                   </span>
                 </div>
-                <span className="font-mono text-lg font-extrabold text-af-primary">
+                <span className="font-mono text-lg font-semibold text-af-primary">
                   {rupee(finalEarnings)}
                 </span>
               </div>
@@ -313,7 +314,7 @@ export default function TransportPlanner({
           {/* Confirm button */}
           <button
             onClick={onClose}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-bold transition active:scale-[0.98] shadow-af-md"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md"
           >
             <CheckCircle className="w-4 h-4" />
             {t("transportPlanner.confirmBook")}
@@ -341,7 +342,7 @@ function InvoiceRow({
     <div className="flex items-center justify-between">
       <span className="text-[12px] text-af-ink-2">{label}</span>
       <span
-        className={`text-[13px] font-bold font-mono ${
+        className={`text-[13px] font-semibold font-mono ${
           danger ? "text-af-danger" : "text-af-ink"
         }`}
       >

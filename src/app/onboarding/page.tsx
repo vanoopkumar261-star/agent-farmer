@@ -651,13 +651,13 @@ function OnboardingContent() {
           <div className="relative z-10 p-10 h-full flex flex-col justify-between">
             <div className="inline-flex items-center gap-2 self-start rounded-full bg-white/15 backdrop-blur border border-white/25 px-4 py-2">
               <Leaf className="w-4 h-4 text-white" />
-              <span className="font-mono text-[10px] font-bold tracking-[0.22em] uppercase text-white/90">
+              <span className="font-mono text-[10px] font-semibold tracking-[0.22em] uppercase text-white/90">
                 {t("onboarding.badge.onboarding")}
               </span>
             </div>
 
             <div className="max-w-md space-y-4">
-              <h1 className="font-sans text-4xl font-extrabold tracking-tight text-white leading-[1.05]">
+              <h1 className="font-sans text-4xl font-semibold tracking-tight text-white leading-[1.05]">
                 {step === 1
                   ? t("onboarding.hero.title.step1")
                   : step === 2
@@ -782,7 +782,7 @@ function OnboardingContent() {
                       </div>
 
                       <div className="space-y-2 pt-1">
-                        <div className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+                        <div className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
                           {t("onboarding.field.houseLocation")}
                         </div>
                         <MapSelector
@@ -794,7 +794,7 @@ function OnboardingContent() {
                       <button
                         disabled={!canGoStep2}
                         onClick={() => setStep(2)}
-                        className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-bold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
+                        className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                       >
                         {t("onboarding.continue")} <ArrowRight className="w-4 h-4" />
                       </button>
@@ -825,7 +825,7 @@ function OnboardingContent() {
                         />
 
                         <div className="space-y-1.5">
-                          <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+                          <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
                             {t("onboarding.field.numFarms")}
                           </label>
                           <div className="flex items-center gap-3">
@@ -839,7 +839,7 @@ function OnboardingContent() {
                               >
                                 <Minus className="w-4 h-4" />
                               </button>
-                              <div className="w-12 text-center font-mono text-base font-bold text-af-ink">
+                              <div className="w-12 text-center font-mono text-base font-semibold text-af-ink">
                                 {form.numFarms}
                               </div>
                               <button
@@ -865,10 +865,10 @@ function OnboardingContent() {
                           >
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-2.5">
-                                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-secondary text-xs font-bold">
+                                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-secondary text-xs font-semibold">
                                   {idx + 1}
                                 </span>
-                                <div className="font-sans font-bold text-af-ink">{t("onboarding.farm.n", { n: idx + 1 })}</div>
+                                <div className="font-sans font-semibold text-af-ink">{t("onboarding.farm.n", { n: idx + 1 })}</div>
                               </div>
                               <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-af-muted">
                                 {t("onboarding.fieldProfile")}
@@ -877,7 +877,7 @@ function OnboardingContent() {
 
                             <div className="grid grid-cols-1 gap-5">
                               <div className="space-y-1.5">
-                                <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+                                <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
                                   {t("onboarding.field.farmArea")}
                                 </label>
                                 <input
@@ -960,7 +960,7 @@ function OnboardingContent() {
                       <div className="flex flex-col sm:flex-row gap-3 pt-2">
                         <button
                           onClick={() => setStep(1)}
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-6 py-3.5 text-sm font-bold text-af-ink transition active:scale-[0.98]"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-6 py-3.5 text-sm font-semibold text-af-ink transition active:scale-[0.98]"
                         >
                           <ArrowLeft className="w-4 h-4" />
                           {t("onboarding.back")}
@@ -969,7 +969,7 @@ function OnboardingContent() {
                         <button
                           disabled={!canProceedCropSelection || loadingAI}
                           onClick={handleFetchAI}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-bold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
+                          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                         >
                           {loadingAI ? (
                             <>
@@ -1019,11 +1019,11 @@ function OnboardingContent() {
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
-                                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-secondary text-xs font-bold">
+                                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-secondary text-xs font-semibold">
                                     {idx + 1}
                                   </span>
                                   <div>
-                                    <div className="font-sans font-bold text-af-ink">{t("onboarding.farm.n", { n: idx + 1 })}</div>
+                                    <div className="font-sans font-semibold text-af-ink">{t("onboarding.farm.n", { n: idx + 1 })}</div>
                                     <div className="text-xs text-af-muted">
                                       {(SOIL_TYPE_KEYS[f.soilType] ? t(SOIL_TYPE_KEYS[f.soilType]) : f.soilType)} ·{" "}
                                       {translatedIrrigationLabel(f, t)} · {f.area} {t("onboarding.acresUnit")}
@@ -1036,7 +1036,7 @@ function OnboardingContent() {
                               </div>
 
                               {recs.length === 0 ? (
-                                <div className="flex items-start gap-2 rounded-[16px] bg-af-danger/8 border border-af-danger/20 px-4 py-3">
+                                <div className="flex items-start gap-2 rounded-[16px] bg-af-danger/10 border border-af-danger/20 px-4 py-3">
                                   <AlertTriangle className="w-4 h-4 text-af-danger mt-0.5 shrink-0" />
                                   <div className="text-sm text-af-ink-2">
                                     {t("onboarding.noAiRecs")}
@@ -1070,7 +1070,7 @@ function OnboardingContent() {
 
                               <div className="space-y-4 pt-1">
                                 <div className="space-y-1.5">
-                                  <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+                                  <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
                                     {t("onboarding.field.customCrop")}
                                   </label>
                                   <input
@@ -1086,7 +1086,7 @@ function OnboardingContent() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-1.5">
-                                    <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+                                    <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
                                       {t("onboarding.field.seedingDate")}
                                     </label>
                                     <input
@@ -1098,7 +1098,7 @@ function OnboardingContent() {
                                   </div>
 
                                   <div className="space-y-1.5">
-                                    <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+                                    <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
                                       {t("onboarding.field.harvestDate")}
                                     </label>
                                     <input
@@ -1156,7 +1156,7 @@ function OnboardingContent() {
                       <div className="flex flex-col sm:flex-row gap-3">
                         <button
                           onClick={() => setStep(2)}
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-6 py-3.5 text-sm font-bold text-af-ink transition active:scale-[0.98]"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-6 py-3.5 text-sm font-semibold text-af-ink transition active:scale-[0.98]"
                         >
                           <ArrowLeft className="w-4 h-4" />
                           {t("onboarding.back")}
@@ -1167,7 +1167,7 @@ function OnboardingContent() {
                         <button
                           disabled={!canContinueDashboard}
                           onClick={() => setStep(4)}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-bold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
+                          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                         >
                           {t("onboarding.continueToDashboard")} <ArrowRight className="w-4 h-4" />
                         </button>
@@ -1290,7 +1290,7 @@ function Stepper({ current }: { current: number }) {
           <div key={s.n} className={`flex items-center ${i < STEPS.length - 1 ? "flex-1" : ""}`}>
             <div className="flex items-center gap-2.5">
               <div
-                className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all
+                className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all
                   ${
                     done
                       ? "bg-af-primary text-white"
@@ -1302,7 +1302,7 @@ function Stepper({ current }: { current: number }) {
                 {done ? <Check className="w-4 h-4" /> : s.n}
               </div>
               <div
-                className={`hidden sm:block font-mono text-[11px] font-bold uppercase tracking-[0.16em] ${
+                className={`hidden sm:block font-mono text-[11px] font-semibold uppercase tracking-[0.16em] ${
                   active || done ? "text-af-ink" : "text-af-muted"
                 }`}
               >
@@ -1341,13 +1341,13 @@ function HeaderBlock({
   return (
     <div className="space-y-2">
       <div className="inline-flex items-center gap-2 rounded-full bg-af-bg border border-af-border px-3.5 py-1.5">
-        <span className={`font-mono text-[10px] font-bold tracking-[0.2em] uppercase ${accentText}`}>
+        <span className={`font-mono text-[10px] font-semibold tracking-[0.2em] uppercase ${accentText}`}>
           {t("onboarding.stepLabel")} {step}
         </span>
         <span className="text-sm text-af-ink-2">{subtitle}</span>
       </div>
 
-      <h2 className="mt-3 font-sans text-2xl font-extrabold text-af-ink">{title}</h2>
+      <h2 className="mt-3 font-sans text-2xl font-semibold text-af-ink">{title}</h2>
       <p className="text-sm text-af-ink-2">{hint}</p>
     </div>
   );
@@ -1382,7 +1382,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+      <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
         {label}
       </label>
       <input

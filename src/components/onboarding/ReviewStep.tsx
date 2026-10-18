@@ -109,7 +109,7 @@ export default function ReviewStep({
         {farms.map((f, i) => (
           <div key={f.index} className="rounded-[16px] border border-af-border bg-af-card p-4">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-af-primary text-[11px] font-bold text-white">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-af-primary text-[11px] font-semibold text-white">
                 {f.index}
               </span>
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-af-muted">

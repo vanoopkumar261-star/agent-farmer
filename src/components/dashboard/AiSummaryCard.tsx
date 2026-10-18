@@ -11,10 +11,13 @@ import { T } from "@/components/i18n/LanguageProvider";
 export default function AiSummaryCard({ points }: { points: React.ReactNode[] }) {
   return (
     <Card className="overflow-hidden min-h-[230px]">
-      {/* Photograph, masked so it dissolves into the card before reaching the copy. */}
+      {/* Photograph, masked so it dissolves into the card before reaching the copy.
+          Hidden below sm: at 360px the copy column is the whole card, and a
+          decorative image competing for that width is what reduced the first
+          card on the home page to roughly ten characters per line. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-cover bg-center"
+        className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-cover bg-center hidden sm:block"
         style={{
           backgroundImage: "url('/images/bg-field-mist.png')",
           maskImage:
@@ -29,7 +32,7 @@ export default function AiSummaryCard({ points }: { points: React.ReactNode[] })
         className="pointer-events-none absolute -top-10 right-8 h-40 w-40 rounded-full bg-af-beige/70 blur-3xl"
       />
 
-      <div className="relative z-10 p-6 max-w-[58%]">
+      <div className="relative z-10 p-6 max-w-full sm:max-w-[58%]">
         <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink"><T k="aiSummaryCard.title" /></h2>
 
         <ul className="mt-4 space-y-2.5">

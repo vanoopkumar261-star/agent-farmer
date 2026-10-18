@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { rupee } from "@/lib/format";
 import {
   Bar,
   BarChart,
@@ -19,7 +20,7 @@ import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
 import Badge from "@/components/ui/Badge";
 import { BarChart3 } from "lucide-react";
-import { SERIES, STATUS, GRID, AXIS, tooltipStyle } from "@/lib/chartTheme";
+import { SERIES, STATUS, GRID, AXIS, LEGEND_INK, tooltipStyle } from "@/lib/chartTheme";
 import { useT } from "@/components/i18n/LanguageProvider";
 
 /**
@@ -55,8 +56,7 @@ export type SeasonPoint = {
   daysLeft: number;
 };
 
-const rupee = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
-const inkLegend = (value: string) => <span style={{ color: "#3F5347" }}>{value}</span>;
+const inkLegend = (value: string) => <span style={{ color: LEGEND_INK }}>{value}</span>;
 
 export default function AnalyticsCard({
   cash,

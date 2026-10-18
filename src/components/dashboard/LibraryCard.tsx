@@ -33,7 +33,7 @@ export default function LibraryCard({ from = "/dashboard" }: { from?: string }) 
 
       <Link
         href={`/jaivik-sathi/library?from=${encodeURIComponent(from)}`}
-        className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-bold transition active:scale-[0.98] shadow-af-md outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
+        className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-md outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
       >
         <T k="libraryCard.cta" />
         <ArrowRight className="w-4 h-4" />

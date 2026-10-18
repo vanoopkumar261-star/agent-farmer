@@ -140,7 +140,7 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
       {/* Language */}
       <Card className="p-6">
         <SectionTitle icon={<Globe className="w-4 h-4" />} title={t("settings.section.language")} subtitle={t("settings.section.languageSub")} />
-        <div className="mt-5 grid grid-cols-3 gap-2">
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2">
           {LOCALES.map((l) => (
             <button
               key={l.code}

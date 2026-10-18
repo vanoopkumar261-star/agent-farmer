@@ -11,7 +11,7 @@ export default function Tabs({
   onChange: (id: string) => void;
 }) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-[12px] bg-af-bg border border-af-border p-1">
+    <div className="flex w-full items-center gap-1 overflow-x-auto rounded-[12px] bg-af-bg border border-af-border p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:w-auto sm:inline-flex">
       {tabs.map((t) => {
         const isActive = t.id === active;
         return (

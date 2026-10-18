@@ -1,4 +1,6 @@
 import { getDashboardData, relativeTime } from "@/lib/dashboard";
+import { formatLongDate } from "@/lib/format";
+import { getServerLocale } from "@/lib/i18n/serverLocale";
 import { getWeather } from "@/lib/weather";
 import { getExpensesData } from "@/lib/expenses-server";
 import { generateTasks, cropStageFor, harvestInfo, getCropProfile } from "@/lib/agronomy";
@@ -46,6 +48,10 @@ function greetingKey() {
 
 export default async function DashboardPage() {
   const { farmer, farms } = await getDashboardData();
+  // The greeting's date used to be hardcoded "en-US", so it read in English
+  // under all nine languages. This is a server component, so the locale comes
+  // from the cookie rather than the client context.
+  const locale = getServerLocale();
 
   if (!farmer) {
     return (
@@ -286,7 +292,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="font-mono text-label font-semibold uppercase text-af-muted">
-            {new Date().toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" })}
+            {formatLongDate(new Date(), locale)}
           </div>
         </div>
       </Reveal>

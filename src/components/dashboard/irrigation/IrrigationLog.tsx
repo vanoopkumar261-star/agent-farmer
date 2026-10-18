@@ -66,12 +66,12 @@ export default function IrrigationLog({
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
-                <th className="pb-2 pr-4 font-bold">{t("irrigation.log.when")}</th>
-                <th className="pb-2 pr-4 font-bold">{t("irrigation.log.depth")}</th>
-                <th className="pb-2 pr-4 font-bold">{t("irrigation.log.volume")}</th>
-                <th className="pb-2 pr-4 font-bold">{t("irrigation.log.run")}</th>
-                <th className="pb-2 font-bold">{t("irrigation.log.cost")}</th>
+              <tr className="text-left font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
+                <th className="pb-2 pr-4 font-semibold">{t("irrigation.log.when")}</th>
+                <th className="pb-2 pr-4 font-semibold">{t("irrigation.log.depth")}</th>
+                <th className="pb-2 pr-4 font-semibold">{t("irrigation.log.volume")}</th>
+                <th className="pb-2 pr-4 font-semibold">{t("irrigation.log.run")}</th>
+                <th className="pb-2 font-semibold">{t("irrigation.log.cost")}</th>
               </tr>
             </thead>
             <tbody className="text-af-ink-2">
@@ -307,7 +307,7 @@ function Field({
 }) {
   return (
     <label className="space-y-1.5">
-      <span className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+      <span className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
         {label}
       </span>
       <span className="relative block">

@@ -100,7 +100,7 @@ export default function IrrigationVerdictCard({ plan }: { plan: IrrigationPlan }
       </div>
 
       {showNumbers && (
-        <div className="mt-5 grid grid-cols-3 gap-3 rounded-[14px] bg-af-bg border border-af-border p-4">
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-[14px] bg-af-bg border border-af-border p-4">
           <Figure
             label={t("irrigation.figure.apply")}
             value={`${plan.grossMm} mm`}
@@ -155,7 +155,7 @@ export default function IrrigationVerdictCard({ plan }: { plan: IrrigationPlan }
 function Figure({ label, value, meta }: { label: string; value: string; meta: string }) {
   return (
     <div>
-      <div className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+      <div className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
         {label}
       </div>
       <div className="mt-1 text-xl font-semibold text-af-ink">{value}</div>

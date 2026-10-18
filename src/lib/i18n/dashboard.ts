@@ -240,6 +240,12 @@ const en: Dict = {
   "expenseCharts.whereMoneyGoes": "Where money goes",
   "expenseCharts.byCategory": "Expenses by category",
   "expenseCharts.noExpenses": "No expenses logged yet.",
+  "expenseCharts.noMonthly": "No income or expenses recorded yet.",
+  "a11y.clearPhoto": "Remove this photo",
+  "a11y.close": "Close",
+  "a11y.bookmarkAdd": "Save this scheme",
+  "a11y.bookmarkRemove": "Remove this saved scheme",
+  "a11y.voiceTap": "Tap to speak, or to stop the reply",
   "expenseCharts.monthlyCashFlow": "Monthly cash flow",
   "expenseCharts.incomeVsExpense": "Income vs expense",
 
@@ -259,6 +265,7 @@ const en: Dict = {
   "transactionPanel.noTxns": "No transactions yet — add your first on the left.",
   "transactionPanel.saveError": "Could not save transaction.",
   "transactionPanel.deleteError": "Could not delete.",
+  "transactionPanel.delete": "Delete this entry",
 
   // SchemesBoard.tsx
   "schemesBoard.recommendedFor": "Recommended schemes for your farm",
@@ -673,6 +680,8 @@ const en: Dict = {
 
   "nav.soilPh": "Soil pH",
   "title.soilPh": "Soil pH",
+  "title.news": "Farm News",
+  "news.subtitle": "Today’s farming headlines, picked for your crops and your state.",
   "nav.irrigation": "Irrigation",
   "title.irrigation": "Smart Irrigation",
   "irrigation.subtitle": "How much water each farm needs, when to give it, and what the rain will cover.",
@@ -1560,6 +1569,15 @@ const hi: Dict = {
   "irrigation.rainfed.worstDay": "सबसे खराब दिन {worstDay} जैसा दिखता है।",
   "irrigation.log.cancel": "रद्द करें",
   "irrigation.log.save": "सहेजें",
+  "transactionPanel.delete": "इस प्रविष्टि को हटाएं",
+  "expenseCharts.noMonthly": "अभी तक कोई आय या खर्च दर्ज नहीं किया गया है।",
+  "a11y.clearPhoto": "इस फोटो को हटाएं",
+  "a11y.close": "बंद करें",
+  "a11y.bookmarkAdd": "इस योजना को सहेजें",
+  "a11y.bookmarkRemove": "इस सहेजे गए योजना को हटाएं",
+  "a11y.voiceTap": "बात करने या उत्तर को रोकने के लिए टैप करें",
+  "title.news": "किसान समाचार",
+  "news.subtitle": "आज के कृषि समाचार, आपके फसलों और आपके राज्य के लिए चुने गए।",
 };
 const kn: Dict = {
   // Sensor panel: NPK tile (no hardware yet — see src/lib/npk.ts).

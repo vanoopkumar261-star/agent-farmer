@@ -54,7 +54,7 @@ export default function WeatherCard({
 
       {/* 7-day */}
       <div className="mt-6 pt-5 border-t border-af-border">
-        <div className="grid grid-cols-7 gap-1.5">
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
           {daily.map((d, i) => (
             <div
               key={d.dateISO}

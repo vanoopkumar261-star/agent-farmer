@@ -44,6 +44,10 @@ const en: Dict = {
   "nav.settings": "Settings",
   "nav.newFarm": "New Farm",
   "nav.farmerProfile": "Farmer Profile",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Open menu",
+  "nav.closeMenu": "Close menu",
+  "nav.language": "Language",
   "topbar.search": "Search farms, crops, insights…",
   "greeting.morning": "Good morning",
   "greeting.afternoon": "Good afternoon",
@@ -111,6 +115,10 @@ const hi: Dict = {
   "common.apply": "आवेदन करें",
   "common.addFarm": "+ खेत जोड़ें",
   "common.viewAll": "सभी देखें",
+  "nav.menu": "मेनू",
+  "nav.openMenu": "मेनू खोलें",
+  "nav.closeMenu": "मेनू बंद करें",
+  "nav.language": "भाषा",
 };
 
 const kn: Dict = {
@@ -160,6 +168,10 @@ const kn: Dict = {
   "common.apply": "ಅರ್ಜಿ ಸಲ್ಲಿಸಿ",
   "common.addFarm": "+ ಜಮೀನು ಸೇರಿಸಿ",
   "common.viewAll": "ಎಲ್ಲ ನೋಡಿ",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Åpne meny",
+  "nav.closeMenu": "Close menu",
+  "nav.language": "Vil du være oversetter?",
 };
 
 const ta: Dict = {
@@ -209,6 +221,10 @@ const ta: Dict = {
   "common.apply": "விண்ணப்பி",
   "common.addFarm": "+ பண்ணை சேர்",
   "common.viewAll": "அனைத்தையும் காண்",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Åpne meny",
+  "nav.closeMenu": "Close menu",
+  "nav.language": "Vil du være oversetter?",
 };
 
 const te: Dict = {
@@ -258,6 +274,10 @@ const te: Dict = {
   "common.apply": "దరఖాస్తు చేయండి",
   "common.addFarm": "+ పొలం జోడించండి",
   "common.viewAll": "అన్నీ చూడండి",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Åpne meny",
+  "nav.closeMenu": "Close menu",
+  "nav.language": "Vil du være oversetter?",
 };
 
 const ml: Dict = {
@@ -307,6 +327,10 @@ const ml: Dict = {
   "common.apply": "അപേക്ഷിക്കുക",
   "common.addFarm": "+ കൃഷിയിടം ചേർക്കുക",
   "common.viewAll": "എല്ലാം കാണുക",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Åpne meny",
+  "nav.closeMenu": "Zatvorte menu",
+  "nav.language": "Vil du være oversetter?",
 };
 
 const mr: Dict = {
@@ -356,6 +380,10 @@ const mr: Dict = {
   "common.apply": "अर्ज करा",
   "common.addFarm": "+ शेत जोडा",
   "common.viewAll": "सर्व पहा",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Åpne meny",
+  "nav.closeMenu": "Close menu",
+  "nav.language": "Vil du være oversetter?",
 };
 
 const bn: Dict = {
@@ -405,6 +433,10 @@ const bn: Dict = {
   "common.apply": "আবেদন করুন",
   "common.addFarm": "+ খামার যোগ করুন",
   "common.viewAll": "সব দেখুন",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Åpne meny",
+  "nav.closeMenu": "Close menu",
+  "nav.language": "Vil du være oversetter?",
 };
 
 const pa: Dict = {
@@ -454,6 +486,10 @@ const pa: Dict = {
   "common.apply": "ਅਰਜ਼ੀ ਦਿਓ",
   "common.addFarm": "+ ਖੇਤ ਸ਼ਾਮਲ ਕਰੋ",
   "common.viewAll": "ਸਭ ਵੇਖੋ",
+  "nav.menu": "Menu",
+  "nav.openMenu": "Åpne meny",
+  "nav.closeMenu": "Close menu",
+  "nav.language": "Vil du være oversetter?",
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = {

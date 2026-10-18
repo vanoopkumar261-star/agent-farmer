@@ -137,7 +137,7 @@ export default function IrrigationBoard({
           <Card className="p-4">
             <div className="flex items-center gap-2 text-af-muted">
               <Gauge className="w-4 h-4" />
-              <span className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase">
+              <span className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase">
                 {t("irrigation.board.soilWaterNow")}
               </span>
             </div>
@@ -150,7 +150,7 @@ export default function IrrigationBoard({
           <Card className="p-4">
             <div className="flex items-center gap-2 text-af-muted">
               <Waves className="w-4 h-4" />
-              <span className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase">
+              <span className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase">
                 {t("irrigation.board.usingToday")}
               </span>
             </div>

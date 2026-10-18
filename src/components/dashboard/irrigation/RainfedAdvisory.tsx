@@ -141,7 +141,7 @@ function Stat({
 }) {
   return (
     <div className="rounded-[14px] bg-af-bg border border-af-border p-4">
-      <div className="font-mono text-[10px] font-bold tracking-[0.18em] uppercase text-af-muted">
+      <div className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
         {label}
       </div>
       <div className="mt-1 text-xl font-semibold" style={accent ? { color: accent } : undefined}>

@@ -15,7 +15,8 @@ import {
 } from "recharts";
 import Card from "@/components/ui/Card";
 import { PieChart as PieIcon, BarChart3 } from "lucide-react";
-import { SERIES, SEQUENTIAL_GREEN, GRID, AXIS, tooltipStyle } from "@/lib/chartTheme";
+import { SERIES, SEQUENTIAL_GREEN, GRID, AXIS, LEGEND_INK, tooltipStyle } from "@/lib/chartTheme";
+import { rupee, rupeeShort } from "@/lib/format";
 import { useT } from "@/components/i18n/LanguageProvider";
 
 const EMERALD = SERIES.income;
@@ -29,7 +30,6 @@ const AMBER = SERIES.expense;
  */
 const RAMP = SEQUENTIAL_GREEN;
 
-const rupee = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
 
 export default function ExpenseCharts({
   byCategory,
@@ -60,7 +60,7 @@ export default function ExpenseCharts({
             {t("expenseCharts.noExpenses")}
           </div>
         ) : (
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="w-[150px] h-[180px] shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -109,12 +109,17 @@ export default function ExpenseCharts({
             <p className="text-meta text-af-muted">{t("expenseCharts.incomeVsExpense")}</p>
           </div>
         </div>
+        {byMonth.length === 0 ? (
+          <div className="flex h-[200px] items-center justify-center rounded-[14px] border border-dashed border-af-border text-sm text-af-muted">
+            {t("expenseCharts.noMonthly")}
+          </div>
+        ) : (
         <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={byMonth} margin={{ top: 6, right: 8, bottom: 0, left: -8 }} barGap={4}>
               <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="month" tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
+              <YAxis tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => rupeeShort(v)} />
               <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => rupee(v)} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
               <Legend
                 iconType="circle"
@@ -123,13 +128,14 @@ export default function ExpenseCharts({
               // Identity is the legend dot; the text stays in ink. Recharts
               // colours legend labels with the series colour by default, which
               // puts mustard type at 2.2:1 on white.
-              formatter={(value) => <span style={{ color: "#3F5347" }}>{value}</span>}
+              formatter={(value) => <span style={{ color: LEGEND_INK }}>{value}</span>}
               />
               <Bar dataKey="income" name="Income" fill={EMERALD} radius={[4, 4, 0, 0]} />
               <Bar dataKey="expense" name="Expense" fill={AMBER} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
+        )}
       </Card>
     </div>
   );

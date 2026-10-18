@@ -290,7 +290,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               </p>
 
               <div className="space-y-1.5">
-                <label className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
+                <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-af-muted">
                   {t("addFarmModal.farmArea")}
                 </label>
                 <input
@@ -385,7 +385,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               )}
 
               <div className="space-y-1.5">
-                <label className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
+                <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-af-muted">
                   {t("addFarmModal.customCrop")}
                 </label>
                 <input
@@ -401,7 +401,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
+                  <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-af-muted">
                     {t("addFarmModal.seedingDate")}
                   </label>
                   <input
@@ -412,7 +412,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-af-muted">
+                  <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-af-muted">
                     {t("addFarmModal.estHarvestDate")}
                   </label>
                   <input
@@ -445,7 +445,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               <button
                 onClick={() => setStage("field")}
                 disabled={saving}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] border border-af-border bg-af-card px-6 py-3 text-sm font-bold text-af-ink transition hover:bg-af-bg active:scale-[0.98] disabled:opacity-50 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] border border-af-border bg-af-card px-6 py-3 text-sm font-semibold text-af-ink transition hover:bg-af-bg active:scale-[0.98] disabled:opacity-50 sm:w-auto"
               >
                 <ArrowLeft className="h-4 w-4" />
                 {t("addFarmModal.back")}
@@ -456,7 +456,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               <button
                 onClick={fetchRecommendations}
                 disabled={!canFetchAI || loadingAI}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-bold text-white shadow-af-md transition hover:bg-af-primary-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-af-primary"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-semibold text-white shadow-af-md transition hover:bg-af-primary-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-af-primary"
               >
                 {loadingAI ? (
                   <>
@@ -475,7 +475,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               <button
                 onClick={handleApply}
                 disabled={!canApply}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-bold text-white shadow-af-md transition hover:bg-af-primary-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-af-primary"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-semibold text-white shadow-af-md transition hover:bg-af-primary-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-af-primary"
               >
                 {saving ? (
                   <>

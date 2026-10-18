@@ -362,13 +362,13 @@ export function AssistantAvatar({ className = "w-10 h-10" }: { className?: strin
       className={`relative flex items-center justify-center rounded-[12px] bg-af-primary shrink-0 overflow-hidden ${className}`}
     >
       <svg viewBox="0 0 40 40" className="absolute inset-0 w-full h-full" aria-hidden="true">
-        <g stroke="#04331F" strokeWidth="1.4" opacity="0.42" fill="none">
+        <g className="text-af-secondary" stroke="currentColor" strokeWidth="1.4" opacity="0.42" fill="none">
           <path d="M0 12 H8 V4" />
           <path d="M40 27 H32 V36" />
           <path d="M0 30 H6" />
           <path d="M40 9 H34" />
         </g>
-        <g fill="#04331F" opacity="0.5">
+        <g className="text-af-secondary" fill="currentColor" opacity="0.5">
           <circle cx="8" cy="4" r="1.6" />
           <circle cx="32" cy="36" r="1.6" />
           <circle cx="6" cy="30" r="1.4" />
