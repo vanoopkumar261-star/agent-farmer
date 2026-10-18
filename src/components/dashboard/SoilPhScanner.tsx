@@ -221,6 +221,7 @@ export default function SoilPhScanner({
             />
             <button
               onClick={reset}
+              aria-label={t("a11y.clearPhoto")}
               className="absolute top-3 right-3 flex items-center justify-center w-8 h-8 rounded-full bg-af-ink/70 text-white hover:bg-af-ink transition"
             >
               <X className="w-4 h-4" />

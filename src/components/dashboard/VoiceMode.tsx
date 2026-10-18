@@ -72,7 +72,7 @@ export default function VoiceMode() {
         )}
       </div>
 
-      <Orb phase={phase} level={level} onTap={interrupt} />
+      <Orb phase={phase} level={level} onTap={interrupt} label={t("a11y.voiceTap")} />
 
       <p className="mt-6 font-mono text-[11px] tracking-[0.16em] uppercase text-af-sage">
         {phaseLabel(phase, t)}
@@ -114,7 +114,7 @@ export default function VoiceMode() {
 }
 
 /** State indicator — the one thing on screen that says what is happening. */
-function Orb({ phase, level, onTap }: { phase: VoicePhase; level: number; onTap: () => void }) {
+function Orb({ phase, level, onTap, label }: { phase: VoicePhase; level: number; onTap: () => void; label: string }) {
   const listening = phase === "listening";
   const speaking = phase === "speaking";
   const working = phase === "thinking" || phase === "transcribing";
@@ -124,6 +124,7 @@ function Orb({ phase, level, onTap }: { phase: VoicePhase; level: number; onTap:
       type="button"
       onClick={onTap}
       disabled={!listening && !speaking}
+      aria-label={label}
       className="relative mt-8 flex items-center justify-center w-40 h-40 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-default"
     >
       {/* The halo follows the microphone level, so the farmer sees they are

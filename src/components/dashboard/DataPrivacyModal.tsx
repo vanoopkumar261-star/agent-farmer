@@ -80,6 +80,7 @@ export default function DataPrivacyModal({
             </div>
             <button
               onClick={onClose}
+              aria-label={t("a11y.close")}
               className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-bg border border-af-border text-af-muted hover:text-af-ink hover:border-af-primary/40 transition"
             >
               <X className="w-4 h-4" />

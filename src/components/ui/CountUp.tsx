@@ -45,7 +45,12 @@ export default function CountUp({
   return (
     <span ref={ref}>
       {prefix}
-      {display.toLocaleString(undefined, {
+      {/*
+        "en-IN", not the browser default. This component feeds every StatTile,
+        so on a phone set to en-US it printed 1,250,000 directly above a ledger
+        printing 12,50,000 — the same money, two groupings, one screen.
+      */}
+      {display.toLocaleString("en-IN", {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       })}

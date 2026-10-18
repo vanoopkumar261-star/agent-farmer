@@ -1,4 +1,5 @@
 import { getDashboardData } from "@/lib/dashboard";
+import PageHeader from "@/components/ui/PageHeader";
 import { getWeather } from "@/lib/weather";
 import { harvestInfo } from "@/lib/agronomy";
 import { computeFarmHealth } from "@/lib/health";
@@ -54,15 +55,11 @@ export default async function CropsPage() {
 
   return (
     <div className="max-w-[1100px] mx-auto">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex items-center justify-center w-11 h-11 rounded-2xl bg-af-sage text-af-secondary">
-          <Sprout className="w-5 h-5" />
-        </span>
-        <div>
-          <h1 className="text-heading font-semibold text-af-ink"><T k="title.crops" /></h1>
-          <p className="mt-0.5 text-sm text-af-ink-2"><T k="crops.subtitle" /></p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<Sprout className="w-5 h-5" />}
+        title={<T k="title.crops" />}
+        subtitle={<T k="crops.subtitle" />}
+      />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Reveal index={0}>

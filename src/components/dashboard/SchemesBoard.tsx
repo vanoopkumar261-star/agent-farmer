@@ -175,6 +175,8 @@ export default function SchemesBoard({
                 </div>
                 <button
                   onClick={() => toggleBookmark(s.id)}
+                  aria-pressed={marked}
+                  aria-label={t(marked ? "a11y.bookmarkRemove" : "a11y.bookmarkAdd")}
                   className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition ${
                     marked ? "text-af-primary-deep bg-af-primary/10" : "text-af-muted hover:text-af-ink hover:bg-af-bg"
                   }`}

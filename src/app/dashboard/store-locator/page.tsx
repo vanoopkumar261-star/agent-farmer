@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 import { getDashboardData } from "@/lib/dashboard";
 import { getNearbyStores } from "@/lib/stores";
 import StoreLocatorClient from "@/components/dashboard/StoreLocatorClient";
@@ -36,17 +37,11 @@ export default async function StoreLocatorPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex items-center justify-center w-11 h-11 rounded-2xl bg-af-sage text-af-secondary">
-          <MapPin className="w-5 h-5" />
-        </span>
-        <div>
-          <h1 className="text-heading font-semibold text-af-ink"><T k="title.stores" /></h1>
-          <p className="mt-0.5 text-sm text-af-ink-2">
-            <T k="stores.subtitle" params={{ place: place.split(",")[0] }} />
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<MapPin className="w-5 h-5" />}
+        title={<T k="title.stores" />}
+        subtitle={<T k="stores.subtitle" params={{ place: place.split(",")[0] }} />}
+      />
 
       <Reveal>
         <StoreLocatorClient

@@ -1,4 +1,5 @@
 import { getDashboardData } from "@/lib/dashboard";
+import PageHeader from "@/components/ui/PageHeader";
 import { getExpensesData } from "@/lib/expenses-server";
 import ExpenseCharts from "@/components/dashboard/ExpenseCharts";
 import TransactionPanel from "@/components/dashboard/TransactionPanel";
@@ -31,15 +32,11 @@ export default async function ExpensesPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex items-center justify-center w-11 h-11 rounded-2xl bg-af-sage text-af-secondary">
-          <Wallet className="w-5 h-5" />
-        </span>
-        <div>
-          <h1 className="text-heading font-semibold text-af-ink"><T k="title.expenses" /></h1>
-          <p className="mt-0.5 text-sm text-af-ink-2"><T k="expenses.subtitle" /></p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<Wallet className="w-5 h-5" />}
+        title={<T k="title.expenses" />}
+        subtitle={<T k="expenses.subtitle" />}
+      />
 
       {/* Summary tiles */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
