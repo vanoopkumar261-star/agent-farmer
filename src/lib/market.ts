@@ -35,6 +35,18 @@ export type MandiRow = {
   };
   totalDeductions: number;
   netPrice: number;     // price after all deductions
+  /**
+   * Agmarknet's own variety label for the quote this row came from, when it
+   * gave one. Optional and ignored by the existing board.
+   *
+   * It exists because the feed contradicts itself: Jalalabad APMC reports
+   * commodity "Paddy(Common)" with variety "Basmati" at ₹4100, while every
+   * genuine common-paddy mandi in Punjab sits at ₹2461. Filtering on the
+   * commodity alone therefore lets a premium variety through and crowns the
+   * wrong mandi — and a farmer who trusts that drives a loaded trailer to a
+   * mandi that will pay them 40% less.
+   */
+  variety?: string;
 };
 
 // Default APMC fee settings
@@ -64,7 +76,23 @@ function calculateFees(quotedPrice: number) {
 const CROPS: { name: string; agmarkNames: string[]; base: number }[] = [
   {
     name: "Paddy",
-    agmarkNames: ["Paddy(Dhan)(Common)", "Paddy(Dhan)(Hybrid)", "Paddy", "Dhan(Paddy)"],
+    // Agmarknet renamed these: it now reports "Paddy(Common)", dropping the
+    // "(Dhan)" segment. `filterByCommodity` matches the whole string, so the
+    // old aliases silently stopped matching and Paddy showed as "not arriving"
+    // in Punjab while the feed carried ten live rows for it.
+    //
+    // "Paddy(Basmati)" is deliberately NOT here. It is a different, far pricier
+    // variety, and pooling it with the staple would make the best-mandi ranking
+    // report whichever mandi happened to be selling basmati. The original list
+    // covered Common and Hybrid only; this keeps that intent.
+    agmarkNames: [
+      "Paddy(Common)",
+      "Paddy(Hybrid)",
+      "Paddy(Dhan)(Common)",
+      "Paddy(Dhan)(Hybrid)",
+      "Paddy",
+      "Dhan(Paddy)",
+    ],
     base: 2320,
   },
   {
@@ -342,18 +370,22 @@ function recordsToCropMarket(
 export function recordsToMandiRows(records: AgmarkRecord[]): MandiRow[] {
   if (records.length === 0) return [];
 
-  const map = new Map<string, number>();
+  // Keeps the best quote per market, and now remembers which variety produced
+  // it so callers can reject a premium variety the feed mislabelled. Same
+  // max-per-market semantics as before.
+  const map = new Map<string, { price: number; variety?: string }>();
   for (const r of records) {
     const p = Number(r.modal_price);
     if (!isNaN(p) && p > 0) {
-      if (!map.has(r.market) || map.get(r.market)! < p) {
-        map.set(r.market, p);
+      const prev = map.get(r.market);
+      if (!prev || prev.price < p) {
+        map.set(r.market, { price: p, variety: r.variety || undefined });
       }
     }
   }
 
   return Array.from(map.entries())
-    .map(([mandi, price], i) => {
+    .map(([mandi, { price, variety }], i) => {
       const { fees, totalDeductions, netPrice } = calculateFees(price);
       return {
         mandi,
@@ -362,6 +394,7 @@ export function recordsToMandiRows(records: AgmarkRecord[]): MandiRow[] {
         fees,
         totalDeductions,
         netPrice,
+        variety,
       };
     })
     .sort((a, b) => b.netPrice - a.netPrice) // sort by net price (best for farmer)
@@ -419,12 +452,40 @@ export async function getMandiRows(
   try {
     const allRecords = await fetchAllStateRecords(state, apiKey);
     const records = filterByCommodity(allRecords, crop.agmarkNames);
-    const rows = recordsToMandiRows(records);
+    // Variety filter runs after the commodity filter because the feed
+    // contradicts itself — see `isForeignVariety`. Applied here rather than in
+    // each caller so the board, the mobile route and the live comparison card
+    // all rank the same crop.
+    const rows = recordsToMandiRows(records).filter(
+      (r) => !isForeignVariety(crop.name, r.variety)
+    );
     return rows.length > 0 ? rows : [];
   } catch (err) {
     console.error(`Mandi lookup failed for ${cropName} in ${state}:`, err);
     return [];
   }
+}
+
+/**
+ * True when a quote's variety belongs to a different, differently-priced crop
+ * than the one asked for.
+ *
+ * One named upstream inconsistency, not a general outlier rule. Jalalabad APMC
+ * is filed under commodity "Paddy(Common)" but carries variety "Basmati" at
+ * ₹4100, while every genuine common-paddy mandi in Punjab sits at ₹2461.
+ * Because the row is not labelled basmati at the commodity level,
+ * `filterByCommodity` cannot catch it, and sorting by price then crowns
+ * Jalalabad — which would send a farmer with common paddy to a mandi paying
+ * 40% less than the figure that sent them there.
+ *
+ * Deliberately not a "discard anything suspiciously expensive" heuristic: that
+ * would also discard a genuinely good mandi, which is the one thing a farmer
+ * opened this page to find.
+ */
+export function isForeignVariety(crop: string, variety?: string): boolean {
+  if (!variety) return false;
+  if (crop.toLowerCase() !== "paddy") return false;
+  return /basmati/i.test(variety);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

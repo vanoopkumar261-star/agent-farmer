@@ -3,6 +3,7 @@ import { getMarketForState, getMandiRowsForState, hasMarketKey } from "@/lib/mar
 import { getDashboardData } from "@/lib/dashboard";
 import MarketBoard from "@/components/dashboard/MarketBoard";
 import MarketAdvice from "@/components/dashboard/MarketAdvice";
+import LiveMandiCard from "@/components/dashboard/LiveMandiCard";
 import Reveal from "@/components/ui/Reveal";
 import { T } from "@/components/i18n/LanguageProvider";
 import { ShoppingCart, Wifi, WifiOff } from "lucide-react";
@@ -129,6 +130,15 @@ export default async function MarketPage() {
             state={state}
             isRealData={isRealData}
           />
+        </Reveal>
+        {/*
+          Sits below the board on purpose: the board is the cached official
+          feed, this is the live agent asked for on demand. Reading them in
+          that order is the story — dataset first, then the agent that goes and
+          checks.
+        */}
+        <Reveal>
+          <LiveMandiCard crop={focus} state={state} />
         </Reveal>
       </div>
     </div>
