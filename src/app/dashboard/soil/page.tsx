@@ -1,6 +1,9 @@
 import { History } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { T } from "@/components/i18n/LanguageProvider";
+import PageHeader from "@/components/ui/PageHeader";
+import Reveal from "@/components/ui/Reveal";
+import { FlaskConical } from "lucide-react";
 import { getDashboardData } from "@/lib/dashboard";
 import { getRecentSoilReadings } from "@/lib/history";
 import { phBand } from "@/lib/soilPh";
@@ -17,14 +20,11 @@ export default async function SoilPage() {
 
   return (
     <div className="max-w-[1100px] mx-auto">
-      <div className="mb-6">
-        <h1 className="text-heading font-semibold text-af-ink">
-          <T k="title.soilPh" />
-        </h1>
-        <p className="mt-1 text-sm text-af-ink-2">
-          <T k="soilPh.subtitle" />
-        </p>
-      </div>
+      <PageHeader
+        icon={<FlaskConical className="w-5 h-5" />}
+        title={<T k="title.soilPh" />}
+        subtitle={<T k="soilPh.subtitle" />}
+      />
 
       {farmer ? (
         <SoilPhScanner

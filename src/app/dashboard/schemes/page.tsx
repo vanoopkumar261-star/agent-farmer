@@ -2,6 +2,9 @@ import { getDashboardData } from "@/lib/dashboard";
 import { SCHEMES } from "@/lib/schemes";
 import SchemesBoard from "@/components/dashboard/SchemesBoard";
 import { T } from "@/components/i18n/LanguageProvider";
+import PageHeader from "@/components/ui/PageHeader";
+import Reveal from "@/components/ui/Reveal";
+import { Landmark } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -17,14 +20,14 @@ export default async function SchemesPage() {
 
   return (
     <div className="max-w-[1100px] mx-auto">
-      <div className="mb-6">
-        <h1 className="text-heading font-semibold text-af-ink"><T k="title.schemes" /></h1>
-        <p className="mt-1 text-sm text-af-ink-2">
-          <T k="schemes.subtitle" />
-        </p>
-      </div>
-
-      <SchemesBoard schemes={SCHEMES} profile={profile} />
+      <PageHeader
+        icon={<Landmark className="w-5 h-5" />}
+        title={<T k="title.schemes" />}
+        subtitle={<T k="schemes.subtitle" />}
+      />
+      <Reveal>
+        <SchemesBoard schemes={SCHEMES} profile={profile} />
+      </Reveal>
     </div>
   );
 }

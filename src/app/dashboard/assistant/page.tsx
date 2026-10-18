@@ -1,5 +1,7 @@
 import AssistantChat from "@/components/dashboard/AssistantChat";
 import { T } from "@/components/i18n/LanguageProvider";
+import PageHeader from "@/components/ui/PageHeader";
+import { Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +13,11 @@ export const dynamic = "force-dynamic";
 export default function AssistantPage() {
   return (
     <div className="max-w-[1000px] mx-auto">
-      <div className="mb-5">
-        <h1 className="text-heading font-semibold text-af-ink">
-          <T k="title.assistant" />
-        </h1>
-        <p className="mt-1 text-sm text-af-ink-2">
-          <T k="assistant.subtitle" />
-        </p>
-      </div>
+      <PageHeader
+        icon={<Sparkles className="w-5 h-5" />}
+        title={<T k="title.assistant" />}
+        subtitle={<T k="assistant.subtitle" />}
+      />
       <AssistantChat variant="page" />
     </div>
   );

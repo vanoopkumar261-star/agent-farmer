@@ -1,5 +1,8 @@
 import DiseaseScanner from "@/components/dashboard/DiseaseScanner";
 import { T } from "@/components/i18n/LanguageProvider";
+import PageHeader from "@/components/ui/PageHeader";
+import Reveal from "@/components/ui/Reveal";
+import { Microscope } from "lucide-react";
 import { getDashboardData } from "@/lib/dashboard";
 import { getRecentDiagnoses, signLeafImage, type DiagnosisRecord } from "@/lib/history";
 import { ShieldCheck, AlertTriangle, History, Sprout } from "lucide-react";
@@ -20,14 +23,15 @@ export default async function DiseasePage() {
 
   return (
     <div className="max-w-[1100px] mx-auto">
-      <div className="mb-6">
-        <h1 className="text-heading font-semibold text-af-ink"><T k="title.disease" /></h1>
-        <p className="mt-1 text-sm text-af-ink-2">
-          <T k="disease.subtitle" />
-        </p>
-      </div>
+      <PageHeader
+        icon={<Microscope className="w-5 h-5" />}
+        title={<T k="title.disease" />}
+        subtitle={<T k="disease.subtitle" />}
+      />
 
-      <DiseaseScanner />
+      <Reveal>
+        <DiseaseScanner />
+      </Reveal>
 
       {scans.length > 0 && (
         <div className="mt-8">
