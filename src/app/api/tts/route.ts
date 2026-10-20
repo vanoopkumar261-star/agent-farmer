@@ -13,15 +13,87 @@ export const dynamic = "force-dynamic";
 const MAX_CHARS = 600;
 
 /**
+ * NVIDIA's hosted Magpie TTS (build.nvidia.com), over its HTTP API. It speaks
+ * English and Hindi — the two locales with an entry here — and needs no GPU of
+ * our own, so it is what makes the assistant audible on Vercel. Same
+ * NVIDIA_API_KEY as src/lib/translate.ts.
+ */
+const NVIDIA_TTS_URL =
+  "https://877104f7-e885-42b9-8de8-f6e4c6303969.invocation.api.nvcf.nvidia.com/v1/audio/synthesize";
+const NVIDIA_LANGUAGE: Record<string, { code: string; voiceTag: string }> = {
+  en: { code: "en-US", voiceTag: "EN-US" },
+  hi: { code: "hi-IN", voiceTag: "HI-IN" },
+};
+/** Speaker name; "Aria" exists in both the EN-US and HI-IN voice sets. */
+const NVIDIA_SPEAKER = process.env.NVIDIA_TTS_VOICE?.trim() || "Aria";
+
+/** The self-hosted Chatterbox server, or null when it is absent or fails. */
+async function chatterbox(baseUrl: string, text: string, locale: string): Promise<ArrayBuffer | null> {
+  try {
+    const res = await fetch(`${baseUrl}/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, locale }),
+      // One sentence-sized chunk. The server warms the model at startup, but
+      // a busy GPU queues requests, so leave generous headroom.
+      signal: AbortSignal.timeout(90_000),
+    });
+    if (!res.ok) {
+      console.error("TTS server error:", res.status);
+      return null;
+    }
+    return await res.arrayBuffer();
+  } catch (e) {
+    // Not running, or timed out. Expected on Vercel and on most laptops.
+    console.warn("TTS server unreachable:", (e as Error)?.message ?? e);
+    return null;
+  }
+}
+
+/** NVIDIA hosted speech, or null when there is no key, no voice for the locale, or it fails. */
+async function nvidiaSpeech(text: string, locale: string): Promise<ArrayBuffer | null> {
+  const key = process.env.NVIDIA_API_KEY;
+  const lang = NVIDIA_LANGUAGE[locale];
+  if (!key || !lang) return null;
+
+  const form = new FormData();
+  form.set("text", text);
+  form.set("language", lang.code);
+  form.set("voice", `Magpie-Multilingual.${lang.voiceTag}.${NVIDIA_SPEAKER}`);
+  form.set("encoding", "LINEAR_PCM");
+  form.set("sample_rate_hz", "22050");
+
+  try {
+    const res = await fetch(NVIDIA_TTS_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!res.ok) {
+      console.error("NVIDIA TTS error:", res.status, (await res.text().catch(() => "")).slice(0, 200));
+      return null;
+    }
+    return await res.arrayBuffer();
+  } catch (e) {
+    console.error("NVIDIA TTS unreachable:", (e as Error)?.message ?? e);
+    return null;
+  }
+}
+
+/**
  * Speech synthesis for the assistant: every spoken reply and the onboarding
  * read-aloud come through here, one sentence-sized chunk per request.
  *
- * The voice is the Chatterbox Indic LoRA model running in `ml/tts/server.py`
- * (Malayalam and Punjabi fall back to MMS-TTS there, since Chatterbox cannot
- * speak them). This route only authenticates, rate-limits and proxies.
+ * Two voices, tried in order:
+ *   1. The Chatterbox Indic LoRA model in `ml/tts/server.py`, when it is
+ *      running (Malayalam and Punjabi fall back to MMS-TTS there, since
+ *      Chatterbox cannot speak them). Covers all nine locales.
+ *   2. NVIDIA's hosted Magpie voice, for English and Hindi, when
+ *      NVIDIA_API_KEY is set. Needs no GPU, so it works on Vercel.
  *
- * A 503 here is expected and not an error state: the speech server is optional,
- * and the client falls back to showing the reply as text when it is not running.
+ * A 503 here is expected and not an error state: speech is optional, and the
+ * client falls back to showing the reply as text when neither voice answers.
  */
 export async function POST(req: Request) {
   // Counted before any work is done — the point is to refuse the expensive
@@ -46,41 +118,22 @@ export async function POST(req: Request) {
 
   if (!text) return new Response("No text supplied.", { status: 400 });
 
-  const inferenceUrl = ttsBaseUrl();
-  if (!inferenceUrl) {
-    // No speech server in this environment. 503 is the contract the client
-    // already understands: it falls back to the reply as text, silently.
+  const serverUrl = ttsBaseUrl();
+  const audio =
+    (serverUrl ? await chatterbox(serverUrl, text, locale) : null) ?? (await nvidiaSpeech(text, locale));
+
+  if (!audio) {
+    // 503 is the contract the client already understands: it falls back to
+    // the reply as text, silently.
     return new Response("Speech synthesis is not available.", { status: 503 });
   }
 
-  try {
-    const res = await fetch(`${inferenceUrl}/tts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, locale }),
-      // One sentence-sized chunk. The server warms the model at startup, but
-      // a busy GPU queues requests, so leave generous headroom.
-      signal: AbortSignal.timeout(90_000),
-    });
-
-    if (!res.ok) {
-      console.error("TTS server error:", res.status);
-      return new Response("Speech synthesis unavailable.", { status: 503 });
-    }
-
-    const audio = await res.arrayBuffer();
-    return new Response(audio, {
-      headers: {
-        "Content-Type": "audio/wav",
-        "Content-Length": String(audio.byteLength),
-        // The same reply gets replayed often; let the browser keep it.
-        "Cache-Control": "private, max-age=3600",
-      },
-    });
-  } catch (e) {
-    // Server not running, or the request timed out. Both mean "no speech" —
-    // the app keeps working, it just shows the reply instead of saying it.
-    console.error("TTS server unreachable:", e);
-    return new Response("Speech synthesis unavailable.", { status: 503 });
-  }
+  return new Response(audio, {
+    headers: {
+      "Content-Type": "audio/wav",
+      "Content-Length": String(audio.byteLength),
+      // The same reply gets replayed often; let the browser keep it.
+      "Cache-Control": "private, max-age=3600",
+    },
+  });
 }
