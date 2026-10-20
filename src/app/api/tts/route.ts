@@ -1,6 +1,7 @@
 import { getSessionFarmer } from "@/lib/auth";
 import { ttsBaseUrl } from "@/lib/inference";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { maxSpeechSeconds, speakableFor, trimWav, wavSeconds } from "@/lib/speechText";
 
 export const dynamic = "force-dynamic";
 
@@ -64,12 +65,21 @@ async function nvidiaSpeech(text: string, locale: string): Promise<ArrayBuffer |
   form.set("sample_rate_hz", "22050");
 
   try {
-    const res = await fetch(NVIDIA_TTS_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}` },
-      body: form,
-      signal: AbortSignal.timeout(30_000),
-    });
+    const call = () =>
+      fetch(NVIDIA_TTS_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: form,
+        signal: AbortSignal.timeout(30_000),
+      });
+    let res = await call();
+    // The free tier allows ~40 requests a minute, and one long reply is
+    // several chunks. One short wait beats a reply that falls silent midway.
+    if (res.status === 429) {
+      const wait = Math.min(3, Number(res.headers.get("retry-after")) || 1.5);
+      await new Promise((r) => setTimeout(r, wait * 1000));
+      res = await call();
+    }
     if (!res.ok) {
       console.error("NVIDIA TTS error:", res.status, (await res.text().catch(() => "")).slice(0, 200));
       return null;
@@ -116,11 +126,23 @@ export async function POST(req: Request) {
     return new Response("Invalid request.", { status: 400 });
   }
 
+  text = speakableFor(text, locale);
   if (!text) return new Response("No text supplied.", { status: 400 });
 
   const serverUrl = ttsBaseUrl();
-  const audio =
+  const synthesize = async () =>
     (serverUrl ? await chatterbox(serverUrl, text, locale) : null) ?? (await nvidiaSpeech(text, locale));
+
+  // Neural TTS occasionally loses its place and repeats a syllable until it
+  // hits its own length limit — a farmer heard "हल्का" for 50 seconds. Audio
+  // far longer than the text could need is regenerated once, then cut.
+  const cap = maxSpeechSeconds(text);
+  let audio = await synthesize();
+  if (audio && (wavSeconds(audio) ?? 0) > cap) {
+    console.warn(`TTS ran long (${wavSeconds(audio)?.toFixed(1)}s for ${text.length} chars); retrying`);
+    const retry = await synthesize();
+    audio = retry && (wavSeconds(retry) ?? 0) <= cap ? retry : trimWav(retry ?? audio, cap);
+  }
 
   if (!audio) {
     // 503 is the contract the client already understands: it falls back to

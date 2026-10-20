@@ -136,13 +136,15 @@ export default function AssistantProvider({
       // Placeholder assistant message we stream into.
       setMessages((m) => [...m, { role: "assistant", content: "" }]);
 
+      // The error is shown in the thread, but resolves as "" — it is not a
+      // reply, and voice mode would otherwise summarise it and read it out.
       const fail = (msg: string) => {
         setMessages((m) => {
           const copy = [...m];
           copy[copy.length - 1] = { role: "assistant", content: msg };
           return copy;
         });
-        return msg;
+        return "";
       };
 
       try {
@@ -152,7 +154,9 @@ export default function AssistantProvider({
           // Order matters: voice mode passes "en" explicitly and must still win
           // over a chat choice, or a farmer who picked Malayalam would get
           // spoken replies in a language the device voice cannot read.
-          body: JSON.stringify({ messages: next, locale: localeOverride ?? chatLocale ?? locale }),
+          // Only the recent turns: the route reads the last 10 and nothing more, and
+          // sending the whole thread pushed long Hindi chats past its size limit.
+          body: JSON.stringify({ messages: next.slice(-10), locale: localeOverride ?? chatLocale ?? locale }),
         });
 
         if (!res.ok || !res.body) {

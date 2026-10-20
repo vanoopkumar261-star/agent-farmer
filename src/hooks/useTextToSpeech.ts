@@ -17,7 +17,9 @@ export function useTextToSpeech(locale: string) {
   const mine = snap.owner === owner.current;
 
   const speak = useCallback(
-    (text: string) => player.speak(owner.current, text, locale),
+    // `as` speaks in another language than the hook's, e.g. the one voice
+    // mode just heard the farmer use.
+    (text: string, as: string = locale) => player.speak(owner.current, text, as),
     [locale]
   );
 

@@ -27,7 +27,8 @@ export async function POST(req: Request) {
   let messages: ChatMessage[] = [];
   let locale = "en";
   try {
-    const body = await readJsonBounded(req, 48_000);
+    // 10 turns × 4000 chars, at up to 3 bytes a char for Devanagari, plus JSON.
+    const body = await readJsonBounded(req, 160_000);
     locale = typeof body?.locale === "string" ? body.locale : "en";
     messages = (body?.messages ?? [])
       .filter(
@@ -43,6 +44,13 @@ export async function POST(req: Request) {
 
   // Keep only the last ~10 turns to stay within budget.
   messages = messages.slice(-10);
+  // …and cap their combined length, dropping the oldest first. Ten long
+  // answers (a Hindi reply runs 1,000-4,000 characters) made a prompt Groq's
+  // per-minute token limit refused outright. The newest message always stays.
+  const HISTORY_CHARS = 8000;
+  while (messages.length > 1 && messages.reduce((n, m) => n + m.content.length, 0) > HISTORY_CHARS) {
+    messages.shift();
+  }
 
   const [context, farmer, user] = await Promise.all([
     buildAssistantContext(),
@@ -93,7 +101,7 @@ Guidelines:
 - When weather implies action (rain, heat), say what to do and when.
 - If asked about farming beyond the data above, answer helpfully from general agronomy knowledge.
 - Never invent farm data that isn't provided. If data is missing, say so briefly.
-
+- Use common, everyday words. Never coin a term or use a word you are not sure is real ${language}; a simpler correct word always beats an impressive wrong one.
 ${sourceBlock}`;
 
   // fetchWithRetry still throws once its attempts are spent — most often on the
