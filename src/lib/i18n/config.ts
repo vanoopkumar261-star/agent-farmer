@@ -18,3 +18,10 @@ export const STORAGE_KEY = "af_locale";
 export function aiLanguageName(code: string): string {
   return LOCALES.find((l) => l.code === code)?.aiName ?? "English";
 }
+
+/**
+ * A translatable message built server-side (agronomy tasks, health factors,
+ * alerts): a dictionary key plus params, rendered in the viewer's language by
+ * the client. The English text lives in the `en` dictionary like any other key.
+ */
+export type Msg = { k: string; p?: Record<string, string | number> };

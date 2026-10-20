@@ -8,6 +8,9 @@
  * India-typical yield estimates.
  */
 
+import type { Msg } from "./i18n/config";
+import { translate } from "./i18n/dictionaries";
+
 export type StageLabel =
   | "Germination"
   | "Seedling"
@@ -483,8 +486,11 @@ export function estimateYieldLabel(crop: string, areaAcres: number): string {
 
 export type TaskSeed = {
   key: string; // stable id for dedupe / persistence
+  /** English, for persistence and notifications. The UI renders the Msg forms. */
   title: string;
   meta: string;
+  titleMsg: Msg;
+  metaMsg: Msg;
   tone: "green" | "amber" | "blue";
   category: "irrigation" | "fertilizer" | "scouting" | "protection" | "harvest" | "general";
 };
@@ -501,6 +507,20 @@ type FarmLike = {
     estimated_harvest_date?: string | null;
   } | null;
 };
+
+function msg(k: string, p?: Msg["p"]): Msg {
+  return { k, p };
+}
+
+/** Both forms of a task's text: the Msg the UI translates, and English for storage. */
+function seed(titleMsg: Msg, metaMsg: Msg) {
+  return {
+    title: translate("en", titleMsg.k, titleMsg.p),
+    meta: translate("en", metaMsg.k, metaMsg.p),
+    titleMsg,
+    metaMsg,
+  };
+}
 
 /**
  * Rain-fed plots depend on stored soil moisture rather than a water source.
@@ -546,23 +566,22 @@ export function generateTasks(
     const st = cropStageFor(crop, f.crop.seeding_date, harvestDate);
     const fi = f.farm_index; // shown to the farmer
     const fk = f.id ?? String(f.farm_index); // identifies the farm in task keys
-    const dayMeta = `Day ${st.day} · ${st.label} stage`;
+    const dayMeta = msg("task.meta.day", { day: st.day, stage: st.label });
+    const dayMetaWith = (k: string) => msg(k, { day: st.day, stage: st.label });
 
     switch (st.label) {
       case "Germination":
       case "Seedling":
         tasks.push({
           key: `scout-early-${fk}`,
-          title: `Inspect ${crop} germination — Farm ${fi}`,
-          meta: dayMeta,
+          ...seed(msg("task.inspectGermination", { crop, fi }), dayMeta),
           tone: "green",
           category: "scouting",
         });
         if (p.waterHeavy) {
           tasks.push({
             key: `water-early-${fk}`,
-            title: `Maintain shallow standing water — Farm ${fi}`,
-            meta: `${crop} · keep the field moist at establishment`,
+            ...seed(msg("task.standingWater", { fi }), msg("task.meta.keepMoist", { crop })),
             tone: "blue",
             category: "irrigation",
           });
@@ -571,15 +590,13 @@ export function generateTasks(
       case "Vegetative":
         tasks.push({
           key: `fert-veg-${fk}`,
-          title: `Apply nitrogen top-dressing to ${crop} — Farm ${fi}`,
-          meta: dayMeta,
+          ...seed(msg("task.nitrogen", { crop, fi }), dayMeta),
           tone: "amber",
           category: "fertilizer",
         });
         routine.push({
           key: `weeds-veg-${fk}`,
-          title: `Check for weeds around ${crop} — Farm ${fi}`,
-          meta: `${dayMeta} · weeds compete hardest now`,
+          ...seed(msg("task.weeds", { crop, fi }), dayMetaWith("task.meta.dayWeeds")),
           tone: "green",
           category: "scouting",
         });
@@ -587,8 +604,7 @@ export function generateTasks(
       case "Flowering":
         tasks.push({
           key: `scout-flower-${fk}`,
-          title: `Scout ${crop} for pests & disease at flowering — Farm ${fi}`,
-          meta: `${dayMeta} · avoid water stress now`,
+          ...seed(msg("task.scoutFlowering", { crop, fi }), dayMetaWith("task.meta.dayWaterStress")),
           tone: "amber",
           category: "scouting",
         });
@@ -597,8 +613,7 @@ export function generateTasks(
         const h = harvestInfo(crop, f.crop.seeding_date, harvestDate);
         tasks.push({
           key: `harvest-${fk}`,
-          title: `Prepare for ${crop} harvest — Farm ${fi}`,
-          meta: `~${h.daysLeft} days to harvest · arrange labour & drying`,
+          ...seed(msg("task.prepareHarvest", { crop, fi }), msg("task.meta.harvest", { days: h.daysLeft })),
           tone: "green",
           category: "harvest",
         });
@@ -611,8 +626,7 @@ export function generateTasks(
     if (st.label !== "Germination") {
       routine.push({
         key: `leaf-check-${fk}`,
-        title: "Inspect leaves for early signs of disease",
-        meta: `${crop} · Farm ${fi}`,
+        ...seed(msg("task.inspectLeaves"), msg("task.meta.cropFarm", { crop, fi })),
         tone: "blue",
         category: "protection",
       });
@@ -623,8 +637,7 @@ export function generateTasks(
     if (isRainFed(f.irrigation) && !rainSoon(weather) && st.label !== "Maturity") {
       routine.push({
         key: `moisture-${fk}`,
-        title: `Check soil moisture — Farm ${fi}`,
-        meta: "Rain-fed plot · no rain forecast",
+        ...seed(msg("task.soilMoisture", { fi }), msg("task.meta.rainFed")),
         tone: "amber",
         category: "irrigation",
       });
@@ -635,8 +648,7 @@ export function generateTasks(
   if (rainSoon(weather)) {
     tasks.push({
       key: "weather-rain",
-      title: "Hold irrigation & spraying — rain expected",
-      meta: "Weather · next 72 hours",
+      ...seed(msg("task.holdIrrigation"), msg("task.meta.weather72")),
       tone: "blue",
       category: "irrigation",
     });
@@ -652,8 +664,7 @@ export function generateTasks(
     if (hotFarm) {
       tasks.push({
         key: "weather-heat",
-        title: "Irrigate early morning — heat stress risk",
-        meta: `${temp}°C · protect crops at a sensitive stage`,
+        ...seed(msg("task.irrigateEarly"), msg("task.meta.heat", { temp })),
         tone: "amber",
         category: "irrigation",
       });

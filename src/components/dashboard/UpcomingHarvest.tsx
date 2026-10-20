@@ -1,7 +1,7 @@
 import { Wheat, Sprout } from "lucide-react";
 import { harvestInfo } from "@/lib/agronomy";
 import Card from "@/components/ui/Card";
-import { T } from "@/components/i18n/LanguageProvider";
+import { T, Term } from "@/components/i18n/LanguageProvider";
 
 export type HarvestItem = {
   id: string;
@@ -40,7 +40,7 @@ export default function UpcomingHarvest({ items }: { items: HarvestItem[] }) {
               </span>
               <div className="min-w-0">
                 <div className="text-[15px] font-semibold text-af-ink leading-tight">
-                  {r.crop} <span className="text-af-muted font-semibold"><T k="upcomingHarvest.farmSuffix" params={{ n: String(r.farmIndex).padStart(2, "0") }} /></span>
+                  <Term v={r.crop} /> <span className="text-af-muted font-semibold"><T k="upcomingHarvest.farmSuffix" params={{ n: String(r.farmIndex).padStart(2, "0") }} /></span>
                 </div>
                 <div className="mt-0.5 text-meta text-af-ink-2">
                   {r.daysLeft > 0 ? <T k="upcomingHarvest.inDays" params={{ n: r.daysLeft }} /> : <T k="dashboard.readyToHarvest" />}

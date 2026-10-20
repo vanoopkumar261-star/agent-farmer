@@ -4,6 +4,8 @@ import { tfSearch } from "@/lib/tinyfish";
 import { anyKeyConfigured } from "@/lib/tfKeys";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { clampArr, clampStr, payloadTooLarge, PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
+import { translateMany } from "@/lib/translate";
+import { LOCALES, type Locale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
 
@@ -483,6 +485,7 @@ export async function POST(req: Request) {
       .map((c) => clampStr(c, 40))
       .filter(Boolean);
     const state: string = clampStr(body.state, 40) || "India";
+    const locale: Locale = LOCALES.some((l) => l.code === body.locale) ? body.locale : "en";
 
     let articles: NewsArticle[] = [];
     // There is no "ai" source any more: every article the app serves is a real
@@ -526,6 +529,13 @@ export async function POST(req: Request) {
 
     if (articles.length === 0) {
       return NextResponse.json({ articles: [], source: "error", provider: null });
+    }
+
+    // Ranking ran on the English text; translate only what is shown.
+    // translateMany is a no-op (no network) for locales MT isn't enabled for.
+    if (articles.length > 0 && locale !== "en") {
+      const out = await translateMany(articles.flatMap((a) => [a.title, a.summary]), locale);
+      articles = articles.map((a, i) => ({ ...a, title: out[2 * i], summary: out[2 * i + 1] }));
     }
 
     return NextResponse.json({ articles, source, provider });

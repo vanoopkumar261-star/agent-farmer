@@ -35,7 +35,7 @@ import UpcomingHarvest from "@/components/dashboard/UpcomingHarvest";
 import AiChatPreview from "@/components/dashboard/AiChatPreview";
 import Reveal from "@/components/ui/Reveal";
 import Card from "@/components/ui/Card";
-import { T } from "@/components/i18n/LanguageProvider";
+import { T, Term } from "@/components/i18n/LanguageProvider";
 import { Sprout, Ruler, Layers, Wallet, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
   const totalArea = farms.reduce((s, f) => s + (f.area || 0), 0);
   const soils = Array.from(new Set(farms.map((f) => f.soil_type)));
   const activeCrops = farms.filter((f) => f.crop).length;
-  const cropNames = Array.from(new Set(farms.map((f) => f.crop?.chosen_crop).filter(Boolean))).join(", ");
+  const cropNames = Array.from(new Set(farms.map((f) => f.crop?.chosen_crop).filter(Boolean))) as string[];
   const seededFarm = farms.find((f) => f.crop);
 
   const rainSoon = weather?.daily.slice(0, 3).some((d) => d.precipProb >= 50) ?? false;
@@ -151,6 +151,8 @@ export default async function DashboardPage() {
     key: s.key,
     title: s.title,
     meta: s.meta,
+    titleMsg: s.titleMsg,
+    metaMsg: s.metaMsg,
     done: false,
     tone: s.tone,
   }));
@@ -195,6 +197,8 @@ export default async function DashboardPage() {
       const hi = harvestInfo(f.crop!.chosen_crop, f.crop!.seeding_date, f.crop!.estimated_harvest_date);
       return {
         name: `${f.crop!.chosen_crop} · F${f.farm_index}`,
+        crop: f.crop!.chosen_crop,
+        farm: f.farm_index,
         progress: Math.round(st.progress * 100),
         stage: st.label,
         daysLeft: hi.daysLeft,
@@ -316,7 +320,7 @@ export default async function DashboardPage() {
         </Reveal>
         <Reveal index={2}>
           <StatTile icon={<Layers className="w-[22px] h-[22px]" />} label={<T k="dashboard.stat.activeCrops" />} value={activeCrops}
-            meta={cropNames || <T k="dashboard.stat.noCropSelected" />} />
+            meta={cropNames.length ? cropNames.map((c, i) => <span key={c}>{i > 0 && ", "}<Term v={c} /></span>) : <T k="dashboard.stat.noCropSelected" />} />
         </Reveal>
         <Reveal index={3}>
           <StatTile icon={<Wallet className="w-[22px] h-[22px]" />} label={<T k="dashboard.stat.seasonProfit" />}
@@ -385,7 +389,7 @@ export default async function DashboardPage() {
                 <HealthRing value={health} label="/100" />
               </div>
               <p className="text-center text-meta text-af-ink-2 leading-relaxed">
-                {healthResult.note}
+                <T k={healthResult.noteMsg.k} />
               </p>
 
               {/* The score's working, shown. computeFarmHealth has always built
@@ -395,7 +399,7 @@ export default async function DashboardPage() {
                 <ul className="mt-4 w-full space-y-1.5 border-t border-af-border pt-4">
                   {healthResult.factors.map((f, i) => (
                     <li key={i} className="flex items-start justify-between gap-3 text-[12px]">
-                      <span className="text-af-ink-2 leading-snug">{f.label}</span>
+                      <span className="text-af-ink-2 leading-snug"><T k={f.msg.k} params={f.msg.p} /></span>
                       <span
                         className={`font-mono shrink-0 ${
                           f.delta < 0 ? "text-af-danger" : "text-af-muted"

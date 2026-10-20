@@ -10,6 +10,7 @@ import { ARCHITECTURE } from "./architecture";
 import { OILSEEDS } from "./oilseeds";
 import { JAIVIK_SATHI } from "./jaivik-sathi";
 import { LIBRARY } from "./library";
+import { DYNAMIC } from "./dynamic";
 
 type Dict = Record<string, string>;
 
@@ -493,15 +494,15 @@ const pa: Dict = {
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = {
-  en: { ...en, ...LANDING.en, ...LANDING_HOME.en, ...ABOUT.en, ...DASHBOARD.en, ...ONBOARDING.en, ...LOGIN.en, ...TEAM.en, ...ARCHITECTURE.en, ...OILSEEDS.en, ...JAIVIK_SATHI.en, ...LIBRARY.en },
-  hi: { ...hi, ...LANDING.hi, ...LANDING_HOME.hi, ...ABOUT.hi, ...DASHBOARD.hi, ...ONBOARDING.hi, ...LOGIN.hi, ...TEAM.hi, ...ARCHITECTURE.hi, ...OILSEEDS.hi, ...JAIVIK_SATHI.hi, ...LIBRARY.hi },
-  kn: { ...kn, ...LANDING.kn, ...LANDING_HOME.kn, ...ABOUT.kn, ...DASHBOARD.kn, ...ONBOARDING.kn, ...LOGIN.kn, ...TEAM.kn, ...ARCHITECTURE.kn, ...OILSEEDS.kn, ...JAIVIK_SATHI.kn, ...LIBRARY.kn },
-  ta: { ...ta, ...LANDING.ta, ...LANDING_HOME.ta, ...ABOUT.ta, ...DASHBOARD.ta, ...ONBOARDING.ta, ...LOGIN.ta, ...TEAM.ta, ...ARCHITECTURE.ta, ...OILSEEDS.ta, ...JAIVIK_SATHI.ta, ...LIBRARY.ta },
-  te: { ...te, ...LANDING.te, ...LANDING_HOME.te, ...ABOUT.te, ...DASHBOARD.te, ...ONBOARDING.te, ...LOGIN.te, ...TEAM.te, ...ARCHITECTURE.te, ...OILSEEDS.te, ...JAIVIK_SATHI.te, ...LIBRARY.te },
-  ml: { ...ml, ...LANDING.ml, ...LANDING_HOME.ml, ...ABOUT.ml, ...DASHBOARD.ml, ...ONBOARDING.ml, ...LOGIN.ml, ...TEAM.ml, ...ARCHITECTURE.ml, ...OILSEEDS.ml, ...JAIVIK_SATHI.ml, ...LIBRARY.ml },
-  mr: { ...mr, ...LANDING.mr, ...LANDING_HOME.mr, ...ABOUT.mr, ...DASHBOARD.mr, ...ONBOARDING.mr, ...LOGIN.mr, ...TEAM.mr, ...ARCHITECTURE.mr, ...OILSEEDS.mr, ...JAIVIK_SATHI.mr, ...LIBRARY.mr },
-  bn: { ...bn, ...LANDING.bn, ...LANDING_HOME.bn, ...ABOUT.bn, ...DASHBOARD.bn, ...ONBOARDING.bn, ...LOGIN.bn, ...TEAM.bn, ...ARCHITECTURE.bn, ...OILSEEDS.bn, ...JAIVIK_SATHI.bn, ...LIBRARY.bn },
-  pa: { ...pa, ...LANDING.pa, ...LANDING_HOME.pa, ...ABOUT.pa, ...DASHBOARD.pa, ...ONBOARDING.pa, ...LOGIN.pa, ...TEAM.pa, ...ARCHITECTURE.pa, ...OILSEEDS.pa, ...JAIVIK_SATHI.pa, ...LIBRARY.pa },
+  en: { ...en, ...LANDING.en, ...LANDING_HOME.en, ...ABOUT.en, ...DASHBOARD.en, ...ONBOARDING.en, ...LOGIN.en, ...TEAM.en, ...ARCHITECTURE.en, ...OILSEEDS.en, ...JAIVIK_SATHI.en, ...LIBRARY.en, ...DYNAMIC.en },
+  hi: { ...hi, ...LANDING.hi, ...LANDING_HOME.hi, ...ABOUT.hi, ...DASHBOARD.hi, ...ONBOARDING.hi, ...LOGIN.hi, ...TEAM.hi, ...ARCHITECTURE.hi, ...OILSEEDS.hi, ...JAIVIK_SATHI.hi, ...LIBRARY.hi, ...DYNAMIC.hi },
+  kn: { ...kn, ...LANDING.kn, ...LANDING_HOME.kn, ...ABOUT.kn, ...DASHBOARD.kn, ...ONBOARDING.kn, ...LOGIN.kn, ...TEAM.kn, ...ARCHITECTURE.kn, ...OILSEEDS.kn, ...JAIVIK_SATHI.kn, ...LIBRARY.kn, ...DYNAMIC.kn },
+  ta: { ...ta, ...LANDING.ta, ...LANDING_HOME.ta, ...ABOUT.ta, ...DASHBOARD.ta, ...ONBOARDING.ta, ...LOGIN.ta, ...TEAM.ta, ...ARCHITECTURE.ta, ...OILSEEDS.ta, ...JAIVIK_SATHI.ta, ...LIBRARY.ta, ...DYNAMIC.ta },
+  te: { ...te, ...LANDING.te, ...LANDING_HOME.te, ...ABOUT.te, ...DASHBOARD.te, ...ONBOARDING.te, ...LOGIN.te, ...TEAM.te, ...ARCHITECTURE.te, ...OILSEEDS.te, ...JAIVIK_SATHI.te, ...LIBRARY.te, ...DYNAMIC.te },
+  ml: { ...ml, ...LANDING.ml, ...LANDING_HOME.ml, ...ABOUT.ml, ...DASHBOARD.ml, ...ONBOARDING.ml, ...LOGIN.ml, ...TEAM.ml, ...ARCHITECTURE.ml, ...OILSEEDS.ml, ...JAIVIK_SATHI.ml, ...LIBRARY.ml, ...DYNAMIC.ml },
+  mr: { ...mr, ...LANDING.mr, ...LANDING_HOME.mr, ...ABOUT.mr, ...DASHBOARD.mr, ...ONBOARDING.mr, ...LOGIN.mr, ...TEAM.mr, ...ARCHITECTURE.mr, ...OILSEEDS.mr, ...JAIVIK_SATHI.mr, ...LIBRARY.mr, ...DYNAMIC.mr },
+  bn: { ...bn, ...LANDING.bn, ...LANDING_HOME.bn, ...ABOUT.bn, ...DASHBOARD.bn, ...ONBOARDING.bn, ...LOGIN.bn, ...TEAM.bn, ...ARCHITECTURE.bn, ...OILSEEDS.bn, ...JAIVIK_SATHI.bn, ...LIBRARY.bn, ...DYNAMIC.bn },
+  pa: { ...pa, ...LANDING.pa, ...LANDING_HOME.pa, ...ABOUT.pa, ...DASHBOARD.pa, ...ONBOARDING.pa, ...LOGIN.pa, ...TEAM.pa, ...ARCHITECTURE.pa, ...OILSEEDS.pa, ...JAIVIK_SATHI.pa, ...LIBRARY.pa, ...DYNAMIC.pa },
 };
 
 /** Replaces `{token}` placeholders in a translated string with `params` values. */
@@ -512,7 +513,23 @@ function interpolate(str: string, params?: Record<string, string | number>): str
   );
 }
 
+/**
+ * Localizes a single data word — a crop, growth stage or weather label that
+ * arrives from the database or a server-side engine in English ("Potato",
+ * "Flowering", "Overcast"). Unknown words come back unchanged.
+ */
+export function translateTerm(locale: Locale, value: string): string {
+  return DICTIONARIES[locale]?.[`term.${value.trim().toLowerCase()}`] ?? value;
+}
+
 export function translate(locale: Locale, key: string, params?: Record<string, string | number>): string {
   const raw = DICTIONARIES[locale]?.[key] ?? en[key] ?? key;
-  return interpolate(raw, params);
+  // String params are often data words (crop, stage, weather) — localize them too.
+  const localized =
+    params && locale !== "en"
+      ? Object.fromEntries(
+          Object.entries(params).map(([k, v]) => [k, typeof v === "string" ? translateTerm(locale, v) : v])
+        )
+      : params;
+  return interpolate(raw, localized);
 }

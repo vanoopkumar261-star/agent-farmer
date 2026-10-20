@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2, Sprout, ChevronRight } from "lucide-react";
 import Card from "@/components/ui/Card";
-import { useT } from "@/components/i18n/LanguageProvider";
+import { useT, Term } from "@/components/i18n/LanguageProvider";
 import { phBand } from "@/lib/soilPh";
 import type { CropRec } from "@/components/onboarding/CropRecCard";
 
@@ -91,7 +91,7 @@ export default function SoilCropFit({
                     <ChevronRight className="w-4 h-4 text-af-primary mt-0.5 shrink-0" />
                     <div className="min-w-0">
                       <div className="text-sm font-semibold text-af-ink">
-                        {rec.cropName}
+                        <Term v={rec.cropName} />
                         <span className="ml-2 text-[12px] font-normal text-af-muted">
                           {rec.suitabilityScore}/100 · {rec.riskScore} risk
                         </span>

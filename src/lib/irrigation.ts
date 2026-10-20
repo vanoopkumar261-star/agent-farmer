@@ -46,6 +46,8 @@ import {
   type StageLabel,
 } from "./agronomy";
 import type { WeatherData } from "./weather";
+import type { Msg } from "./i18n/config";
+import { translate } from "./i18n/dictionaries";
 import {
   composeIrrigationLabel,
   dischargeFor,
@@ -772,10 +774,19 @@ export function irrigationTaskSeeds(plans: IrrigationPlan[]): {
   key: string;
   title: string;
   meta: string;
+  titleMsg: Msg;
+  metaMsg: Msg;
   tone: "green" | "amber" | "blue";
   category: "irrigation";
 }[] {
   const out: ReturnType<typeof irrigationTaskSeeds> = [];
+  // English for storage/notifications, Msg for the UI — same split as agronomy tasks.
+  const text = (titleMsg: Msg, metaMsg: Msg) => ({
+    title: translate("en", titleMsg.k, titleMsg.p),
+    meta: translate("en", metaMsg.k, metaMsg.p),
+    titleMsg,
+    metaMsg,
+  });
 
   for (const p of plans) {
     const fk = p.farmId ?? String(p.farmIndex);
@@ -784,8 +795,13 @@ export function irrigationTaskSeeds(plans: IrrigationPlan[]): {
       const hours = p.runMinutes >= 60 ? `${Math.round((p.runMinutes / 60) * 10) / 10} h` : `${p.runMinutes} min`;
       out.push({
         key: `irrigate-${fk}`,
-        title: `Irrigate ${p.cropName ?? "the crop"} — Farm ${p.farmIndex}`,
-        meta: `${p.grossMm} mm · ${Math.round(p.volumeLitres).toLocaleString("en-IN")} L · about ${hours}`,
+        ...text(
+          { k: "irrigation.task.irrigate", p: { crop: p.cropName ?? "the crop", fi: p.farmIndex } },
+          {
+            k: "irrigation.task.irrigateMeta",
+            p: { mm: p.grossMm, litres: Math.round(p.volumeLitres).toLocaleString("en-IN"), hours },
+          }
+        ),
         tone: "blue",
         category: "irrigation",
       });
@@ -796,8 +812,10 @@ export function irrigationTaskSeeds(plans: IrrigationPlan[]): {
     if (p.regime === "rainfed" && (p.status === "deficit" || p.status === "critical")) {
       out.push({
         key: `conserve-${fk}`,
-        title: `Conserve soil moisture — Farm ${p.farmIndex}`,
-        meta: `Rain-fed · ${p.cropName ?? "crop"} below its comfort point`,
+        ...text(
+          { k: "irrigation.task.conserve", p: { fi: p.farmIndex } },
+          { k: "irrigation.task.conserveMeta", p: { crop: p.cropName ?? "crop" } }
+        ),
         tone: "amber",
         category: "irrigation",
       });
@@ -806,8 +824,7 @@ export function irrigationTaskSeeds(plans: IrrigationPlan[]): {
     if (p.status === "over_irrigated") {
       out.push({
         key: `drain-${fk}`,
-        title: `Check drainage — Farm ${p.farmIndex}`,
-        meta: "Soil is at capacity with more water due",
+        ...text({ k: "irrigation.task.drain", p: { fi: p.farmIndex } }, { k: "irrigation.task.drainMeta" }),
         tone: "amber",
         category: "irrigation",
       });
@@ -829,32 +846,43 @@ export function irrigationAlerts(plans: IrrigationPlan[]): {
   kind: "weather" | "disease" | "ai" | "critical" | "task";
   title: string;
   body: string;
+  titleMsg: Msg;
+  bodyMsg: Msg;
 }[] {
   const out: ReturnType<typeof irrigationAlerts> = [];
+  const text = (titleMsg: Msg, bodyMsg: Msg) => ({
+    title: translate("en", titleMsg.k, titleMsg.p),
+    body: translate("en", bodyMsg.k, bodyMsg.p),
+    titleMsg,
+    bodyMsg,
+  });
 
   for (const p of plans) {
+    const crop = p.cropName ?? "The crop";
     if (p.status === "critical") {
       out.push({
         kind: "critical",
-        title: `Farm ${p.farmIndex} is close to wilting point`,
-        body:
+        ...text(
+          { k: "irrigation.alert.wilting", p: { fi: p.farmIndex } },
           p.regime === "rainfed"
-            ? `${p.cropName ?? "The crop"} has used nearly all the water the soil can give, and there is no irrigation to fall back on. Mulch what you can and avoid disturbing the soil.`
-            : `${p.cropName ?? "The crop"} has used nearly all the available soil water. Irrigate today — about ${p.grossMm || Math.round(p.raw)} mm.`,
+            ? { k: "irrigation.alert.wiltingRainfed", p: { crop } }
+            : { k: "irrigation.alert.wiltingIrrigated", p: { crop, mm: p.grossMm || Math.round(p.raw) } }
+        ),
       });
     } else if (p.status === "over_irrigated") {
       out.push({
         kind: "weather",
-        title: `Farm ${p.farmIndex} has more water than it can hold`,
-        body: `The root zone is already full and more is on the way. Hold irrigation and make sure the field can drain — waterlogged roots lose yield as surely as dry ones.`,
+        ...text({ k: "irrigation.alert.overfull", p: { fi: p.farmIndex } }, { k: "irrigation.alert.overfullBody" }),
       });
     } else if (p.regime === "rainfed" && p.status === "deficit" && p.stage?.label === "Flowering") {
       // Flowering is the one stage where "a bit dry" is worth interrupting
       // someone for: the yield lost here does not come back.
       out.push({
         kind: "critical",
-        title: `Farm ${p.farmIndex} is dry at flowering`,
-        body: `${p.cropName ?? "The crop"} is flowering on a rain-fed plot and is below its comfort point. Water stress now costs more yield than at any other stage.`,
+        ...text(
+          { k: "irrigation.alert.dryFlowering", p: { fi: p.farmIndex } },
+          { k: "irrigation.alert.dryFloweringBody", p: { crop } }
+        ),
       });
     }
   }

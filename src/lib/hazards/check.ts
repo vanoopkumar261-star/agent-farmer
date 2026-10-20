@@ -37,6 +37,11 @@ export type MatchedAlert = {
   expires: string | null;
   /** 'district' when the warning names their district, 'state' for a widened red. */
   matchedOn: "district" | "state";
+  /**
+   * The agency's text in the farmer's language, when they asked for one. The
+   * fields above always stay verbatim so the UI can show the original too.
+   */
+  translated?: { event: string; headline: string; instruction: string | null };
 };
 
 export type HazardCheckResult = {

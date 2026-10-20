@@ -1,11 +1,14 @@
 import { AlertTriangle, CloudRain, Bug, Sparkles, ListChecks } from "lucide-react";
-import { T } from "@/components/i18n/LanguageProvider";
+import { T, type Msg } from "@/components/i18n/LanguageProvider";
 import HazardCheckButton from "./HazardCheckButton";
 
 export type Alert = {
   kind: "weather" | "disease" | "ai" | "critical" | "task";
   title: string;
   body: string;
+  /** Translatable forms; rendered instead of the English title/body when present. */
+  titleMsg?: Msg;
+  bodyMsg?: Msg;
 };
 
 const config = {
@@ -36,8 +39,8 @@ export default function AlertsCard({ alerts }: { alerts: Alert[] }) {
             <div key={i} className={`flex items-start gap-3 rounded-xl border ${c.ring} ${c.tint} px-3.5 py-3`}>
               <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${c.color}`} />
               <div>
-                <div className="text-sm font-semibold text-af-ink leading-tight">{a.title}</div>
-                <div className="text-[12px] text-af-ink-2 mt-0.5 leading-relaxed">{a.body}</div>
+                <div className="text-sm font-semibold text-af-ink leading-tight">{a.titleMsg ? <T k={a.titleMsg.k} params={a.titleMsg.p} /> : a.title}</div>
+                <div className="text-[12px] text-af-ink-2 mt-0.5 leading-relaxed">{a.bodyMsg ? <T k={a.bodyMsg.k} params={a.bodyMsg.p} /> : a.body}</div>
               </div>
             </div>
           );

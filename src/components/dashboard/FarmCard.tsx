@@ -1,7 +1,7 @@
 import { Sprout, Droplets, Layers, CalendarDays } from "lucide-react";
 import type { FarmWithCrop } from "@/lib/dashboard";
 import { cropStage, daysSince } from "@/lib/dashboard";
-import { T } from "@/components/i18n/LanguageProvider";
+import { T, Term } from "@/components/i18n/LanguageProvider";
 
 export default function FarmCard({ farm }: { farm: FarmWithCrop }) {
   const crop = farm.crop;
@@ -23,7 +23,7 @@ export default function FarmCard({ farm }: { farm: FarmWithCrop }) {
           </div>
         </div>
         <span className="rounded-full bg-af-primary/10 text-af-primary-deep px-2.5 py-1 text-[11px] font-semibold">
-          {crop?.chosen_crop ?? <T k="farmCard.noCrop" />}
+          {crop?.chosen_crop ? <Term v={crop.chosen_crop} /> : <T k="farmCard.noCrop" />}
         </span>
       </div>
 
@@ -40,7 +40,7 @@ export default function FarmCard({ farm }: { farm: FarmWithCrop }) {
       {stage && (
         <div className="mt-4">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-semibold text-af-ink-2">{stage.label}</span>
+            <span className="text-[11px] font-semibold text-af-ink-2"><Term v={stage.label} /></span>
             <span className="font-mono text-[11px] text-af-muted"><T k="farmCard.day" params={{ n: days ?? 0 }} /></span>
           </div>
           <div className="h-2 w-full rounded-full bg-af-bg overflow-hidden">

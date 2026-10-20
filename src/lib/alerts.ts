@@ -7,6 +7,19 @@ import type { WeatherData } from "./weather";
 import type { FarmWithCrop } from "./dashboard";
 import type { Alert } from "@/components/dashboard/AlertsCard";
 import { cropStageFor, getCropProfile } from "./agronomy";
+import type { Msg } from "./i18n/config";
+import { translate } from "./i18n/dictionaries";
+
+/** An alert in both forms: Msg for the UI, English title/body for notifications. */
+function alert(kind: Alert["kind"], titleMsg: Msg, bodyMsg: Msg): Alert {
+  return {
+    kind,
+    title: translate("en", titleMsg.k, titleMsg.p),
+    body: translate("en", bodyMsg.k, bodyMsg.p),
+    titleMsg,
+    bodyMsg,
+  };
+}
 
 export function deriveAlerts({
   farms,
@@ -26,11 +39,13 @@ export function deriveAlerts({
   // failed forecast fetch.
   if (missedYesterday && missedYesterday.missed > 0) {
     const { missed, total } = missedYesterday;
-    alerts.push({
-      kind: missed >= total ? "critical" : "task",
-      title: `${missed} of ${total} task${total > 1 ? "s" : ""} missed yesterday`,
-      body: `You completed ${missedYesterday.done} of ${total}. Yesterday's work doesn't carry over — make sure today's list is finished before the day ends.`,
-    });
+    alerts.push(
+      alert(
+        missed >= total ? "critical" : "task",
+        { k: total > 1 ? "alert.missed.titleMany" : "alert.missed.titleOne", p: { missed, total } },
+        { k: "alert.missed.body", p: { done: missedYesterday.done, total } }
+      )
+    );
   }
 
   if (!weather) return alerts;
@@ -44,17 +59,15 @@ export function deriveAlerts({
 
   if (rainSoon) {
     if (maturing) {
-      alerts.push({
-        kind: "critical",
-        title: "Rain during harvest window",
-        body: `Rain is likely within 3 days while ${maturing.crop!.chosen_crop} (Farm ${maturing.farm_index}) is maturing — plan harvest and drying, and clear field drainage.`,
-      });
+      alerts.push(
+        alert(
+          "critical",
+          { k: "alert.rainHarvest.title" },
+          { k: "alert.rainHarvest.body", p: { crop: maturing.crop!.chosen_crop, fi: maturing.farm_index } }
+        )
+      );
     } else {
-      alerts.push({
-        kind: "weather",
-        title: "Rain likely in the next 3 days",
-        body: "Hold spraying and scheduled irrigation, and ensure field drainage is clear.",
-      });
+      alerts.push(alert("weather", { k: "alert.rain.title" }, { k: "alert.rain.body" }));
     }
   }
 
@@ -63,11 +76,13 @@ export function deriveAlerts({
     const p = getCropProfile(f.crop!.chosen_crop);
     const st = cropStageFor(f.crop!.chosen_crop, f.crop!.seeding_date, f.crop!.estimated_harvest_date);
     if ((st.label === "Flowering" || st.label === "Vegetative") && weather.current.temp >= p.heatThreshold) {
-      alerts.push({
-        kind: "critical",
-        title: `Heat stress risk — ${f.crop!.chosen_crop}`,
-        body: `Current ${weather.current.temp}°C at the ${st.label.toLowerCase()} stage (Farm ${f.farm_index}). Irrigate early morning to protect yield.`,
-      });
+      alerts.push(
+        alert(
+          "critical",
+          { k: "alert.heat.title", p: { crop: f.crop!.chosen_crop } },
+          { k: "alert.heat.body", p: { temp: weather.current.temp, stage: st.label.toLowerCase(), fi: f.farm_index } }
+        )
+      );
       break;
     }
   }
@@ -75,11 +90,7 @@ export function deriveAlerts({
   // Cold / frost.
   const frost = weather.daily.slice(0, 3).some((d) => d.tMin <= 4);
   if (frost) {
-    alerts.push({
-      kind: "weather",
-      title: "Cold / frost risk",
-      body: "Night temperatures near freezing are in the forecast — protect sensitive crops and avoid night irrigation.",
-    });
+    alerts.push(alert("weather", { k: "alert.frost.title" }, { k: "alert.frost.body" }));
   }
 
   return alerts;

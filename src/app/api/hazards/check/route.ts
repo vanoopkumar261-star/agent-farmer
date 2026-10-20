@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase-server";
 import { getSessionUser } from "@/lib/auth";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
-import { checkHazards } from "@/lib/hazards/check";
+import { checkHazards, type MatchedAlert } from "@/lib/hazards/check";
+import { translateMany } from "@/lib/translate";
+import { LOCALES, type Locale } from "@/lib/i18n/config";
 
 /**
  * "Are there emergency alerts over my land right now?"
@@ -69,6 +71,18 @@ export async function POST(req: Request) {
 
   try {
     const result = await checkHazards(supabase, profile as any);
+
+    // Optional `{ locale }` body. Callers that send none (the mobile app today)
+    // get the verbatim English, exactly as before.
+    const body = await req.json().catch(() => ({}));
+    const locale: Locale = LOCALES.some((l) => l.code === body?.locale) ? body.locale : "en";
+    if (locale !== "en") {
+      const all: MatchedAlert[] = [...result.red, ...result.orange, ...result.yellow];
+      const out = await translateMany(all.flatMap((a) => [a.event, a.headline, a.instruction ?? ""]), locale);
+      all.forEach((a, i) => {
+        a.translated = { event: out[3 * i], headline: out[3 * i + 1], instruction: a.instruction && out[3 * i + 2] };
+      });
+    }
     return NextResponse.json(result);
   } catch (e: any) {
     console.error("HAZARD check failed:", e?.message ?? e);

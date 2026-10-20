@@ -1,6 +1,6 @@
 import { Droplets, Wind, ThermometerSun, MapPin } from "lucide-react";
 import type { WeatherData } from "@/lib/weather";
-import { T } from "@/components/i18n/LanguageProvider";
+import { T, Term } from "@/components/i18n/LanguageProvider";
 
 export default function WeatherCard({
   weather,
@@ -41,7 +41,7 @@ export default function WeatherCard({
             </span>
             <span className="text-xl font-semibold text-af-muted mt-1">°C</span>
           </div>
-          <div className="text-sm font-semibold text-af-ink-2 mt-1">{current.label}</div>
+          <div className="text-sm font-semibold text-af-ink-2 mt-1"><Term v={current.label} /></div>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function WeatherCard({
               }`}
             >
               <span className="text-[10px] font-semibold text-af-muted uppercase">
-                {i === 0 ? <T k="weatherCard.today" /> : d.weekday}
+                {i === 0 ? <T k="weatherCard.today" /> : <Term v={d.weekday} />}
               </span>
               <span className="text-lg leading-none">{d.icon}</span>
               <span className="font-mono text-[11px] font-semibold text-af-ink">{d.tMax}°</span>

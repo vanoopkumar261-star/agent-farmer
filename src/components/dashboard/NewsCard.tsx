@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Newspaper,
   ExternalLink,
@@ -63,15 +63,16 @@ const categoryConfig = {
  * to `new Date()` yields NaN, which rendered as "NaNd ago"; returning null lets
  * the caller print an honest "Date not given" instead.
  */
-function timeAgo(iso: string): string | null {
+function timeAgo(iso: string, locale: string): string | null {
   const t = new Date(iso).getTime();
   if (!iso || Number.isNaN(t)) return null;
+  const rtf = new Intl.RelativeTimeFormat(locale, { style: "narrow" });
   const diff = Date.now() - t;
   const mins = Math.floor(diff / 60_000);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return rtf.format(-mins, "minute");
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
+  if (hrs < 24) return rtf.format(-hrs, "hour");
+  return rtf.format(-Math.floor(hrs / 24), "day");
 }
 
 /**
@@ -104,7 +105,7 @@ function ArticleCard({
   article: NewsArticle;
   featured?: boolean;
 }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const [imgError, setImgError] = useState(false);
   const cfg = categoryConfig[article.category];
   const Icon = cfg.icon;
@@ -182,7 +183,7 @@ function ArticleCard({
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] text-af-muted">
               <Clock className="w-3 h-3" />
-              {timeAgo(article.publishedAt) ?? t("newsCard.dateUnknown")}
+              {timeAgo(article.publishedAt, locale) ?? t("newsCard.dateUnknown")}
             </span>
           </div>
         </div>
@@ -234,7 +235,7 @@ function ArticleCard({
           <span className="text-af-border">·</span>
           <span className="inline-flex items-center gap-0.5 text-[10px] text-af-muted shrink-0">
             <Clock className="w-2.5 h-2.5" />
-            {timeAgo(article.publishedAt) ?? t("newsCard.dateUnknown")}
+            {timeAgo(article.publishedAt, locale) ?? t("newsCard.dateUnknown")}
           </span>
         </div>
       </div>
@@ -252,14 +253,19 @@ export default function NewsCard({
   farmerCrops: string[];
   state: string | null;
 }) {
-  const { t } = useT();
+  const { t, term, locale } = useT();
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [dataSource, setDataSource] = useState<"live" | "search" | "error">("live");
   const [provider, setProvider] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Locale settles from localStorage just after mount, so an English request can
+  // still be in flight when the translated one starts — only the latest may land.
+  const requestId = useRef(0);
+
   async function fetchNews(isRefresh = false) {
+    const id = ++requestId.current;
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
 
@@ -267,24 +273,27 @@ export default function NewsCard({
       const res = await fetch("/api/news", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ farmerCrops, state }),
+        body: JSON.stringify({ farmerCrops, state, locale }),
       });
       const data = await res.json();
+      if (id !== requestId.current) return;
       setArticles(data.articles ?? []);
       setDataSource(data.source ?? "error");
       setProvider(data.provider ?? null);
     } catch {
-      setDataSource("error");
+      if (id === requestId.current) setDataSource("error");
     } finally {
+      if (id !== requestId.current) return;
       setLoading(false);
       setRefreshing(false);
     }
   }
 
+  // Refetch on language change — the server returns the news already translated.
   useEffect(() => {
     fetchNews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [locale]);
 
   // Split articles
   const cropNews = articles.filter((a) => a.category === "crop");
@@ -354,7 +363,7 @@ export default function NewsCard({
       {!loading && articles.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {farmerCrops.length > 0 && cropNews.length > 0 && (
-            <LegendChip cfg={categoryConfig.crop} count={cropNews.length} label={t("newsCard.yourCrops", { crops: farmerCrops.join(", ") })} />
+            <LegendChip cfg={categoryConfig.crop} count={cropNews.length} label={t("newsCard.yourCrops", { crops: farmerCrops.map(term).join(", ") })} />
           )}
           {oilseedNews.length > 0 && (
             <LegendChip cfg={categoryConfig.oilseed} count={oilseedNews.length} label={t("newsCard.category.oilseed")} />

@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { T } from "@/components/i18n/LanguageProvider";
+import { T, Term } from "@/components/i18n/LanguageProvider";
 
 type Tick = { crop: string; price: number; change: number };
 
@@ -18,7 +18,7 @@ function Row({ t }: { t: Tick }) {
   const up = t.change >= 0;
   return (
     <span className="inline-flex items-center gap-2 px-5">
-      <span className="text-sm font-semibold text-af-ink">{t.crop}</span>
+      <span className="text-sm font-semibold text-af-ink"><Term v={t.crop} /></span>
       <span className="font-mono text-sm text-af-ink-2">₹{t.price.toLocaleString()}</span>
       <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold ${up ? "text-af-primary-deep" : "text-af-danger"}`}>
         {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}

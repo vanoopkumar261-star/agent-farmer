@@ -47,6 +47,7 @@ type MatchedAlert = {
   onset: string | null;
   expires: string | null;
   matchedOn: "district" | "state";
+  translated?: { event: string; headline: string; instruction: string | null };
 };
 
 type CheckResult = {
@@ -104,6 +105,8 @@ function istTime(iso: string | null): string {
 function AlertBlock({ alert }: { alert: MatchedAlert }) {
   const { t } = useT();
   const cfg = BAND[alert.band];
+  // A translation only counts if it actually differs — otherwise there's nothing to compare.
+  const tx = alert.translated && alert.translated.headline !== alert.headline ? alert.translated : null;
   const Icon = cfg.Icon;
 
   return (
@@ -112,7 +115,7 @@ function AlertBlock({ alert }: { alert: MatchedAlert }) {
         <Icon className={`w-[18px] h-[18px] mt-0.5 shrink-0 ${cfg.icon}`} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-af-ink">{alert.event}</span>
+            <span className="text-sm font-semibold text-af-ink">{tx?.event ?? alert.event}</span>
             <span
               className={`font-mono text-[10px] font-semibold tracking-[0.12em] uppercase rounded px-1.5 py-0.5 ${cfg.chip}`}
             >
@@ -123,9 +126,9 @@ function AlertBlock({ alert }: { alert: MatchedAlert }) {
             )}
           </div>
 
-          {/* The agency's own words. Never translated, never rewritten. */}
-          <p className="text-[13px] text-af-ink-2 mt-1.5 leading-relaxed" lang="en">
-            {alert.headline}
+          {/* Translated for the farmer; the agency's own words stay below, unedited. */}
+          <p className="text-[13px] text-af-ink-2 mt-1.5 leading-relaxed" lang={tx ? undefined : "en"}>
+            {tx?.headline ?? alert.headline}
           </p>
 
           {alert.instruction && (
@@ -133,10 +136,21 @@ function AlertBlock({ alert }: { alert: MatchedAlert }) {
               <div className="font-mono text-[9px] font-semibold tracking-[0.16em] uppercase text-af-muted">
                 {t("hazardCheck.instruction")}
               </div>
-              <p className="text-[12px] text-af-ink mt-1 leading-relaxed" lang="en">
-                {alert.instruction}
+              <p className="text-[12px] text-af-ink mt-1 leading-relaxed" lang={tx ? undefined : "en"}>
+                {tx?.instruction ?? alert.instruction}
               </p>
             </div>
+          )}
+
+          {tx && (
+            <details className="mt-2 text-[11px] text-af-muted">
+              <summary className="cursor-pointer select-none">{t("hazardCheck.original")}</summary>
+              <div lang="en" className="mt-1 space-y-1 leading-relaxed">
+                <p className="font-semibold">{alert.event}</p>
+                <p>{alert.headline}</p>
+                {alert.instruction && <p>{alert.instruction}</p>}
+              </div>
+            </details>
           )}
 
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 text-[11px] text-af-muted">
@@ -186,7 +200,7 @@ function Section({
 }
 
 export default function HazardCheckModal({ onClose }: { onClose: () => void }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const [result, setResult] = useState<CheckResult | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -195,7 +209,11 @@ export default function HazardCheckModal({ onClose }: { onClose: () => void }) {
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch("/api/hazards/check", { method: "POST" });
+      const res = await fetch("/api/hazards/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale }),
+      });
       if (!res.ok) throw new Error(String(res.status));
       setResult((await res.json()) as CheckResult);
     } catch {
@@ -203,7 +221,7 @@ export default function HazardCheckModal({ onClose }: { onClose: () => void }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   // The search starts the moment the popup opens — the farmer asked a question
   // by tapping the button, so making them press "search" again would be a

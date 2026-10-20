@@ -4,7 +4,7 @@ import type { FarmWithCrop } from "@/lib/dashboard";
 import { cropStageFor, harvestInfo, stageTimelinePct, STAGE_LABELS } from "@/lib/agronomy";
 import HarvestDateEditor from "@/components/dashboard/HarvestDateEditor";
 import DeleteFarmButton from "@/components/dashboard/DeleteFarmButton";
-import { T } from "@/components/i18n/LanguageProvider";
+import { T, Term } from "@/components/i18n/LanguageProvider";
 
 const STAGES = STAGE_LABELS;
 
@@ -53,7 +53,7 @@ export default function CropDetailCard({ farm, health: healthProp }: { farm: Far
           </span>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink">{crop.chosen_crop}</h3>
+              <h3 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink"><Term v={crop.chosen_crop} /></h3>
               <span className="rounded-full bg-af-primary/10 text-af-primary-deep px-2.5 py-0.5 text-[11px] font-semibold">
                 <T k="farmCard.title" params={{ n: farm.farm_index }} />
               </span>

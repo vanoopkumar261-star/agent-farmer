@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Sparkles, ArrowUpRight, PauseCircle, Clock, PackageX } from "lucide-react";
 import Skeleton from "@/components/ui/Skeleton";
-import { useT } from "@/components/i18n/LanguageProvider";
+import { useT, Term } from "@/components/i18n/LanguageProvider";
 
 type Rec = {
   crop: string;
@@ -54,8 +54,11 @@ export default function MarketAdvice({
     )
   );
 
+  // Keyed on locale: it settles from localStorage after mount, and the AI
+  // writes in whichever language it was asked for.
   useEffect(() => {
     let alive = true;
+    setLoading(true);
     (async () => {
       try {
         const res = await fetch("/api/market-advice", {
@@ -79,7 +82,7 @@ export default function MarketAdvice({
     })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [locale]);
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-af-secondary text-white shadow-af-md p-6">
@@ -158,11 +161,11 @@ export default function MarketAdvice({
                     className="rounded-[14px] bg-white/[0.08] border border-white/10 px-3.5 py-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-white">{r.crop}</span>
+                      <span className="text-sm font-semibold text-white"><Term v={r.crop} /></span>
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${cfg.tint}`}
                       >
-                        <Icon className="w-3 h-3" /> {r.action}
+                        <Icon className="w-3 h-3" /> {t(`marketAdvice.action.${r.action}`)}
                       </span>
                     </div>
                     <p className="mt-1 text-[12px] text-white/70 leading-snug">

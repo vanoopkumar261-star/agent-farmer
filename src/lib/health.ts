@@ -8,14 +8,22 @@
 import type { WeatherData } from "./weather";
 import type { FarmWithCrop } from "./dashboard";
 import { cropStageFor, getCropProfile, isRainFed } from "./agronomy";
+import type { Msg } from "./i18n/config";
+import { translate } from "./i18n/dictionaries";
 
-export type HealthFactor = { label: string; delta: number };
+/** `label` is English (for logs/AI context); the UI renders `msg`. */
+export type HealthFactor = { label: string; msg: Msg; delta: number };
+
+function factor(k: string, delta: number, p?: Msg["p"]): HealthFactor {
+  return { label: translate("en", k, p), msg: { k, p }, delta };
+}
 
 export type FarmHealth = {
   score: number; // 40..100
   band: "good" | "watch" | "risk";
   factors: HealthFactor[];
   note: string;
+  noteMsg: Msg;
 };
 
 export function computeFarmHealth({
@@ -40,7 +48,8 @@ export function computeFarmHealth({
       score: 80,
       band: "watch",
       factors: [],
-      note: "No crops seeded yet — register a crop to start health tracking.",
+      note: translate("en", "health.note.noCrops"),
+      noteMsg: { k: "health.note.noCrops" },
     };
   }
 
@@ -53,10 +62,7 @@ export function computeFarmHealth({
       const sensitive = st.label === "Flowering" || st.label === "Vegetative";
       if (sensitive && weather.current.temp >= p.heatThreshold && !heatHit) {
         score -= 12;
-        factors.push({
-          label: `Heat stress risk — ${f.crop!.chosen_crop} at ${st.label.toLowerCase()}`,
-          delta: -12,
-        });
+        factors.push(factor("health.heat", -12, { crop: f.crop!.chosen_crop, stage: st.label.toLowerCase() }));
         heatHit = true; // count once
       }
     }
@@ -71,10 +77,10 @@ export function computeFarmHealth({
       );
       if (maturing) {
         score -= 10;
-        factors.push({ label: "Rain forecast during a harvest window", delta: -10 });
+        factors.push(factor("health.rainHarvest", -10));
       } else {
         score -= 3;
-        factors.push({ label: "Rain forecast — field operations constrained", delta: -3 });
+        factors.push(factor("health.rainOps", -3));
       }
     }
 
@@ -82,10 +88,10 @@ export function computeFarmHealth({
     const frost = weather.daily.slice(0, 3).some((d) => d.tMin <= 4);
     if (frost) {
       score -= 8;
-      factors.push({ label: "Cold/frost risk in the forecast", delta: -8 });
+      factors.push(factor("health.frost", -8));
     }
   } else {
-    factors.push({ label: "Weather data syncing", delta: 0 });
+    factors.push(factor("health.weatherSyncing", 0));
   }
 
   // Water risk: a thirsty crop on a rain-fed plot with no rain coming has no
@@ -101,10 +107,7 @@ export function computeFarmHealth({
     });
     if (noRainAhead && thirstyRainFed) {
       score -= 7;
-      factors.push({
-        label: `No rain forecast — ${thirstyRainFed.crop!.chosen_crop} is rain-fed and thirsty`,
-        delta: -7,
-      });
+      factors.push(factor("health.noRainThirsty", -7, { crop: thirstyRainFed.crop!.chosen_crop }));
     }
   }
 
@@ -113,35 +116,24 @@ export function computeFarmHealth({
   if (activeDiseases > 0) {
     const d = Math.min(20, activeDiseases * 10);
     score -= d;
-    factors.push({
-      label: `${activeDiseases} recent scan${activeDiseases > 1 ? "s" : ""} found disease`,
-      delta: -d,
-    });
+    factors.push(factor(activeDiseases > 1 ? "health.diseaseMany" : "health.diseaseOne", -d, { n: activeDiseases }));
   }
 
   if (overdueTasks > 0) {
     const d = Math.min(15, overdueTasks * 3);
     score -= d;
-    factors.push({
-      label: `${overdueTasks} task${overdueTasks > 1 ? "s" : ""} missed yesterday`,
-      delta: -d,
-    });
+    factors.push(factor(overdueTasks > 1 ? "health.missedMany" : "health.missedOne", -d, { n: overdueTasks }));
   }
 
   // Nothing wrong is itself worth saying — otherwise a perfect score looks
   // like the feature simply failed to run.
   if (factors.length === 0) {
-    factors.push({ label: "No heat, rain, frost or disease risk detected", delta: 0 });
+    factors.push(factor("health.allClear", 0));
   }
 
   score = Math.max(40, Math.min(100, Math.round(score)));
   const band = score >= 78 ? "good" : score >= 60 ? "watch" : "risk";
-  const note =
-    band === "good"
-      ? "Your farms are in great shape."
-      : band === "watch"
-      ? "Healthy, with a few items to watch."
-      : "Needs attention — check alerts.";
+  const noteMsg: Msg = { k: `health.note.${band}` };
 
-  return { score, band, factors, note };
+  return { score, band, factors, note: translate("en", noteMsg.k), noteMsg };
 }

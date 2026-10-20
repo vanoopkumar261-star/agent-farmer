@@ -51,6 +51,9 @@ export type WeatherPoint = { day: string; tMax: number; tMin: number; rain: numb
 /** One farm's real position in its cycle. */
 export type SeasonPoint = {
   name: string;
+  /** English crop name and farm number — `name` is rebuilt from these in the viewer's language. */
+  crop: string;
+  farm: number;
   progress: number; // 0..100 through the cycle
   stage: string;
   daysLeft: number;
@@ -72,7 +75,9 @@ export default function AnalyticsCard({
   season?: SeasonPoint[];
   heatThreshold?: number;
 }) {
-  const { t } = useT();
+  const { t, term } = useT();
+  // Crop and stage arrive in English from the server; localize them for display.
+  season = season.map((s) => ({ ...s, name: `${term(s.crop)} · F${s.farm}`, stage: term(s.stage) }));
   const hasCash = Boolean(cash && cash.length > 0);
   const hasWeather = weather.length > 0;
   const hasSeason = season.length > 0;
@@ -177,11 +182,11 @@ export default function AnalyticsCard({
                   contentStyle={tooltipStyle}
                   cursor={{ fill: "rgba(0,0,0,0.03)" }}
                   formatter={(v: number, _n: string, p: any) => [
-                    `${v}% grown · ${p.payload.stage} · ${p.payload.daysLeft}d to harvest`,
-                    "Progress",
+                    t("analyticsCard.tipSeason", { v, stage: p.payload.stage, days: p.payload.daysLeft }),
+                    t("analyticsCard.seriesProgress"),
                   ]}
                 />
-                <Bar dataKey="progress" name="Progress" radius={[0, 4, 4, 0]} barSize={22}>
+                <Bar dataKey="progress" name={t("analyticsCard.seriesProgress")} radius={[0, 4, 4, 0]} barSize={22}>
                   {season.map((s, i) => (
                     <Cell key={i} fill={SERIES.yield} />
                   ))}
@@ -196,13 +201,14 @@ export default function AnalyticsCard({
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={weather} margin={{ top: 6, right: 8, bottom: 0, left: -18 }}>
                 <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="day" tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} />
+                <XAxis dataKey="day" tickFormatter={term} tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   cursor={{ stroke: GRID }}
-                  formatter={(v: number, name: string) => [
-                    name === "Rain chance" ? `${v}%` : `${v}°C`,
+                  labelFormatter={term}
+                  formatter={(v: number, name: string, p: any) => [
+                    p?.dataKey === "rain" ? `${v}%` : `${v}°C`,
                     name,
                   ]}
                 />
@@ -214,7 +220,7 @@ export default function AnalyticsCard({
                     stroke={STATUS.down}
                     strokeDasharray="4 4"
                     label={{
-                      value: `heat limit ${heatThreshold}°`,
+                      value: t("analyticsCard.heatLimit", { n: heatThreshold }),
                       position: "insideTopRight",
                       fill: STATUS.down,
                       fontSize: 10,
@@ -223,14 +229,14 @@ export default function AnalyticsCard({
                 ) : null}
                 <Bar
                   dataKey="rain"
-                  name="Rain chance"
+                  name={t("analyticsCard.seriesRain")}
                   fill={SERIES.market}
                   radius={[4, 4, 0, 0]}
                   barSize={16}
                   opacity={0.4}
                 />
-                <Line type="monotone" dataKey="tMax" name="High" stroke={SERIES.expense} strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="tMin" name="Low" stroke={SERIES.yield} strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="tMax" name={t("analyticsCard.seriesHigh")} stroke={SERIES.expense} strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="tMin" name={t("analyticsCard.seriesLow")} stroke={SERIES.yield} strokeWidth={2} dot={{ r: 3 }} />
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
@@ -253,8 +259,8 @@ export default function AnalyticsCard({
                 formatter={(v: number) => rupee(v)}
               />
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={inkLegend} />
-              <Bar dataKey="income" name="Income" fill={SERIES.income} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expense" name="Expense" fill={SERIES.expense} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="income" name={t("analyticsCard.seriesIncome")} fill={SERIES.income} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="expense" name={t("analyticsCard.seriesExpense")} fill={SERIES.expense} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (

@@ -20,9 +20,14 @@
  *   media-src https:                           — the /jaivik-sathi hero video (CDN)
  *   frame-src youtube                           — the eLibrary handbook video embeds
  */
+// `next dev` evaluates its hot-reload bundles with eval(), so blocking it there
+// left every page un-hydrated locally — buttons rendered but did nothing.
+// Production builds never eval, so the deployed policy is unchanged.
+const isDev = process.env.NODE_ENV !== "production";
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
@@ -34,7 +39,8 @@ const csp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "upgrade-insecure-requests",
+  // Would rewrite http://localhost requests to https in dev.
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [

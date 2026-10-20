@@ -15,7 +15,7 @@ import {
   ChevronDown, ChevronUp, Truck, Crown,
 } from "lucide-react";
 import type { CropMarket, MandiRow } from "@/lib/market";
-import { useT } from "@/components/i18n/LanguageProvider";
+import { useT, Term } from "@/components/i18n/LanguageProvider";
 import { GRID, AXIS, STATUS, tooltipStyle } from "@/lib/chartTheme";
 import { rupee, rupeePaise } from "@/lib/format";
 
@@ -275,7 +275,7 @@ export default function MarketBoard({
   state?: string | null;
   isRealData?: boolean;
 }) {
-  const { t } = useT();
+  const { t, term } = useT();
   const firstAvailable =
     crops.find((c) => !c.notAvailable)?.name ?? crops[0].name;
 
@@ -326,7 +326,7 @@ export default function MarketBoard({
                     <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-af-primary animate-pulse" />
                   )}
                   <div className="flex items-center justify-between pr-3">
-                    <span className="text-sm font-semibold text-af-ink">{c.name}</span>
+                    <span className="text-sm font-semibold text-af-ink"><Term v={c.name} /></span>
                     <span
                       className={`inline-flex items-center gap-0.5 text-[11px] font-semibold ${
                         cUp ? "text-af-primary-deep" : "text-af-danger"
@@ -339,7 +339,7 @@ export default function MarketBoard({
                   <div className="mt-1 font-mono text-lg font-semibold text-af-ink">
                     {rupee(c.price)}
                   </div>
-                  <div className="text-[10px] text-af-muted">{c.unit}</div>
+                  <div className="text-[10px] text-af-muted"><Term v={c.unit} /></div>
                   <div className="mt-2 -mx-1">
                     <Sparkline
                       data={c.series.map((s) => s.price)}
@@ -371,7 +371,7 @@ export default function MarketBoard({
                 className="relative overflow-hidden text-left rounded-2xl border border-dashed border-af-border bg-af-bg/50 p-4"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-af-muted">{c.name}</span>
+                  <span className="text-sm font-semibold text-af-muted"><Term v={c.name} /></span>
                   <PackageX className="w-3.5 h-3.5 text-af-muted" />
                 </div>
                 <div className="mt-2 text-[11px] text-af-muted leading-relaxed">
@@ -404,8 +404,8 @@ export default function MarketBoard({
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold text-af-ink">{active.name}</h2>
-                  <Badge tone={demandTone[active.demand]}>{active.demand} demand</Badge>
+                  <h2 className="text-lg font-semibold text-af-ink"><Term v={active.name} /></h2>
+                  <Badge tone={demandTone[active.demand]}>{t(`marketBoard.demand${active.demand}`)}</Badge>
                   {active.isReal && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-af-primary/10 text-af-primary-deep px-2 py-0.5 text-[9px] font-semibold font-mono tracking-[0.15em] uppercase">
                       <span className="w-1.5 h-1.5 rounded-full bg-af-primary animate-pulse" />
@@ -453,7 +453,7 @@ export default function MarketBoard({
                     contentStyle={tooltipStyle}
                     formatter={(v: number) => rupee(v)}
                   />
-                  <Area type="monotone" dataKey="price" name={active.name} stroke={chartColor} strokeWidth={2} fill="url(#mktFill)" />
+                  <Area type="monotone" dataKey="price" name={term(active.name)} stroke={chartColor} strokeWidth={2} fill="url(#mktFill)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

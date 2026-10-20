@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
 import { persistTaskDone, loadDoneKeys } from "@/lib/tasks";
-import { useT } from "@/components/i18n/LanguageProvider";
+import { useT, type Msg } from "@/components/i18n/LanguageProvider";
 
 export type Task = {
   key?: string;
   title: string;
   meta: string;
+  /** Translatable forms; rendered instead of the English title/meta when present. */
+  titleMsg?: Msg;
+  metaMsg?: Msg;
   done: boolean;
   tone: "green" | "amber" | "blue";
 };
@@ -20,7 +23,8 @@ const toneMap = {
 };
 
 export default function TasksCard({ tasks, farmerId }: { tasks: Task[]; farmerId?: string }) {
-  const { t } = useT();
+  // `t` is shadowed by the task inside the list below, hence the alias.
+  const { t, t: tr } = useT();
   const keyOf = (t: Task, i: number) => t.key ?? String(i);
 
   const [done, setDone] = useState<Record<string, boolean>>(() =>
@@ -92,9 +96,9 @@ export default function TasksCard({ tasks, farmerId }: { tasks: Task[]; farmerId
                         isDone ? "text-af-muted line-through" : "text-af-ink"
                       }`}
                     >
-                      {t.title}
+                      {t.titleMsg ? tr(t.titleMsg.k, t.titleMsg.p) : t.title}
                     </div>
-                    <div className="text-[11px] text-af-muted">{t.meta}</div>
+                    <div className="text-[11px] text-af-muted">{t.metaMsg ? tr(t.metaMsg.k, t.metaMsg.p) : t.meta}</div>
                   </div>
                 </button>
               </li>

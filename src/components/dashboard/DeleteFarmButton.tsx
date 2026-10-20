@@ -17,7 +17,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2, AlertTriangle } from "lucide-react";
 import { deleteFarm } from "@/lib/db";
-import { useT } from "@/components/i18n/LanguageProvider";
+import { useT, Term } from "@/components/i18n/LanguageProvider";
 
 export default function DeleteFarmButton({
   farmId,
@@ -74,7 +74,7 @@ export default function DeleteFarmButton({
     <span className="inline-flex items-center gap-2">
       <span className="text-[12px] text-af-ink-2">
         {t("deleteFarmButton.confirmText", { n: farmIndex })}
-        {cropName ? ` (${cropName})` : ""}?
+        {cropName ? <> (<Term v={cropName} />)</> : ""}?
       </span>
       <button
         type="button"

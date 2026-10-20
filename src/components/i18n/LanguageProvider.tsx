@@ -2,7 +2,8 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { DEFAULT_LOCALE, Locale, STORAGE_KEY } from "@/lib/i18n/config";
-import { translate } from "@/lib/i18n/dictionaries";
+export type { Msg } from "@/lib/i18n/config";
+import { translate, translateTerm } from "@/lib/i18n/dictionaries";
 
 type Params = Record<string, string | number>;
 
@@ -10,12 +11,14 @@ type Ctx = {
   locale: Locale;
   setLocale: (l: Locale) => void;
   t: (key: string, params?: Params) => string;
+  term: (value: string) => string;
 };
 
 const LanguageContext = createContext<Ctx>({
   locale: DEFAULT_LOCALE,
   setLocale: () => {},
   t: (k, params) => translate(DEFAULT_LOCALE, k, params),
+  term: (v) => v,
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -47,9 +50,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback((key: string, params?: Params) => translate(locale, key, params), [locale]);
+  const term = useCallback((value: string) => translateTerm(locale, value), [locale]);
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, t }}>
+    <LanguageContext.Provider value={{ locale, setLocale, t, term }}>
       {children}
     </LanguageContext.Provider>
   );
@@ -63,4 +67,10 @@ export function useT() {
 export function T({ k, params }: { k: string; params?: Params }) {
   const { t } = useT();
   return <>{t(k, params)}</>;
+}
+
+/** A data word (crop, stage, weather label) in the current language. */
+export function Term({ v }: { v: string }) {
+  const { term } = useT();
+  return <>{term(v)}</>;
 }

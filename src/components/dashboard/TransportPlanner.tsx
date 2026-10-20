@@ -7,7 +7,7 @@ import {
   CheckCircle, AlertTriangle, TrendingUp,
 } from "lucide-react";
 import type { MandiRow } from "@/lib/market";
-import { useT } from "@/components/i18n/LanguageProvider";
+import { useT, Term } from "@/components/i18n/LanguageProvider";
 
 
 const VEHICLES = [
@@ -129,7 +129,7 @@ export default function TransportPlanner({
                 {t("transportPlanner.title")}
               </h2>
               <p className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
-                {cropName} · {mandi.mandi}
+                <Term v={cropName} /> · {mandi.mandi}
               </p>
             </div>
           </div>
