@@ -4,8 +4,9 @@ import { Plus, User } from "lucide-react";
 import { useT } from "@/components/i18n/LanguageProvider";
 import AddFarmButton from "@/components/dashboard/AddFarmButton";
 import NavList from "@/components/dashboard/NavList";
+import type { PlanId } from "@/lib/plans";
 
-export default function Sidebar() {
+export default function Sidebar({ plan = "free" }: { plan?: PlanId }) {
   const { t } = useT();
 
   return (
@@ -51,7 +52,7 @@ export default function Sidebar() {
         <div aria-hidden="true" className="af-rule-warm h-px -mt-4 mx-2" />
 
         {/* Navigation groups — shared with the mobile drawer (NavList). */}
-        <NavList />
+        <NavList plan={plan} />
       </div>
 
       {/* Bottom */}

@@ -8,6 +8,18 @@ export type Scheme = {
   deadline: string;
   authority: string;
   link: string;
+
+  // ── Added for the live scheme desk (src/lib/schemeDesk.ts) ────────────────
+  // All optional, so the eight built-ins below and every existing consumer —
+  // SchemesBoard, /api/scheme-match — compile and behave exactly as before.
+
+  /** Absent on the built-ins, which are treated as "builtin". */
+  source?: "builtin" | "live";
+  /** The page this was actually read off. Only set when source === "live". */
+  sourceUrl?: string;
+  scope?: "central" | "state";
+  /** Which state's portal it came from. "" or absent for central schemes. */
+  state?: string;
 };
 
 // Curated real Indian central agriculture schemes.

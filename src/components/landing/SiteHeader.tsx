@@ -138,7 +138,7 @@ export default function SiteHeader() {
                 <LanguageMenu tone="light" />
               </div>
               <button
-                onClick={() => router.push("/onboarding")}
+                onClick={() => router.push("/login?next=/onboarding")}
                 className="of-grad-emerald rounded-full px-5 py-2 font-sans text-[13px] font-semibold text-white shadow-of-glow transition-transform hover:-translate-y-0.5"
               >
                 {t("l.cta.demo")}

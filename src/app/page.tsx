@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { LanguageProvider, useT } from "@/components/i18n/LanguageProvider";
 import SiteHeader, { LeafMark } from "@/components/landing/SiteHeader";
+import StarBorder from "@/components/landing/StarBorder";
 import SmoothScroll from "@/components/SmoothScroll";
 import FindUs from "@/components/landing/FindUs";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
@@ -31,7 +32,7 @@ import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
    ──────────────────────────────────────────────────────────────────────────── */
 
 /* ── Full-bleed video hero ────────────────────────────────────────────────── */
-function Hero({ onFarmer, onCompany }: { onFarmer: () => void; onCompany: () => void }) {
+function Hero() {
   const { t } = useT();
   // 76px is SiteHeader's block height (pt-4 + its 58px pill + the 1px ring
   // either side). It is sticky rather than fixed, so it occupies layout space
@@ -64,19 +65,80 @@ function Hero({ onFarmer, onCompany }: { onFarmer: () => void; onCompany: () => 
           {t("a.hero.sub")}
         </p>
 
+        {/*
+          The two hero buttons carry a star tracing their border.
+
+          Both are pills, so `radius` is the `arva-btn` token (100px) rather
+          than StarBorder's 12px default — the component clamps it to half the
+          height and walks the resulting outline by arc length, so the star
+          holds one pace all the way round.
+
+          Padding and type come through `style` and `className` rather than the
+          component's own stylesheet: `.star-border` sets its own padding at the
+          same specificity as a Tailwind utility, and which one wins depends on
+          the order Next.js happens to emit the two stylesheets in. An inline
+          style has no such argument.
+        */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          <button
-            onClick={onFarmer}
-            className="rounded-arva-btn bg-forest-ink px-7 py-3 font-sans text-[14px] font-semibold uppercase tracking-[0.025em] text-white transition-colors hover:bg-forest-ink/90"
+          {/*
+            Sign in, not the oilseed awareness page. This button says "I'm a
+            farmer", and the thing a farmer wants behind it is their own
+            dashboard — the awareness page is a step inside onboarding, not a
+            front door.
+          */}
+          <StarBorder
+            as={Link}
+            href="/login"
+            className="font-sans text-[14px] font-semibold uppercase tracking-[0.025em]"
+            style={{ padding: "12px 28px" }}
+            radius={100}
+            backgroundColor="#07503f"
+            textColor="#ffffff"
+            borderColor="rgba(255, 255, 255, 0.28)"
+            color="#ffffff"
+            trailColor="#ffffff"
+            duration={4}
+            direction="clockwise"
+            stars={1}
+            trailLength={0.3}
+            thickness={1}
+            glow={0.6}
+            hover="lap"
+            sparkle={false}
+            clickPulse
+            theme="dark"
           >
             {t("l.hero.farmer")}
-          </button>
-          <button
-            onClick={onCompany}
-            className="rounded-arva-btn border border-white/70 px-7 py-3 font-sans text-[14px] font-semibold uppercase tracking-[0.025em] text-white transition-colors hover:bg-white/10"
+          </StarBorder>
+          {/*
+            The outlined twin. `backgroundColor` is transparent so the drone
+            footage still shows through it, and the resting border is the same
+            white it always was — the star now travels that line.
+          */}
+          <StarBorder
+            as={Link}
+            href="/jaivik-sathi"
+            className="font-sans text-[14px] font-semibold uppercase tracking-[0.025em]"
+            style={{ padding: "12px 28px" }}
+            radius={100}
+            backgroundColor="transparent"
+            textColor="#ffffff"
+            borderColor="rgba(255, 255, 255, 0.7)"
+            color="#ffffff"
+            trailColor="#ffffff"
+            duration={4}
+            direction="clockwise"
+            stars={1}
+            trailLength={0.3}
+            thickness={1}
+            glow={0.6}
+            hover="lap"
+            sparkle={false}
+            clickPulse
+            theme="dark"
           >
             {t("l.hero.company")}
-          </button>
+          </StarBorder>
         </div>
 
         <a
@@ -280,7 +342,7 @@ function Stats() {
 }
 
 /* ── Closing CTA ──────────────────────────────────────────────────────────── */
-function CtaBand({ onDemo }: { onDemo: () => void }) {
+function CtaBand() {
   const { t } = useT();
   return (
     <section className="bg-bone pb-[80px]">
@@ -292,12 +354,12 @@ function CtaBand({ onDemo }: { onDemo: () => void }) {
           <p className="mx-auto mt-5 max-w-[52ch] font-sans text-[16px] font-light leading-[1.6] text-white/80 sm:text-[17px]">
             {t("l.cta2.body")}
           </p>
-          <button
-            onClick={onDemo}
-            className="mt-9 rounded-arva-btn bg-vivid-lime px-8 py-3 font-sans text-[14px] font-semibold uppercase tracking-[0.025em] text-charcoal transition-transform hover:-translate-y-0.5"
+          <Link
+            href="/onboarding"
+            className="mt-9 inline-block rounded-arva-btn bg-vivid-lime px-8 py-3 font-sans text-[14px] font-semibold uppercase tracking-[0.025em] text-charcoal transition-transform hover:-translate-y-0.5"
           >
             {t("l.cta2.btn")}
-          </button>
+          </Link>
         </div>
       </div>
     </section>
@@ -317,8 +379,8 @@ function Footer() {
     {
       head: t("l.foot.product"),
       links: [
-        { label: t("l.cta.demo"), href: "/onboarding" },
-        { label: t("l.hero.farmer"), href: "/oilseeds" },
+        { label: t("l.cta.demo"), href: "/login?next=/onboarding" },
+        { label: t("l.hero.farmer"), href: "/login" },
         { label: t("l.hero.company"), href: "/jaivik-sathi" },
       ],
     },
@@ -398,20 +460,15 @@ function Footer() {
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 function HomeContent() {
-  const router = useRouter();
-  const goFarmer = () => router.push("/oilseeds");
-  const goCompany = () => router.push("/jaivik-sathi");
-  const goDemo = () => router.push("/onboarding");
-
   return (
     <main className="min-h-screen bg-bone">
       <SiteHeader />
-      <Hero onFarmer={goFarmer} onCompany={goCompany} />
+      <Hero />
       <Quilt />
       <HowItWorks />
       <Capabilities />
       <Stats />
-      <CtaBand onDemo={goDemo} />
+      <CtaBand />
       <FindUs />
       <Footer />
     </main>

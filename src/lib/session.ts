@@ -17,18 +17,30 @@ import type { User } from "@supabase/supabase-js";
  * with the user, so a refresh succeeds only if the account still exists. When
  * it fails we clear the dead cookie so the farmer is simply asked to sign in.
  *
+ * A 5-second timeout prevents the onboarding spinner from hanging forever when
+ * the network is slow or Supabase is temporarily unreachable. On timeout the
+ * function returns null so the auth form is shown immediately.
+ *
  * Returns null when there is no usable session.
  */
 export async function getLiveUser(): Promise<User | null> {
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
+  const timeout = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), 5000)
+  );
 
-  const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
-  if (refreshError || !refreshed.user) {
-    // The token outlived its account. Drop it rather than half-trust it.
-    await supabase.auth.signOut().catch(() => {});
-    return null;
-  }
+  const check = async (): Promise<User | null> => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) return null;
 
-  return refreshed.user;
+    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError || !refreshed.user) {
+      // The token outlived its account. Drop it rather than half-trust it.
+      await supabase.auth.signOut().catch(() => {});
+      return null;
+    }
+
+    return refreshed.user;
+  };
+
+  return Promise.race([check(), timeout]);
 }

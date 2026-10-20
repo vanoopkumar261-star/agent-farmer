@@ -1,4 +1,5 @@
 import { getSessionFarmer } from "@/lib/auth";
+import { planDenied, requirePlan } from "@/lib/entitlements";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { readJsonBounded, clampStr, payloadTooLarge } from "@/lib/apiInput";
@@ -47,6 +48,12 @@ export async function POST(req: Request) {
   if (!farmer) {
     return Response.json({ error: "Please sign in." }, { status: 401 });
   }
+
+  // Smart Irrigation is a Krishi Pro feature. A straight tier gate rather than
+  // an allowance: the FAO ETc calculation is ours and costs nothing per call,
+  // so there is nothing to meter — it is either included or it is not.
+  const guard = requirePlan(farmer, "pro", "irrigation");
+  if (!guard.ok) return planDenied(guard);
 
   let body: any;
   try {

@@ -49,7 +49,20 @@ export async function middleware(request: NextRequest) {
 
   if (user && path === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    /*
+      An already-signed-in farmer who clicks a link *into* the sign-in page
+      still meant to go somewhere — "Go to demo" points at
+      /login?next=/onboarding — and dropping that destination sent them to the
+      dashboard instead of where they asked for. Honoured only for a plain
+      in-app path: anything protocol-relative or absolute would make this an
+      open redirect.
+    */
+    const next = request.nextUrl.searchParams.get("next");
+    const safeNext =
+      next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/login")
+        ? next
+        : null;
+    url.pathname = safeNext ?? "/dashboard";
     url.search = "";
     return NextResponse.redirect(url);
   }

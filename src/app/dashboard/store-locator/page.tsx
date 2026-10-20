@@ -5,7 +5,7 @@ import { getNearbyStores } from "@/lib/stores";
 import StoreLocatorClient from "@/components/dashboard/StoreLocatorClient";
 import Reveal from "@/components/ui/Reveal";
 import { T } from "@/components/i18n/LanguageProvider";
-import { MapPin } from "lucide-react";
+import { MapPin, PackageSearch, ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +48,27 @@ export default async function StoreLocatorPage() {
           house={{ lat: farmer.house_lat, lng: farmer.house_lng, address: farmer.house_address }}
           stores={stores}
         />
+      </Reveal>
+
+      {/* This page is about shops a farmer can drive to. Someone already here
+          is deciding what to buy, which is exactly when the online price
+          comparison is useful — so it is offered rather than left to be found
+          in the sidebar. */}
+      <Reveal>
+        <Link
+          href="/dashboard/inputs"
+          className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-af-border bg-af-card px-4 py-3.5 transition hover:border-af-primary/40 hover:shadow-af-sm"
+        >
+          <span className="flex items-center gap-3 min-w-0">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary shrink-0">
+              <PackageSearch className="w-[18px] h-[18px]" />
+            </span>
+            <span className="text-[13px] text-af-ink-2 leading-snug">
+              <T k="stores.compareOnline" />
+            </span>
+          </span>
+          <ChevronRight className="w-4 h-4 text-af-muted shrink-0" />
+        </Link>
       </Reveal>
     </div>
   );

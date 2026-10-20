@@ -1,0 +1,85 @@
+name: TinyFish cache warm
+
+# Fills the TinyFish caches for every state overnight, so the first farmer of
+# the day gets a database read instead of a 25-second live lookup.
+#
+# This lives here rather than in vercel.json for the same reason the hazard
+# poller does: Vercel Cron on the Hobby plan runs at most once per day and
+# cannot call one endpoint repeatedly. Warming is minutes of work against a
+# 60-second function, so it has to be a loop of calls, not a single call.
+#
+# The warmer runs TinyFish's FREE tiers only and never starts a browser run,
+# so a full pass should report spentUsd 0.0000. The budget assertion at the end
+# is there to make a regression loud rather than expensive.
+
+on:
+  schedule:
+    # 20:30 UTC = 02:00 IST. Clear of the hazard poller's */10 and well after
+    # the mandi boards publish for the day.
+    - cron: "30 20 * * *"
+  workflow_dispatch:
+
+# A slow night must never overlap the next one and warm the same rows twice.
+concurrency:
+  group: tinyfish-warm
+  cancel-in-progress: false
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Warm the caches
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${APP_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::APP_URL and CRON_SECRET repository secrets must both be set."
+            exit 1
+          fi
+
+          # Hard cap on iterations. A target that somehow never completes must
+          # cost a bounded number of minutes, not the whole Actions budget.
+          MAX_ITERATIONS=30
+          total_spend="0"
+
+          for i in $(seq 1 "$MAX_ITERATIONS"); do
+            # Only the first call seeds. The route does not re-seed an empty
+            # queue, so draining it is what ends this loop.
+            if [ "$i" -eq 1 ]; then
+              url="${APP_URL%/}/api/cron/tinyfish-warm?seed=1"
+            else
+              url="${APP_URL%/}/api/cron/tinyfish-warm"
+            fi
+
+            response=$(curl -sS --fail-with-body --max-time 120 \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -X POST "$url") || {
+                echo "::error::warm call $i failed: $response"
+                exit 1
+              }
+
+            echo "pass $i: $response"
+
+            remaining=$(printf '%s' "$response" | jq -r '.remaining // 0')
+            spent=$(printf '%s' "$response" | jq -r '.spentUsd // 0')
+            total_spend=$(awk -v a="$total_spend" -v b="$spent" 'BEGIN{printf "%.4f", a+b}')
+
+            if [ "$remaining" = "0" ]; then
+              echo "queue drained after $i pass(es)"
+              break
+            fi
+          done
+
+          echo "total spend this run: \$$total_spend"
+
+          # The warmer is free by construction. If that ever stops being true
+          # it should fail the job on the first night, not show up on a bill.
+          over=$(awk -v s="$total_spend" 'BEGIN{print (s > 0.5) ? 1 : 0}')
+          if [ "$over" -eq 1 ]; then
+            echo "::error::warm run spent \$$total_spend, which should be \$0 — a paid rung has leaked into the cron path."
+            exit 1
+          fi

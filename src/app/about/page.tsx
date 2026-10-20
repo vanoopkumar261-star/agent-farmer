@@ -275,7 +275,7 @@ function Footer() {
     { label: t("a.foot.home"), href: "/" },
     { label: t("l.nav.team"), href: "/team" },
     { label: t("l.nav.arch"), href: "/architecture" },
-    { label: t("l.cta.demo"), href: "/onboarding" },
+    { label: t("l.cta.demo"), href: "/login?next=/onboarding" },
   ];
   return (
     <footer className="relative overflow-hidden bg-of-forest px-6 pb-10 pt-16 sm:px-12">

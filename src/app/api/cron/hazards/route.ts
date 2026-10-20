@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createHash, timingSafeEqual } from "crypto";
+import { checkCronAuth } from "@/lib/cronAuth";
 import { fetchCapAlert, fetchCapFeed } from "@/lib/hazards/cap";
 import { hazardAdmin, knownGuids, pruneExpired, storeHazards } from "@/lib/hazards/store";
 import type { HazardAlert } from "@/lib/hazards/types";
@@ -28,20 +28,6 @@ const MAX_DETAIL_FETCHES = 40;
 /** Small, to stay polite to a government feed with no published SLA. */
 const CONCURRENCY = 4;
 
-/**
- * Constant-time secret comparison.
- *
- * `timingSafeEqual` throws on length mismatch, which would itself leak the
- * expected length, so both sides are hashed to a fixed width first — cheaper
- * than importing a comparison library for one call.
- */
-function secretOk(provided: string | null, expected: string): boolean {
-  if (!provided) return false;
-  const a = createHash("sha256").update(provided).digest();
-  const b = createHash("sha256").update(expected).digest();
-  return timingSafeEqual(a, b);
-}
-
 /** Run tasks with a small concurrency cap, preserving nothing but completion. */
 async function pooled<T, R>(
   items: T[],
@@ -61,17 +47,9 @@ async function pooled<T, R>(
 }
 
 async function run(req: Request): Promise<NextResponse> {
-  const expected = process.env.CRON_SECRET;
-  if (!expected) {
-    // Fail closed. An unset secret would otherwise leave the route open.
-    console.error("CRON_SECRET is not set — hazard poller refused to run.");
-    return NextResponse.json({ error: "not configured" }, { status: 503 });
-  }
-
-  const header = req.headers.get("authorization");
-  const token = header?.replace(/^Bearer\s+/i, "").trim() ?? null;
-  if (!secretOk(token, expected)) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const auth = checkCronAuth(req, "hazard poller");
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const admin = hazardAdmin();

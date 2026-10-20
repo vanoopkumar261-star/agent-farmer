@@ -10,6 +10,15 @@ type Dict = Record<string, string>;
    ──────────────────────────────────────────────────────────────────────────── */
 
 const en: Dict = {
+  // ── Membership step (step 2) ──────────────────────────────────────────────
+  "onboarding.step.plan": "Plan",
+  "onboarding.stepPlan.title": "Choose how you want to farm with us",
+  "onboarding.stepPlan.subtitle": "Start free and stay free, or take the limits off. You can change this any time from Settings.",
+  "onboarding.stepPlan.hint": "Your plan decides how many fields you can add in the next step.",
+  "onboarding.hero.title.plan": "Pick the plan that fits your land.",
+  "onboarding.hero.sub.plan": "Krishi Mitra is free forever. The paid plans exist because the scans, the assistant and the live mandi lookups cost us real money to run — not to put a gate in front of a farmer.",
+  "onboarding.needMoreFields": "Need more fields?",
+
   "onboarding.review.placeUnknown": "your area",
   // Final check screen — plain sentences, read aloud where a voice exists.
   "onboarding.review.title": "Please check this is right",
@@ -67,7 +76,7 @@ const en: Dict = {
   "onboarding.field.numFarms": "Number of Farms",
   "onboarding.decreaseFarms": "Decrease farms",
   "onboarding.increaseFarms": "Increase farms",
-  "onboarding.upToSix": "Up to 6 farms",
+  "onboarding.upToN": "Up to {n} farms",
   "onboarding.farm.n": "Farm {n}",
   "onboarding.fieldProfile": "Field Profile",
   "onboarding.field.farmArea": "Farm Area (Acres)",
@@ -142,6 +151,15 @@ const en: Dict = {
 };
 
 const hi: Dict = {
+  // ── Membership step (step 2) ──────────────────────────────────────────────
+  "onboarding.step.plan": "प्लान",
+  "onboarding.stepPlan.title": "चुनें कि आप हमारे साथ कैसे खेती करना चाहते हैं",
+  "onboarding.stepPlan.subtitle": "मुफ़्त शुरू करें और मुफ़्त ही रहें, या सीमाएँ हटा दें। आप इसे सेटिंग्स से कभी भी बदल सकते हैं।",
+  "onboarding.stepPlan.hint": "आपका प्लान तय करता है कि अगले चरण में आप कितने खेत जोड़ सकते हैं।",
+  "onboarding.hero.title.plan": "अपनी ज़मीन के हिसाब से प्लान चुनें।",
+  "onboarding.hero.sub.plan": "कृषि मित्र हमेशा मुफ़्त है। सशुल्क प्लान इसलिए हैं क्योंकि रोग जाँच, सहायक और लाइव मंडी जानकारी चलाने में हमारा असली ख़र्च होता है — किसान के सामने दरवाज़ा लगाने के लिए नहीं।",
+  "onboarding.needMoreFields": "और खेत चाहिए?",
+
   "onboarding.review.placeUnknown": "आपका क्षेत्र",
   // Final check screen — plain sentences, read aloud where a voice exists.
   "onboarding.review.title": "कृपया जाँच लें कि यह सही है",
@@ -199,7 +217,7 @@ const hi: Dict = {
   "onboarding.field.numFarms": "खेतों की संख्या",
   "onboarding.decreaseFarms": "खेत घटाएँ",
   "onboarding.increaseFarms": "खेत बढ़ाएँ",
-  "onboarding.upToSix": "6 खेतों तक",
+  "onboarding.upToN": "{n} खेतों तक",
   "onboarding.farm.n": "खेत {n}",
   "onboarding.fieldProfile": "खेत प्रोफ़ाइल",
   "onboarding.field.farmArea": "खेत का क्षेत्रफल (एकड़)",
@@ -329,7 +347,7 @@ const kn: Dict = {
   "onboarding.field.numFarms": "ಹೊಲಗಳ ಸಂಖ್ಯೆ",
   "onboarding.decreaseFarms": "ಹೊಲಗಳನ್ನು ಕಡಿಮೆ ಮಾಡಿ",
   "onboarding.increaseFarms": "ಹೊಲಗಳನ್ನು ಹೆಚ್ಚಿಸಿ",
-  "onboarding.upToSix": "6 ಹೊಲಗಳವರೆಗೆ",
+  "onboarding.upToN": "{n} ಹೊಲಗಳವರೆಗೆ",
   "onboarding.farm.n": "ಹೊಲ {n}",
   "onboarding.fieldProfile": "ಹೊಲದ ಪ್ರೊಫೈಲ್",
   "onboarding.field.farmArea": "ಹೊಲದ ವಿಸ್ತೀರ್ಣ (ಎಕರೆ)",
@@ -459,7 +477,7 @@ const ta: Dict = {
   "onboarding.field.numFarms": "பண்ணைகளின் எண்ணிக்கை",
   "onboarding.decreaseFarms": "பண்ணைகளைக் குறைக்கவும்",
   "onboarding.increaseFarms": "பண்ணைகளை அதிகரிக்கவும்",
-  "onboarding.upToSix": "6 பண்ணைகள் வரை",
+  "onboarding.upToN": "{n} பண்ணைகள் வரை",
   "onboarding.farm.n": "பண்ணை {n}",
   "onboarding.fieldProfile": "வயல் சுயவிவரம்",
   "onboarding.field.farmArea": "பண்ணை பரப்பளவு (ஏக்கர்)",
@@ -589,7 +607,7 @@ const te: Dict = {
   "onboarding.field.numFarms": "పొలాల సంఖ్య",
   "onboarding.decreaseFarms": "పొలాలను తగ్గించండి",
   "onboarding.increaseFarms": "పొలాలను పెంచండి",
-  "onboarding.upToSix": "6 పొలాల వరకు",
+  "onboarding.upToN": "{n} పొలాల వరకు",
   "onboarding.farm.n": "పొలం {n}",
   "onboarding.fieldProfile": "పొలం ప్రొఫైల్",
   "onboarding.field.farmArea": "పొలం విస్తీర్ణం (ఎకరాలు)",
@@ -719,7 +737,7 @@ const ml: Dict = {
   "onboarding.field.numFarms": "കൃഷിയിടങ്ങളുടെ എണ്ണം",
   "onboarding.decreaseFarms": "കൃഷിയിടങ്ങൾ കുറയ്ക്കുക",
   "onboarding.increaseFarms": "കൃഷിയിടങ്ങൾ വർദ്ധിപ്പിക്കുക",
-  "onboarding.upToSix": "6 കൃഷിയിടങ്ങൾ വരെ",
+  "onboarding.upToN": "{n} കൃഷിയിടങ്ങൾ വരെ",
   "onboarding.farm.n": "കൃഷിയിടം {n}",
   "onboarding.fieldProfile": "വയൽ പ്രൊഫൈൽ",
   "onboarding.field.farmArea": "കൃഷിയിട വിസ്തീർണ്ണം (ഏക്കർ)",
@@ -849,7 +867,7 @@ const mr: Dict = {
   "onboarding.field.numFarms": "शेतांची संख्या",
   "onboarding.decreaseFarms": "शेते कमी करा",
   "onboarding.increaseFarms": "शेते वाढवा",
-  "onboarding.upToSix": "6 शेतांपर्यंत",
+  "onboarding.upToN": "{n} शेतांपर्यंत",
   "onboarding.farm.n": "शेत {n}",
   "onboarding.fieldProfile": "शेत प्रोफाइल",
   "onboarding.field.farmArea": "शेत क्षेत्रफळ (एकर)",
@@ -979,7 +997,7 @@ const bn: Dict = {
   "onboarding.field.numFarms": "খামারের সংখ্যা",
   "onboarding.decreaseFarms": "খামার কমান",
   "onboarding.increaseFarms": "খামার বাড়ান",
-  "onboarding.upToSix": "6টি খামার পর্যন্ত",
+  "onboarding.upToN": "{n}টি খামার পর্যন্ত",
   "onboarding.farm.n": "খামার {n}",
   "onboarding.fieldProfile": "ক্ষেত প্রোফাইল",
   "onboarding.field.farmArea": "খামার এলাকা (একর)",
@@ -1109,7 +1127,7 @@ const pa: Dict = {
   "onboarding.field.numFarms": "ਖੇਤਾਂ ਦੀ ਗਿਣਤੀ",
   "onboarding.decreaseFarms": "ਖੇਤ ਘਟਾਓ",
   "onboarding.increaseFarms": "ਖੇਤ ਵਧਾਓ",
-  "onboarding.upToSix": "6 ਖੇਤਾਂ ਤੱਕ",
+  "onboarding.upToN": "{n} ਖੇਤਾਂ ਤੱਕ",
   "onboarding.farm.n": "ਖੇਤ {n}",
   "onboarding.fieldProfile": "ਖੇਤ ਪ੍ਰੋਫਾਈਲ",
   "onboarding.field.farmArea": "ਖੇਤ ਖੇਤਰ (ਏਕੜ)",

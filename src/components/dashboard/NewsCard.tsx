@@ -54,8 +54,19 @@ const categoryConfig = {
   },
 };
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
+/**
+ * Returns null when the article carried no usable date.
+ *
+ * TinyFish Search often gives no publication date, and `/api/news` deliberately
+ * passes that through as "" rather than stamping the current time — the Groq
+ * tier this replaced manufactured recency exactly that way. An empty string fed
+ * to `new Date()` yields NaN, which rendered as "NaNd ago"; returning null lets
+ * the caller print an honest "Date not given" instead.
+ */
+function timeAgo(iso: string): string | null {
+  const t = new Date(iso).getTime();
+  if (!iso || Number.isNaN(t)) return null;
+  const diff = Date.now() - t;
   const mins = Math.floor(diff / 60_000);
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
@@ -93,6 +104,7 @@ function ArticleCard({
   article: NewsArticle;
   featured?: boolean;
 }) {
+  const { t } = useT();
   const [imgError, setImgError] = useState(false);
   const cfg = categoryConfig[article.category];
   const Icon = cfg.icon;
@@ -120,6 +132,13 @@ function ArticleCard({
             <div className="w-full h-full flex items-center justify-center bg-af-sage">
               <Newspaper className="w-10 h-10 text-af-secondary opacity-40" />
             </div>
+          )}
+          {/* The photo is ours, not the publisher's. Say so, quietly but
+              plainly — an unlabelled stock photo reads as reporting. */}
+          {!imgError && img && article.imageIsStock && (
+            <span className="absolute top-2 right-2 z-10 rounded-full bg-black/55 px-2 py-0.5 text-[9px] font-medium tracking-wide text-white/90 backdrop-blur-sm">
+              {t("newsCard.stockImage")}
+            </span>
           )}
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -163,7 +182,7 @@ function ArticleCard({
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] text-af-muted">
               <Clock className="w-3 h-3" />
-              {timeAgo(article.publishedAt)}
+              {timeAgo(article.publishedAt) ?? t("newsCard.dateUnknown")}
             </span>
           </div>
         </div>
@@ -215,7 +234,7 @@ function ArticleCard({
           <span className="text-af-border">·</span>
           <span className="inline-flex items-center gap-0.5 text-[10px] text-af-muted shrink-0">
             <Clock className="w-2.5 h-2.5" />
-            {timeAgo(article.publishedAt)}
+            {timeAgo(article.publishedAt) ?? t("newsCard.dateUnknown")}
           </span>
         </div>
       </div>
@@ -236,7 +255,7 @@ export default function NewsCard({
   const { t } = useT();
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dataSource, setDataSource] = useState<"live" | "ai" | "error">("live");
+  const [dataSource, setDataSource] = useState<"live" | "search" | "error">("live");
   const [provider, setProvider] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -302,15 +321,17 @@ export default function NewsCard({
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-semibold font-mono tracking-[0.12em] uppercase ${
               dataSource === "live"
                 ? "bg-af-primary/10 border-af-primary/20 text-af-primary-deep"
-                : dataSource === "ai"
+                : dataSource === "search"
                 ? "bg-af-ai/10 border-af-ai/20 text-af-ai"
                 : "bg-af-bg border-af-border text-af-muted"
             }`}
           >
             {dataSource === "live" ? (
               <><Wifi className="w-3 h-3" /> {t("newsCard.live")}{provider ? ` · ${provider}` : ""}</>
-            ) : dataSource === "ai" ? (
-              <><Wifi className="w-3 h-3" /> {t("newsCard.aiGeneratedGroq")}</>
+            ) : dataSource === "search" ? (
+              // Real, clickable, dated articles found by a live web search —
+              // not a curated news API, and emphatically not written by a model.
+              <><Wifi className="w-3 h-3" /> {t("newsCard.viaSearch")}</>
             ) : (
               <><WifiOff className="w-3 h-3" /> {t("newsCard.unavailable")}</>
             )}
@@ -425,7 +446,7 @@ export default function NewsCard({
         <div className="text-center text-[11px] text-af-muted pt-2">
           {dataSource === "live"
             ? t("newsCard.footerLive")
-            : t("newsCard.footerAi")}
+            : t("newsCard.footerSearch")}
         </div>
       )}
     </div>

@@ -178,13 +178,27 @@ export async function saveDiagnosis(
   }
 }
 
-export async function getRecentDiagnoses(farmerId: string, limit = 10): Promise<DiagnosisRecord[]> {
+/**
+ * Recent scans, optionally windowed by the farmer's plan.
+ *
+ * `since` is the membership history window (30 days on Krishi Mitra, 12 months
+ * on Pro, everything on Elite). Nothing is deleted when it passes — the record
+ * stays in the table and reappears if the farmer moves up a tier. A plan that
+ * destroyed history would be a plan farmers could not safely leave.
+ */
+export async function getRecentDiagnoses(
+  farmerId: string,
+  limit = 10,
+  since?: Date | null
+): Promise<DiagnosisRecord[]> {
   try {
     const supabase = createSupabaseServer();
-    const { data, error } = await supabase
+    let q = supabase
       .from("crop_health_records")
       .select("id, crop_name, disease, healthy, confidence, severity, summary, source, image_url, created_at")
-      .eq("farmer_id", farmerId)
+      .eq("farmer_id", farmerId);
+    if (since) q = q.gte("created_at", since.toISOString());
+    const { data, error } = await q
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error || !data) return [];

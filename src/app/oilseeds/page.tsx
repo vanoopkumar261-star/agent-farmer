@@ -12,7 +12,7 @@
  * the farmer continues to the same, unchanged registration flow.
  */
 
-import { useRouter } from "next/navigation";
+
 import {
   ArrowRight,
   Coins,
@@ -23,7 +23,7 @@ import {
   Sprout,
   TrendingUp,
 } from "lucide-react";
-import SmoothScroll from "@/components/SmoothScroll";
+
 import { LanguageProvider, useT } from "@/components/i18n/LanguageProvider";
 import SiteHeader from "@/components/landing/SiteHeader";
 import { storeOilseedAnswer } from "@/lib/oilseed";
@@ -70,21 +70,18 @@ const COMPLEMENTS = [
 
 export default function OilseedsAwarenessPage() {
   return (
-    <SmoothScroll>
-      <LanguageProvider>
-        <AwarenessContent />
-      </LanguageProvider>
-    </SmoothScroll>
+    <LanguageProvider>
+      <AwarenessContent />
+    </LanguageProvider>
   );
 }
 
 function AwarenessContent() {
-  const router = useRouter();
   const { t } = useT();
 
   const answer = (choice: "yes" | "no") => {
     storeOilseedAnswer(choice);
-    router.push("/onboarding");
+    window.location.href = "/onboarding";
   };
 
   return (

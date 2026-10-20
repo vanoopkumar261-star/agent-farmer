@@ -11,6 +11,8 @@ import { extractStateFromAddress } from "@/lib/market";
 import { getMarketForState } from "@/lib/market-server";
 import { syncNotifications } from "@/lib/notifications-server";
 import { getRecentDiagnoses } from "@/lib/history";
+import { historyCutoff } from "@/lib/entitlements";
+import { planOf } from "@/lib/plans";
 import { recordDayTasks, tallyDayTasks, serverYesterday } from "@/lib/tasks-server";
 import WeatherCard from "@/components/dashboard/WeatherCard";
 import SensorPanel from "@/components/dashboard/SensorPanel";
@@ -139,7 +141,7 @@ export default async function DashboardPage() {
   // Leaf scans from the last two weeks that came back diseased. Older results
   // are excluded deliberately: a problem found a month ago says little about
   // the crop's health today, and would drag the score down forever.
-  const recentScans = await getRecentDiagnoses(farmer.id, 10);
+  const recentScans = await getRecentDiagnoses(farmer.id, 10, historyCutoff(planOf(farmer.plan)));
   const twoWeeksAgo = Date.now() - 14 * 86_400_000;
   const activeDiseases = recentScans.filter(
     (r) => !r.healthy && new Date(r.created_at).getTime() >= twoWeeksAgo

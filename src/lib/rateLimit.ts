@@ -54,6 +54,27 @@ export const LIMITS = {
   // billable TinyFish browser run that can take over a minute. This is the only
   // endpoint here where an unthrottled loop spends money rather than CPU.
   "live-mandi": { limit: 3, windowSec: 300 },
+  // Same reasoning as live-mandi, one step gentler. The GET on /api/schemes is
+  // a single cached DB read, but the POST climbs the TinyFish ladder and can
+  // end in a browser run. Budgeted for the expensive one: six refreshes in five
+  // minutes is more than any honest farmer needs, and well under what a demo
+  // loop could spend.
+  schemes: { limit: 6, windowSec: 300 },
+  "input-prices": { limit: 4, windowSec: 300 },
+  // Polling a run in flight is a separate, far looser budget. A browser run
+  // takes 70-166 s and the client polls every 5 s, so one legitimate lookup is
+  // up to ~40 GETs — against the limit above it would rate-limit its own
+  // result. Polling is free and read-only; the spend already happened when the
+  // run was started.
+  "input-prices-poll": { limit: 90, windowSec: 300 },
+  // The mandi agent is async for the same reason and needs the same treatment.
+  // Measured runs took 36-57 s at ~5 s per poll, and the first end-to-end test
+  // failed here: a single lookup polled its own result into a 429.
+  "live-mandi-poll": { limit: 90, windowSec: 300 },
+  // Changing plan is a deliberate act, not something a farmer does in bursts.
+  // Tight enough that a loop cannot churn the column, loose enough that
+  // someone comparing tiers can change their mind a few times.
+  plan: { limit: 10, windowSec: 300 },
   news: { limit: 15, windowSec: 60 },
   sensors: { limit: 60, windowSec: 60 },
   geocode: { limit: 30, windowSec: 60 },

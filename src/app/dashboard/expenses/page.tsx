@@ -1,4 +1,6 @@
 import { getDashboardData } from "@/lib/dashboard";
+import PlanLocked from "@/components/plans/PlanLocked";
+import { atLeast, planOf } from "@/lib/plans";
 import PageHeader from "@/components/ui/PageHeader";
 import { getExpensesData } from "@/lib/expenses-server";
 import ExpenseCharts from "@/components/dashboard/ExpenseCharts";
@@ -14,6 +16,19 @@ export const dynamic = "force-dynamic";
 
 export default async function ExpensesPage() {
   const { farmer } = await getDashboardData();
+
+  // Krishi Pro and above, checked before the expense aggregation runs.
+  if (farmer && !atLeast(planOf(farmer.plan), "pro")) {
+    return (
+      <PlanLocked
+        currentPlan={planOf(farmer.plan)}
+        requiredPlan="pro"
+        featureKey="expenses"
+        titleKey="plans.locked.expenses.title"
+        bodyKey="plans.locked.expenses.body"
+      />
+    );
+  }
 
   if (!farmer) {
     return (

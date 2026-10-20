@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { fetchWithRetry, readGroqContent, GROQ_TEXT_MODEL } from "@/lib/http";
+import { fetchWithRetry } from "@/lib/http";
+import { tfSearch } from "@/lib/tinyfish";
+import { anyKeyConfigured } from "@/lib/tfKeys";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { clampArr, clampStr, payloadTooLarge, PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 
 export const dynamic = "force-dynamic";
 
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GNEWS_URL = "https://gnews.io/api/v4/search";
 const NEWSAPI_URL = "https://newsapi.org/v2/everything";
 
@@ -44,6 +45,13 @@ export type NewsArticle = {
   imageUrl: string | null;
   category: "crop" | "oilseed" | "farming" | "general";
   relevantCrop?: string;
+  /**
+   * True when `imageUrl` is one of our themed stock photos rather than the
+   * publisher's own picture. The card prints a caption saying so: a wheat photo
+   * beside a wheat story is decoration, and decoration that looks like
+   * reporting is the quiet kind of lie.
+   */
+  imageIsStock: boolean;
 };
 
 // Curated farming image pool - high quality, themed to match your site
@@ -96,7 +104,15 @@ const CORE_AGRI =
 const CTX =
   "crop OR crops OR farmer OR farmers OR mandi OR MSP OR price OR prices OR output OR yield OR acreage OR sowing OR harvest OR procurement OR arrivals OR kharif OR rabi";
 
-function pickImage(title: string, apiImage: string | null): string {
+/**
+ * Returns the image and whether it is ours rather than the publisher's.
+ *
+ * The flag exists because TinyFish Search returns no images at all, so the
+ * stock pool went from "occasional filler" to "most of the grid". A themed
+ * photo is still better than a wall of blank tiles, but the card has to be able
+ * to say which it is.
+ */
+function pickImage(title: string, apiImage: string | null): { url: string; isStock: boolean } {
   // Try API image first - only use if it's a real image URL (not a placeholder)
   if (
     apiImage &&
@@ -105,15 +121,15 @@ function pickImage(title: string, apiImage: string | null): string {
     !apiImage.includes("via.placeholder") &&
     !apiImage.includes("null")
   ) {
-    return apiImage;
+    return { url: apiImage, isStock: false };
   }
 
   // Match keywords in title to themed farming images
   const lower = title.toLowerCase();
   for (const [keyword, url] of Object.entries(FARMING_IMAGES)) {
-    if (lower.includes(keyword)) return url;
+    if (lower.includes(keyword)) return { url, isStock: true };
   }
-  return FARMING_IMAGES.default;
+  return { url: FARMING_IMAGES.default, isStock: true };
 }
 
 function categorize(
@@ -197,6 +213,7 @@ function rankArticles(raw: RawItem[], farmerCrops: string[], state: string): New
       const { category, relevantCrop } = categorize(a.title, a.description, farmerCrops);
       const inState =
         hasState && `${a.title} ${a.description}`.toLowerCase().includes(stateLower);
+      const image = pickImage(a.title, a.image);
       return {
         inState,
         article: {
@@ -206,7 +223,8 @@ function rankArticles(raw: RawItem[], farmerCrops: string[], state: string): New
           source: a.sourceName || "News",
           publishedAt: a.publishedAt,
           url: a.url || "#",
-          imageUrl: pickImage(a.title, a.image),
+          imageUrl: image.url,
+          imageIsStock: image.isStock,
           category,
           relevantCrop,
         } as NewsArticle,
@@ -369,99 +387,79 @@ async function fetchNewsApi(
   return rankArticles(batches.flat(), farmerCrops, state);
 }
 
-// ── Groq fallback ─────────────────────────────────────────────────────────────
-// Used only when no news provider is configured or all of them return too
-// little. The result is clearly labelled "AI Generated" in the UI, so it must
-// never be mixed into a real-news response.
-async function generateFallbackNews(
-  farmerCrops: string[],
-  state: string,
-  groqKey: string
-): Promise<NewsArticle[]> {
-  const today = new Date().toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+// ── TinyFish Search (the live-web tier) ──────────────────────────────────────
 
-  const crops = farmerCrops.join(", ") || "wheat, paddy";
-  const prompt = `You are an Indian agricultural news writer. Write 8 realistic, plausible Indian farming news items dated around ${today}.
+/**
+ * Last resort, and the only one that stays honest.
+ *
+ * What used to sit here was a Groq call that *wrote* plausible farming
+ * headlines — invented outlets, invented timestamps counted backwards from now,
+ * and `url: "#"` so nothing could be clicked and checked. It was labelled "AI
+ * Generated" in the UI, which is not the same as being true. This app already
+ * deleted one generator of fictional data (`src/lib/stores.ts` and its invented
+ * shops); a news feed a farmer might act on is the last place to keep another.
+ *
+ * TinyFish Search is free and returns real articles with real URLs and real
+ * publication dates, so the fallback can be a live web search instead of a
+ * fabrication. Three queries, widening from the farmer's own crops to the
+ * country, because a farmer growing nothing listed should still see a page.
+ *
+ * Results go through the same `rankArticles` as GNews and NewsAPI — the same
+ * dedupe, the same CORE_AGRI headline gate, the same cap. A cheaper source does
+ * not get a lower bar.
+ */
+async function fetchTinyFishNews(farmerCrops: string[], state: string): Promise<NewsArticle[]> {
+  const hasState = !!state && state.toLowerCase() !== "india";
 
-Farmer's crops: ${crops}
-Farmer's region: ${state || "India"}
-
-Cover, in this priority order:
-1. Two items about the farmer's crops (${crops}) — MSP, mandi arrivals and prices, production/acreage updates${state ? `, ideally set in or near ${state}` : ""}.
-2. Two items about oilseeds in India (mustard, soybean, groundnut, sunflower) — edible-oil prices, imports, the crushing industry.
-3. Two items about Indian agriculture generally — monsoon and rainfall, irrigation, PM-KISAN, soil health, crop insurance.
-4. Two items about government schemes and policy — MSP decisions, APMC/eNAM reform, subsidies, PMFBY, Kisan Credit Card, FPOs.
-
-Rules:
-- Every item must be India-specific. Name real states, districts and mandis.
-- Reference schemes and bodies that exist: PM-KISAN, PMFBY, eNAM, Kisan Credit Card, NABARD, FCI, ICAR, APEDA.
-- Use realistic rupee figures and the correct season names (Rabi, Kharif, Zaid). Do not state a precise MSP figure as fact — describe it in approximate terms.
-
-Return ONLY a JSON array, no markdown:
-[
-  {
-    "title": "headline, under 12 words, Indian agriculture focused",
-    "summary": "2-3 sentence summary with concrete Indian detail and approximate rupee figures",
-    "source": "a real Indian outlet: 'The Hindu BusinessLine', 'Economic Times', 'Krishi Jagran', 'LiveMint', 'Down To Earth', 'Indian Express', 'Business Standard'",
-    "category": "crop" | "oilseed" | "farming" | "general",
-    "relevantCrop": "crop name or null",
-    "imageKeyword": "one of: wheat paddy maize tomato onion potato cotton sugarcane soybean sunflower mustard groundnut farmer market mandi rain drought harvest soil irrigation scheme government"
+  const queries: string[] = [];
+  if (farmerCrops.length) {
+    queries.push(`${farmerCrops.slice(0, 3).join(" OR ")} farmer mandi price MSP`);
   }
-]`;
-
-  let raw: string;
-  try {
-    const res = await fetchWithRetry(
-      GROQ_URL,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${groqKey}`,
-        },
-        body: JSON.stringify({
-          model: GROQ_TEXT_MODEL,
-          messages: [
-            { role: "system", content: "You are a precise Indian agriculture news writer. Return valid JSON only." },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.7,
-          response_format: { type: "json_object" },
-        }),
-      },
-      { label: "news/groq" }
-    );
-    raw = await readGroqContent(res, "news/groq");
-  } catch (e) {
-    console.error("News Groq fallback failed:", e);
-    return [];
+  if (hasState) {
+    queries.push(`${state} agriculture farmers kharif rabi irrigation`);
   }
+  queries.push("India agriculture farmers MSP mandi crop insurance PM-KISAN");
 
-  try {
-    const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
-    const a = cleaned.indexOf("[");
-    const b = cleaned.lastIndexOf("]");
-    const list = JSON.parse(a >= 0 && b > a ? cleaned.slice(a, b + 1) : cleaned);
-    const articles: any[] = Array.isArray(list) ? list : list.articles ?? list.news ?? [];
+  const batches = await Promise.all(
+    queries.map((query) =>
+      tfSearch(query, {
+        domainType: "news",
+        location: "IN",
+        language: "en",
+        // 72 hours. Long enough that a quiet news day still fills the page,
+        // short enough that nothing stale reaches a farmer as "news".
+        recencyMinutes: 72 * 60,
+        label: "tf/news",
+      })
+    )
+  );
 
-    return articles.map((it: any, i: number) => ({
-      id: `groq-${i}-${Date.now()}`,
-      title: it.title,
-      summary: it.summary,
-      source: it.source,
-      publishedAt: new Date(Date.now() - i * 3_600_000).toISOString(),
-      url: "#",
-      imageUrl: FARMING_IMAGES[it.imageKeyword as keyof typeof FARMING_IMAGES] ?? FARMING_IMAGES.default,
-      category: it.category,
-      relevantCrop: it.relevantCrop ?? undefined,
-    }));
-  } catch {
-    return [];
-  }
+  const raw: RawItem[] = batches.flat().map((r) => ({
+    title: r.title,
+    description: r.snippet,
+    url: r.url,
+    // Search returns no images. The stock pool fills in, flagged as stock.
+    image: null,
+    publishedAt: toIsoDate(r.date),
+    sourceName: r.site_name,
+  }));
+
+  return rankArticles(raw, farmerCrops, state);
+}
+
+/**
+ * Search dates arrive as "5 Jun 2026", "3 weeks ago", or not at all.
+ *
+ * An unparseable date returns "" and NOT today's timestamp. Stamping `now()` is
+ * exactly what the deleted Groq tier did, and it manufactured recency for
+ * stories that might be a year old. The card renders "" as "Date not given",
+ * which is the true statement.
+ */
+function toIsoDate(date: string | undefined): string {
+  if (!date) return "";
+  const parsed = Date.parse(date);
+  if (Number.isNaN(parsed)) return "";
+  return new Date(parsed).toISOString();
 }
 
 export async function POST(req: Request) {
@@ -471,7 +469,7 @@ export async function POST(req: Request) {
 
   const gnewsKey = process.env.GNEWS_API_KEY;
   const newsApiKey = process.env.NEWS_API_KEY;
-  const groqKey = process.env.GROQ_API_KEY;
+  const tinyFishKey = anyKeyConfigured();
 
   try {
     let body: any = {};
@@ -487,17 +485,21 @@ export async function POST(req: Request) {
     const state: string = clampStr(body.state, 40) || "India";
 
     let articles: NewsArticle[] = [];
-    let source: "live" | "ai" | "error" = "error";
+    // There is no "ai" source any more: every article the app serves is a real
+    // article from a real publisher, whichever tier found it.
+    let source: "live" | "search" | "error" = "error";
     let provider: string | null = null;
 
     // A real-news provider is kept only if it returns enough to fill the page.
-    // Below that we fall through — to the next provider, then to the AI writer —
-    // rather than show a 2-item stub.
+    // Below that we fall through to the next one rather than show a 2-item stub.
     const enough = (n: number, moreFallbacks: boolean) => n >= 4 || (n > 0 && !moreFallbacks);
 
+    // GNews first, despite TinyFish Search being free: it supplies the
+    // publisher's own images and reliable timestamps, and Search supplies
+    // neither. Cheapness does not outrank the better article.
     if (gnewsKey) {
       const real = await fetchGNews(farmerCrops, state, gnewsKey);
-      if (enough(real.length, !!newsApiKey || !!groqKey)) {
+      if (enough(real.length, !!newsApiKey || !!tinyFishKey)) {
         articles = real;
         source = "live";
         provider = "GNews";
@@ -506,21 +508,19 @@ export async function POST(req: Request) {
 
     if (articles.length === 0 && newsApiKey) {
       const real = await fetchNewsApi(farmerCrops, state, newsApiKey);
-      if (enough(real.length, !!groqKey)) {
+      if (enough(real.length, !!tinyFishKey)) {
         articles = real;
         source = "live";
         provider = "NewsAPI";
       }
     }
 
-    if (articles.length === 0 && groqKey) {
-      articles = await generateFallbackNews(farmerCrops, state, groqKey);
-      if (articles.length > 0) {
-        source = "ai";
-        provider = null;
-        // The real-news paths already rank; the AI writer needs a tidy-up.
-        const priority = { crop: 0, oilseed: 1, farming: 2, general: 3 };
-        articles.sort((a, b) => priority[a.category] - priority[b.category]);
+    if (articles.length === 0 && tinyFishKey) {
+      const real = await fetchTinyFishNews(farmerCrops, state);
+      if (real.length > 0) {
+        articles = real;
+        source = "search";
+        provider = "TinyFish Search";
       }
     }
 

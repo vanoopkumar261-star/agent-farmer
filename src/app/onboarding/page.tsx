@@ -46,6 +46,8 @@ import AuthPanel from "@/components/auth/AuthPanel";
 import CropRecCard from "@/components/onboarding/CropRecCard";
 import ChoiceCardGrid from "@/components/onboarding/ChoiceCardGrid";
 import ReviewStep from "@/components/onboarding/ReviewStep";
+import PlanChooser from "@/components/plans/PlanChooser";
+import { fieldLimit, PLANS, priceFor, type Cycle, type PlanId } from "@/lib/plans";
 import CropGuideModal from "@/components/onboarding/CropGuideModal";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 import {
@@ -160,9 +162,12 @@ type FarmerForm = {
   email: string;
   location?: SelectedLocation;
 
-  totalArea: string;
   numFarms: number;
   farms: Farm[];
+
+  /** Chosen at step 2, before any field exists, because it caps how many do. */
+  plan: PlanId;
+  planCycle: Cycle;
 };
 
 type CropRec = {
@@ -176,13 +181,47 @@ type CropRec = {
   estimatedProfit: string;
 };
 
+/**
+ * The most fields this wizard lays out, regardless of plan.
+ *
+ * Elite allows twenty; twenty soil-and-irrigation forms stacked in a
+ * registration flow is not a form anybody finishes. The rest are added from
+ * the dashboard.
+ */
+const MAX_ONBOARDING_FARMS = 6;
+
+/**
+ * Hero copy per step.
+ *
+ * A table rather than a nested ternary: the old one covered three steps and
+ * silently showed step-3 copy for anything beyond, which is exactly what a
+ * fourth and fifth step would have inherited.
+ */
+const HERO_TITLE: Record<number, string> = {
+  1: "onboarding.hero.title.step1",
+  2: "onboarding.hero.title.plan",
+  3: "onboarding.hero.title.step2",
+  4: "onboarding.hero.title.step3",
+  5: "onboarding.hero.title.step3",
+};
+const HERO_SUB: Record<number, string> = {
+  1: "onboarding.hero.sub.step1",
+  2: "onboarding.hero.sub.plan",
+  3: "onboarding.hero.sub.step2",
+  4: "onboarding.hero.sub.step3",
+  5: "onboarding.hero.sub.step3",
+};
+
 const SOIL_TYPES = ["Alluvial Soil", "Black Soil", "Red Soil", "Sandy Soil", "Clayey Soil"];
 
 const STEPS = [
   { n: 1, labelKey: "onboarding.step.profile" },
-  { n: 2, labelKey: "onboarding.step.farms" },
-  { n: 3, labelKey: "onboarding.step.crops" },
-  { n: 4, labelKey: "onboarding.step.review" },
+  // The plan is chosen before any fields exist, because the tier is what
+  // decides how many the next step will accept.
+  { n: 2, labelKey: "onboarding.step.plan" },
+  { n: 3, labelKey: "onboarding.step.farms" },
+  { n: 4, labelKey: "onboarding.step.crops" },
+  { n: 5, labelKey: "onboarding.step.review" },
 ] as const;
 
 type Selection = {
@@ -225,7 +264,7 @@ function effectiveCrop(sel: Selection): string {
 function OnboardingContent() {
   const router = useRouter();
   const { t } = useT();
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   const [form, setForm] = useState<FarmerForm>({
     name: "",
@@ -233,9 +272,12 @@ function OnboardingContent() {
     email: "",
     location: undefined,
 
-    totalArea: "",
     numFarms: 1,
     farms: [makeFarm()],
+
+    // Free until the farmer says otherwise — nobody is opted into paying.
+    plan: "free",
+    planCycle: "annual",
   });
 
   const [loadingAI, setLoadingAI] = useState(false);
@@ -365,11 +407,6 @@ function OnboardingContent() {
    */
   const phoneError = translatePhoneError(validatePhone(form.phone), t);
   const emailError = translateEmailError(validateEmail(form.email), t);
-  const totalAreaError = translateAreaError(
-    validateArea(form.totalArea, "Total farm area"),
-    "onboarding.label.totalFarmArea",
-    t
-  );
   const farmAreaErrors = form.farms.map((f) =>
     translateAreaError(validateArea(f.area, "Farm area"), "onboarding.label.farmArea", t)
   );
@@ -377,6 +414,49 @@ function OnboardingContent() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const markTouched = (key: string) => setTouched((p) => ({ ...p, [key]: true }));
   const shown = (key: string, error: string | null) => (touched[key] ? error : null);
+
+  /**
+   * How many fields this step will accept.
+   *
+   * The wizard has always stopped at six, which is a layout limit rather than
+   * a product one. The plan can be stricter (Krishi Mitra holds two) or more
+   * generous (Krishi Elite holds twenty), so the effective cap is whichever
+   * binds first. A farmer on Elite adds the rest from the dashboard, where
+   * there is room to lay them out.
+   */
+  /** The plan step is the one screen that needs the whole page. */
+  const wideStep = step === 2;
+
+  const fieldCap = useMemo(() => Math.min(fieldLimit(form.plan), MAX_ONBOARDING_FARMS), [form.plan]);
+
+  /**
+   * The total acreage, added up rather than typed.
+   *
+   * It used to be its own input, which meant a farmer could enter 12 at the top
+   * and three fields of 3.5 below it and the wizard would accept both. Nothing
+   * downstream ever read the typed figure — every dashboard already sums the
+   * per-field areas — so the input was pure room for error. Now the top of the
+   * step reports what the fields below it add up to, and updates as they are
+   * filled in.
+   *
+   * Blank and half-typed entries count as zero rather than NaN, so the total
+   * stays a number while the farmer is still working down the list.
+   */
+  const totalAcres = useMemo(() => {
+    const sum = form.farms.reduce((acc, f) => {
+      const n = Number(f.area);
+      return acc + (Number.isFinite(n) && n > 0 ? n : 0);
+    }, 0);
+    // Two decimals is enough for acres, and `Number` drops a trailing ".00"
+    // so whole numbers do not read as 12.00.
+    return Number(sum.toFixed(2));
+  }, [form.farms]);
+
+  /** How many fields have a usable area yet, for the "N of M" note. */
+  const farmsWithArea = useMemo(
+    () => form.farms.filter((f) => Number(f.area) > 0).length,
+    [form.farms]
+  );
 
   const canGoStep2 = useMemo(() => {
     return Boolean(
@@ -389,8 +469,7 @@ function OnboardingContent() {
   }, [form.name, form.location, phoneError, emailError]);
 
   const canProceedCropSelection = useMemo(() => {
-    if (totalAreaError) return false;
-    if (form.numFarms < 1 || form.numFarms > 6) return false;
+    if (form.numFarms < 1 || form.numFarms > fieldCap) return false;
 
     for (let i = 0; i < form.farms.length; i++) {
       if (farmAreaErrors[i]) return false;
@@ -403,10 +482,10 @@ function OnboardingContent() {
       if (regime === "irrigated" && (!source || !method)) return false;
     }
     return true;
-  }, [form.numFarms, form.farms, totalAreaError, farmAreaErrors]);
+  }, [form.numFarms, form.farms, farmAreaErrors, fieldCap]);
 
   const setNumFarms = (n: number) => {
-    const next = Math.max(1, Math.min(6, n));
+    const next = Math.max(1, Math.min(fieldCap, n));
     setForm((prev) => {
       const farms = [...prev.farms];
       while (farms.length < next) farms.push(makeFarm());
@@ -516,7 +595,7 @@ function OnboardingContent() {
         })
       );
 
-      setStep(3);
+      setStep(4);
     } catch (e) {
       alert(t("onboarding.error.networkError"));
     } finally {
@@ -588,6 +667,8 @@ function OnboardingContent() {
         location: form.location,
         locationAddress,
         oilseedAck,
+        plan: form.plan,
+        planCycle: form.planCycle,
       });
 
       const farmsInserted = await createFarms(
@@ -636,10 +717,25 @@ function OnboardingContent() {
       )}
       {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
       {showPrivacy && <PrivacyModal onClose={() => setShowPrivacy(false)} />}
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[0.85fr_1.15fr]">
+      {/*
+        The plan step runs full width.
+        
+        Every other step is a short form that reads well in a narrow column
+        beside the hero image. The plan step is three cards and a comparison
+        table, and in a 1.15fr column they stacked into something that needed
+        a 33% browser zoom to see at once — so for this step the image gives up
+        its half and the content takes the page.
+      */}
+      <div
+        className={
+          wideStep
+            ? "grid min-h-screen grid-cols-1"
+            : "grid min-h-screen grid-cols-1 lg:grid-cols-[0.85fr_1.15fr]"
+        }
+      >
         {/* Left: Visual panel */}
         <div
-          className="relative hidden lg:block"
+          className={wideStep ? "hidden" : "relative hidden lg:block"}
           style={{
             backgroundImage: "url(/images/onboarding.png)",
             backgroundSize: "cover",
@@ -658,18 +754,10 @@ function OnboardingContent() {
 
             <div className="max-w-md space-y-4">
               <h1 className="font-sans text-4xl font-semibold tracking-tight text-white leading-[1.05]">
-                {step === 1
-                  ? t("onboarding.hero.title.step1")
-                  : step === 2
-                  ? t("onboarding.hero.title.step2")
-                  : t("onboarding.hero.title.step3")}
+                {t(HERO_TITLE[step])}
               </h1>
               <p className="text-white/80 text-base leading-relaxed">
-                {step === 1
-                  ? t("onboarding.hero.sub.step1")
-                  : step === 2
-                  ? t("onboarding.hero.sub.step2")
-                  : t("onboarding.hero.sub.step3")}
+                {t(HERO_SUB[step])}
               </p>
 
               {/* Reassurance chips */}
@@ -697,12 +785,16 @@ function OnboardingContent() {
         </div>
 
         {/* Right: Steps */}
-        <div className="relative flex items-center justify-center px-6 py-12">
+        <div
+          className={`relative flex items-center justify-center px-6 ${
+            wideStep ? "py-8" : "py-12"
+          }`}
+        >
           {/* Ambient orbs behind the form card */}
           <div className="pointer-events-none absolute -top-12 left-10 h-72 w-72 rounded-full bg-af-primary/10 blur-[70px]" />
           <div className="pointer-events-none absolute bottom-0 right-0 h-96 w-96 rounded-full bg-af-ai/10 blur-[90px]" />
 
-          <div className="w-full max-w-2xl relative z-10">
+          <div className={`w-full relative z-10 ${wideStep ? "max-w-6xl" : "max-w-2xl"}`}>
             <div className="mb-5 flex items-center justify-between">
               <Link
                 href="/"
@@ -802,11 +894,66 @@ function OnboardingContent() {
                   </>
                 )}
 
-                {/* STEP 02 */}
+                {/* STEP 02 — the plan, before any field exists */}
                 {step === 2 && (
                   <>
                     <HeaderBlock
                       step="02"
+                      title={t("onboarding.stepPlan.title")}
+                      subtitle={t("onboarding.stepPlan.subtitle")}
+                      hint={t("onboarding.stepPlan.hint")}
+                    />
+
+                    <PlanChooser
+                      mode="onboarding"
+                      current={form.plan}
+                      onChoose={(plan, planCycle) => {
+                        setForm((p) => {
+                          // Dropping to a smaller plan has to bring the field
+                          // count with it, or the farmer arrives at step 3
+                          // already over a limit they just agreed to.
+                          const cap = Math.min(fieldLimit(plan), MAX_ONBOARDING_FARMS);
+                          const numFarms = Math.min(p.numFarms, cap);
+                          const farms = p.farms.slice(0, numFarms);
+                          return { ...p, plan, planCycle, numFarms, farms };
+                        });
+                        setSelections((prev) =>
+                          prev.slice(0, Math.min(fieldLimit(plan), MAX_ONBOARDING_FARMS))
+                        );
+                        setStep(3);
+                      }}
+                    />
+
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={() => setStep(1)}
+                        className="inline-flex items-center justify-center gap-2 rounded-[14px] border border-af-border bg-af-card px-6 py-3.5 text-sm font-semibold text-af-ink-2 transition hover:bg-af-bg"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> {t("onboarding.back")}
+                      </button>
+                      {/*
+                        An escape hatch, not a dark pattern. A hard paywall
+                        between registration and the dashboard would cost the
+                        adoption that the free tier exists to win.
+                      */}
+                      <button
+                        onClick={() => {
+                          setForm((p) => ({ ...p, plan: "free", planCycle: "annual" }));
+                          setStep(3);
+                        }}
+                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-bg px-6 py-3.5 text-sm font-semibold text-af-ink-2 transition hover:bg-af-sage"
+                      >
+                        {t("plans.cta.later")}
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* STEP 03 */}
+                {step === 3 && (
+                  <>
+                    <HeaderBlock
+                      step="03"
                       title={t("onboarding.step2.title")}
                       subtitle={t("onboarding.step2.subtitle")}
                       hint={t("onboarding.step2.hint")}
@@ -814,15 +961,35 @@ function OnboardingContent() {
 
                     <div className="mt-7 space-y-5">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <Field
-                          label={t("onboarding.field.totalArea")}
-                          placeholder={t("onboarding.field.totalAreaPlaceholder")}
-                          value={form.totalArea}
-                          onChange={(v) => setForm((p) => ({ ...p, totalArea: v }))}
-                          onBlur={() => markTouched("totalArea")}
-                          error={shown("totalArea", totalAreaError)}
-                          inputMode="decimal"
-                        />
+                        {/*
+                          Read-only, and the only figure on this step that is.
+                          It is the sum of the field areas entered below, so
+                          there is nothing here to get wrong and nothing to
+                          keep in step by hand.
+                        */}
+                        <div className="space-y-1.5">
+                          <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
+                            {t("onboarding.field.totalArea")}
+                          </label>
+                          <div
+                            aria-live="polite"
+                            className="flex items-baseline justify-between gap-3 rounded-[14px] border border-dashed border-af-border bg-af-bg px-4 py-3"
+                          >
+                            <span className="flex items-baseline gap-1.5 min-w-0">
+                              <span className="font-mono text-[22px] font-semibold leading-none text-af-ink tabular-nums">
+                                {totalAcres}
+                              </span>
+                              <span className="text-[13px] text-af-ink-2">
+                                {t("onboarding.acresUnit")}
+                              </span>
+                            </span>
+                            <span className="shrink-0 text-right font-mono text-[10px] uppercase tracking-[0.14em] text-af-muted">
+                              {farmsWithArea === form.numFarms
+                                ? t("dashboard.stat.totalAreaMeta", { n: form.numFarms })
+                                : `${farmsWithArea} / ${form.numFarms}`}
+                            </span>
+                          </div>
+                        </div>
 
                         <div className="space-y-1.5">
                           <label className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-af-muted">
@@ -845,14 +1012,33 @@ function OnboardingContent() {
                               <button
                                 type="button"
                                 onClick={() => setNumFarms(form.numFarms + 1)}
-                                disabled={form.numFarms >= 6}
+                                disabled={form.numFarms >= fieldCap}
                                 className="px-3.5 py-3 text-af-ink-2 hover:bg-af-sage hover:text-af-secondary disabled:opacity-40 transition"
                                 aria-label={t("onboarding.increaseFarms")}
                               >
                                 <Plus className="w-4 h-4" />
                               </button>
                             </div>
-                            <span className="text-[11px] text-af-muted">{t("onboarding.upToSix")}</span>
+                            {/*
+                              Says the number the plan actually allows, and
+                              offers the way out, rather than letting a farmer
+                              press a dead button and guess why.
+                            */}
+                            <span className="text-[11px] text-af-muted">
+                              {t("onboarding.upToN", { n: fieldCap })}
+                              {form.numFarms >= fieldCap && fieldLimit(form.plan) <= fieldCap && (
+                                <>
+                                  {" · "}
+                                  <button
+                                    type="button"
+                                    onClick={() => setStep(2)}
+                                    className="font-semibold text-af-primary-deep hover:underline"
+                                  >
+                                    {t("onboarding.needMoreFields")}
+                                  </button>
+                                </>
+                              )}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -959,7 +1145,7 @@ function OnboardingContent() {
 
                       <div className="flex flex-col sm:flex-row gap-3 pt-2">
                         <button
-                          onClick={() => setStep(1)}
+                          onClick={() => setStep(2)}
                           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-6 py-3.5 text-sm font-semibold text-af-ink transition active:scale-[0.98]"
                         >
                           <ArrowLeft className="w-4 h-4" />
@@ -988,11 +1174,11 @@ function OnboardingContent() {
                   </>
                 )}
 
-                {/* STEP 03 */}
-                {step === 3 && (
+                {/* STEP 04 */}
+                {step === 4 && (
                   <>
                     <HeaderBlock
-                      step="03"
+                      step="04"
                       title={t("onboarding.step3.title")}
                       subtitle={t("onboarding.step3.subtitle")}
                       hint={t("onboarding.step3.hint")}
@@ -1155,7 +1341,7 @@ function OnboardingContent() {
 
                       <div className="flex flex-col sm:flex-row gap-3">
                         <button
-                          onClick={() => setStep(2)}
+                          onClick={() => setStep(3)}
                           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-6 py-3.5 text-sm font-semibold text-af-ink transition active:scale-[0.98]"
                         >
                           <ArrowLeft className="w-4 h-4" />
@@ -1166,7 +1352,7 @@ function OnboardingContent() {
                             farmer confirms there. */}
                         <button
                           disabled={!canContinueDashboard}
-                          onClick={() => setStep(4)}
+                          onClick={() => setStep(5)}
                           className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                         >
                           {t("onboarding.continueToDashboard")} <ArrowRight className="w-4 h-4" />
@@ -1176,13 +1362,14 @@ function OnboardingContent() {
                   </>
                 )}
 
-                {step === 4 && (
+                {/* STEP 05 */}
+                {step === 5 && (
                   <ReviewStep
                     name={form.name}
                     place={reviewPlace}
                     farms={reviewFarms}
                     saving={saving}
-                    onBack={() => setStep(3)}
+                    onBack={() => setStep(4)}
                     onConfirm={handleContinueDashboard}
                   />
                 )}

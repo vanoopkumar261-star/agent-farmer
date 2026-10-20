@@ -12,6 +12,10 @@ export type FarmerProfile = {
   house_address: string | null;
   created_at: string | null;
   preferences?: Record<string, any> | null;
+  /** Membership tier. Absent on rows read before migration 037 — treat as free. */
+  plan?: string | null;
+  plan_cycle?: string | null;
+  plan_selected_at?: string | null;
 };
 
 export type FarmRow = {

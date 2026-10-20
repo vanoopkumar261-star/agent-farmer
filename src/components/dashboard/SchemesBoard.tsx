@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BadgeCheck,
   Bookmark,
@@ -9,6 +9,8 @@ import {
   ExternalLink,
   ChevronDown,
   Landmark,
+  MapPin,
+  RefreshCw,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -37,12 +39,36 @@ const catLabelKey: Record<string, string> = {
 
 type Match = { headline: string; matches: { id: string; why: string }[] };
 
+/** The shape /api/schemes returns. Mirrors SchemeDeskResult. */
+type Desk = {
+  schemes: Scheme[];
+  provenance: "builtin" | "cache" | "search+fetch" | "agent" | "mixed";
+  checkedAt: string;
+  state: string | null;
+  liveCount: number;
+  costUsd: number;
+};
+
+function timeAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return "";
+  const mins = Math.floor(ms / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
 export default function SchemesBoard({
   schemes,
   profile,
+  state,
 }: {
+  /** The built-in catalogue, rendered server-side so first paint is instant. */
   schemes: Scheme[];
   profile: string;
+  state: string | null;
 }) {
   const { locale, t } = useT();
   const [cat, setCat] = useState<(typeof CATS)[number]>("All");
@@ -50,6 +76,15 @@ export default function SchemesBoard({
   const [expanded, setExpanded] = useState<string | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
   const [loadingMatch, setLoadingMatch] = useState(true);
+  const [desk, setDesk] = useState<Desk | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // The live list once we have one, the server-rendered floor until then. The
+  // floor is never empty, so there is no loading state for the cards.
+  const activeSchemes = desk?.schemes ?? schemes;
 
   useEffect(() => {
     try {
@@ -58,27 +93,105 @@ export default function SchemesBoard({
     } catch {}
   }, []);
 
+  /**
+   * A 60-second spinner with nothing moving reads as a hang, and a farmer who
+   * thinks the app has frozen reloads it — starting a second billable run.
+   * LiveMandiCard learned this; the counter is the fix.
+   */
   useEffect(() => {
-    let alive = true;
-    (async () => {
+    if (refreshing) {
+      setElapsed(0);
+      timer.current = setInterval(() => setElapsed((v) => v + 1), 1000);
+    } else if (timer.current) {
+      clearInterval(timer.current);
+      timer.current = null;
+    }
+    return () => {
+      if (timer.current) clearInterval(timer.current);
+    };
+  }, [refreshing]);
+
+  const runMatch = useCallback(
+    async (list: Scheme[]) => {
+      setLoadingMatch(true);
       try {
         const res = await fetch("/api/scheme-match", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profile, schemes: schemes.map((s) => ({ id: s.id, name: s.name, short: s.short })), locale }),
+          body: JSON.stringify({
+            profile,
+            schemes: list.map((s) => ({ id: s.id, name: s.name, short: s.short })),
+            locale,
+          }),
         });
         const data = await res.json();
-        if (alive && res.ok) setMatch(data);
+        if (res.ok) setMatch(data);
       } catch {
+        /* the hero degrades to "no match available"; the cards are unaffected */
       } finally {
-        if (alive) setLoadingMatch(false);
+        setLoadingMatch(false);
       }
+    },
+    [profile, locale]
+  );
+
+  // On mount: the cached desk (one DB read, never spends), then a match over
+  // whatever list that produced.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      let list = schemes;
+      try {
+        const res = await fetch(`/api/schemes?state=${encodeURIComponent(state ?? "")}`);
+        if (res.ok) {
+          const data: Desk = await res.json();
+          if (alive && Array.isArray(data.schemes) && data.schemes.length) {
+            setDesk(data);
+            list = data.schemes;
+          }
+        }
+      } catch {
+        /* the built-in floor is already on screen */
+      }
+      if (alive) await runMatch(list);
     })();
     return () => {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** The billable path. Only ever from a press, never on mount. */
+  async function refresh() {
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      const res = await fetch("/api/schemes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ state }),
+      });
+      // A 429 arrives as plain text from `rateLimited()`, not JSON, so the
+      // status is checked before the body is parsed.
+      if (!res.ok) {
+        setRefreshError(
+          res.status === 429 ? t("schemesBoard.rateLimited") : t("schemesBoard.refreshFailed")
+        );
+        return;
+      }
+      const data: Desk = await res.json();
+      if (Array.isArray(data.schemes) && data.schemes.length) {
+        setDesk(data);
+        // The hero recommends from the list it was given, so a new list needs
+        // a new recommendation or the two disagree on screen.
+        await runMatch(data.schemes);
+      }
+    } catch {
+      setRefreshError(t("schemesBoard.refreshFailed"));
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   function toggleBookmark(id: string) {
     setBookmarks((prev) => {
@@ -96,7 +209,8 @@ export default function SchemesBoard({
     return m;
   }, [match]);
 
-  const filtered = cat === "All" ? schemes : schemes.filter((s) => s.category === cat);
+  const filtered =
+    cat === "All" ? activeSchemes : activeSchemes.filter((s) => s.category === cat);
 
   return (
     <div className="space-y-6">
@@ -120,7 +234,7 @@ export default function SchemesBoard({
               <p className="mt-4 text-[15px] font-semibold text-white/90 leading-relaxed">{match.headline}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {match.matches?.map((m) => {
-                  const s = schemes.find((x) => x.id === m.id);
+                  const s = activeSchemes.find((x) => x.id === m.id);
                   if (!s) return null;
                   return (
                     <span key={m.id} className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] border border-white/10 px-3 py-1.5 text-[12px] font-semibold text-white">
@@ -135,6 +249,41 @@ export default function SchemesBoard({
             <p className="mt-4 text-sm text-white/70">{t("schemesBoard.matchUnavailable")}</p>
           )}
         </div>
+      </div>
+
+      {/* Where this list came from, and the button that refreshes it.
+          The label never says "live" over a cached or built-in list — the whole
+          point of carrying provenance through is that the strip cannot lie. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-af-border bg-af-card px-4 py-3">
+        <div className="min-w-0">
+          <p className="text-[12px] text-af-ink-2">
+            {!desk || desk.provenance === "builtin"
+              ? t("schemesBoard.sourceBuiltin")
+              : desk.provenance === "cache"
+              ? t("schemesBoard.sourceCache")
+                  .replace("{n}", String(desk.liveCount))
+                  .replace("{state}", desk.state ?? "India")
+                  .replace("{when}", timeAgo(desk.checkedAt))
+              : t("schemesBoard.sourceLive")
+                  .replace("{n}", String(desk.liveCount))
+                  .replace("{state}", desk.state ?? "India")
+                  .replace("{tier}", desk.provenance === "agent" ? "Web Agent" : "Search + Fetch")}
+          </p>
+          {refreshError && (
+            <p className="mt-1 text-[11px] font-semibold text-af-danger">{refreshError}</p>
+          )}
+        </div>
+
+        <button
+          onClick={refresh}
+          disabled={refreshing}
+          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-af-border bg-af-bg px-3.5 py-1.5 text-meta font-semibold text-af-ink-2 transition hover:text-af-ink disabled:opacity-60"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing
+            ? t("schemesBoard.checking").replace("{s}", String(elapsed))
+            : t("schemesBoard.checkForNew")}
+        </button>
       </div>
 
       {/* Filter */}
@@ -169,6 +318,11 @@ export default function SchemesBoard({
                     <div className="flex items-center gap-2">
                       <h3 className="text-[15px] font-semibold text-af-ink truncate">{s.name}</h3>
                       {isMatch && <Badge tone="primary">{t("schemesBoard.recommended")}</Badge>}
+                      {/* Lets a farmer tell a Karnataka portal entry from a
+                          central scheme without opening the card. */}
+                      {s.scope === "state" && (
+                        <Badge tone="ai">{t("schemesBoard.stateScheme")}</Badge>
+                      )}
                     </div>
                     <div className="text-[12px] text-af-muted truncate">{s.short}</div>
                   </div>
@@ -187,9 +341,21 @@ export default function SchemesBoard({
 
               <div className="mt-3 flex items-center gap-2 flex-wrap">
                 <Badge tone={catTone[s.category]}>{catLabelKey[s.category] ? t(catLabelKey[s.category]) : s.category}</Badge>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-af-ink-2">
-                  <CalendarClock className="w-3.5 h-3.5 text-af-amber" /> {s.deadline}
-                </span>
+                {/* A live scheme's page often states no deadline, and the
+                    extractor is forbidden from inventing one. An empty chip is
+                    better than a confident wrong date, and omitting the chip is
+                    better than an empty one. */}
+                {s.deadline && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-af-ink-2">
+                    <CalendarClock className="w-3.5 h-3.5 text-af-amber" /> {s.deadline}
+                  </span>
+                )}
+                {s.source === "live" && s.sourceUrl && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-af-muted">
+                    <MapPin className="w-3 h-3" />
+                    {new URL(s.sourceUrl).host.replace(/^www\./, "")}
+                  </span>
+                )}
               </div>
 
               {isMatch && whyById[s.id] && (
@@ -206,12 +372,20 @@ export default function SchemesBoard({
                   <div className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted mb-1.5">
                     {t("schemesBoard.eligibility")}
                   </div>
-                  <ul className="text-[12px] text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
-                    {s.eligibility.map((e, i) => (
-                      <li key={i}>{e}</li>
-                    ))}
-                  </ul>
-                  <div className="mt-2 text-[11px] text-af-muted">{t("schemesBoard.authority", { authority: s.authority })}</div>
+                  {s.eligibility.length ? (
+                    <ul className="text-[12px] text-af-ink-2 leading-relaxed list-disc pl-4 space-y-0.5">
+                      {s.eligibility.map((e, i) => (
+                        <li key={i}>{e}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    // Said plainly, because "we did not find this" and "there
+                    // are no conditions" are very different facts to act on.
+                    <p className="text-[12px] text-af-muted">{t("schemesBoard.eligibilityUnknown")}</p>
+                  )}
+                  {s.authority && (
+                    <div className="mt-2 text-[11px] text-af-muted">{t("schemesBoard.authority", { authority: s.authority })}</div>
+                  )}
                 </div>
               )}
 

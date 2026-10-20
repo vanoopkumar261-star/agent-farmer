@@ -17,6 +17,8 @@ import TerraSelect from "@/components/TerraSelect";
 import CropRecCard, { CropRec } from "@/components/onboarding/CropRecCard";
 import CropGuideModal from "@/components/onboarding/CropGuideModal";
 import { createFarms, createCropCycles } from "@/lib/db";
+import { fieldLimit, planOf, PLANS } from "@/lib/plans";
+import Link from "next/link";
 import { suggestHarvestDate } from "@/lib/agronomy";
 import { supabase } from "@/lib/supabase";
 import { validateArea } from "@/lib/validation";
@@ -41,7 +43,12 @@ const SOIL_TYPES = ["Alluvial Soil", "Black Soil", "Red Soil", "Sandy Soil", "Cl
 // "Rain-fed" default after the live data showed 54 of 60 farms rain-fed, while
 // this modal kept defaulting to it for months afterwards.
 
-type Profile = { id: string; house_address: string | null; preferences: Record<string, unknown> | null };
+type Profile = {
+  id: string;
+  house_address: string | null;
+  preferences: Record<string, unknown> | null;
+  plan: string | null;
+};
 
 /**
  * Adds one farm from inside the dashboard.
@@ -68,6 +75,11 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
   const [stage, setStage] = useState<"field" | "crop">("field");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [farmCount, setFarmCount] = useState<number | null>(null);
+
+  /** Null until both the plan and the count are known — the cap is unknowable before then. */
+  const atFieldLimit =
+    profile && farmCount !== null ? farmCount >= fieldLimit(planOf(profile.plan)) : false;
 
   const [area, setArea] = useState("");
   const [areaTouched, setAreaTouched] = useState(false);
@@ -124,7 +136,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
       }
       const { data, error } = await supabase
         .from("farmer_profiles")
-        .select("id, house_address, preferences")
+        .select("id, house_address, preferences, plan")
         .eq("owner_id", user.id)
         .maybeSingle();
 
@@ -134,6 +146,15 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
         return;
       }
       setProfile(data as Profile);
+
+      // How many fields already exist, so the cap can be stated before the
+      // farmer fills a form they will not be allowed to save. The server
+      // refuses regardless; this is so nobody types for two minutes first.
+      const { count } = await supabase
+        .from("farms")
+        .select("id", { count: "exact", head: true })
+        .eq("farmer_id", (data as Profile).id);
+      if (alive) setFarmCount(count ?? 0);
     })();
     return () => {
       alive = false;
@@ -277,6 +298,28 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
             <div className="flex items-start gap-2 rounded-[16px] border border-af-danger/20 bg-af-danger/10 px-4 py-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-af-danger" />
               <div className="text-sm text-af-ink-2">{profileError}</div>
+            </div>
+          ) : atFieldLimit ? (
+            // Shown instead of the form, not after it. Letting a farmer pick a
+            // soil type and a crop and then refusing the save would waste the
+            // only part of this that takes any thought.
+            <div className="rounded-[16px] border border-af-border bg-af-bg px-4 py-4">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-af-amber-ink" />
+                <div className="text-sm text-af-ink-2">
+                  {t("addFarmModal.fieldLimit", {
+                    count: farmCount ?? 0,
+                    plan: t(PLANS[planOf(profile!.plan)].nameKey),
+                  })}
+                </div>
+              </div>
+              <Link
+                href="/dashboard/settings"
+                onClick={onClose}
+                className="mt-3 inline-flex items-center justify-center rounded-[12px] bg-af-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-af-primary-deep"
+              >
+                {t("plans.locked.cta")}
+              </Link>
             </div>
           ) : !profile ? (
             <div className="flex items-center gap-2 py-6 text-sm text-af-muted">

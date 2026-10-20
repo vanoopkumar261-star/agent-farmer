@@ -2,6 +2,8 @@ import { Droplets } from "lucide-react";
 import EmptyState from "@/components/ui/EmptyState";
 import { T } from "@/components/i18n/LanguageProvider";
 import { getDashboardData } from "@/lib/dashboard";
+import PlanLocked from "@/components/plans/PlanLocked";
+import { atLeast, planOf } from "@/lib/plans";
 import { getIrrigationEventsByFarm } from "@/lib/history";
 import { getWeather } from "@/lib/weather";
 import { computeIrrigationPlan } from "@/lib/irrigation";
@@ -28,6 +30,21 @@ export const dynamic = "force-dynamic";
 
 export default async function IrrigationPage() {
   const { farmer, farms } = await getDashboardData();
+
+  // Krishi Pro and above. Checked before the weather fetch and the plan
+  // computation, so a locked page costs an Open-Meteo call and a FAO water
+  // balance it is not going to render.
+  if (farmer && !atLeast(planOf(farmer.plan), "pro")) {
+    return (
+      <PlanLocked
+        currentPlan={planOf(farmer.plan)}
+        requiredPlan="pro"
+        featureKey="irrigation"
+        titleKey="plans.locked.irrigation.title"
+        bodyKey="plans.locked.irrigation.body"
+      />
+    );
+  }
 
   // One weather fetch for the whole holding: plots are minutes apart, and
   // `getWeather` is cached for 30 minutes anyway.

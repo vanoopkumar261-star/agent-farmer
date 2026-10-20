@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Globe, ChevronDown, Check, Settings, LogOut } from "lucide-react";
 import NotificationsMenu from "./NotificationsMenu";
+import type { PlanId } from "@/lib/plans";
 import MobileNav from "./MobileNav";
 import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES } from "@/lib/i18n/config";
@@ -23,7 +24,17 @@ const SEARCH_NAV: [RegExp, string][] = [
   [/setting|profile|language|account/i, "/dashboard/settings"],
 ];
 
-export default function TopBar({ farmerName, farmerId }: { farmerName: string; farmerId?: string }) {
+export default function TopBar({
+  farmerName,
+  farmerId,
+  plan = "free",
+}: {
+  farmerName: string;
+  farmerId?: string;
+  // Only passed through to the mobile drawer, so the rail and the drawer show
+  // the same padlocks.
+  plan?: PlanId;
+}) {
   const { t, locale, setLocale } = useT();
   const router = useRouter();
   const [langOpen, setLangOpen] = useState(false);
@@ -76,7 +87,7 @@ export default function TopBar({ farmerName, farmerId }: { farmerName: string; f
           controls all fit a 360px bar without the search box collapsing. */}
       <div className="flex items-center gap-2 sm:gap-4 px-4 sm:px-6 lg:px-8 h-16">
         {/* Below lg: the only way to reach the other twelve pages. */}
-        <MobileNav />
+        <MobileNav plan={plan} />
 
         {/* Search */}
         <div className="flex-1 min-w-0 max-w-md">

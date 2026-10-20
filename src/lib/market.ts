@@ -201,6 +201,15 @@ const STATE_MAP: Record<string, string> = {
   "ladakh":            "Ladakh",
 };
 
+/**
+ * Every state this app recognises, in canonical spelling.
+ *
+ * Derived from STATE_MAP rather than written out a second time: a warm job
+ * that iterated its own list would quietly stop covering a state the moment
+ * the two drifted apart.
+ */
+export const ALL_STATES: string[] = Array.from(new Set(Object.values(STATE_MAP))).sort();
+
 export function extractStateFromAddress(address: string): string | null {
   if (!address) return null;
   const lower = address.toLowerCase();

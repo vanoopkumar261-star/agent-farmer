@@ -2,7 +2,9 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useT } from "@/components/i18n/LanguageProvider";
+import { Lock } from "lucide-react";
 import { navGroups } from "./navGroups";
+import { atLeast, type PlanId } from "@/lib/plans";
 
 /**
  * The navigation itself — rendered by the desktop rail and the mobile drawer.
@@ -14,7 +16,13 @@ import { navGroups } from "./navGroups";
  * in English and runs longer in most of the other eight languages, so a label
  * that wraps to two lines is correct and a clipped one is not.
  */
-export default function NavList({ onNavigate }: { onNavigate?: () => void }) {
+export default function NavList({
+  onNavigate,
+  plan = "free",
+}: {
+  onNavigate?: () => void;
+  plan?: PlanId;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useT();
@@ -28,6 +36,9 @@ export default function NavList({ onNavigate }: { onNavigate?: () => void }) {
           </div>
           {group.items.map((item) => {
             const isActive = pathname === item.href;
+            // Still navigable. The destination explains what the tier includes,
+            // which is more use to a farmer than a nav item that does nothing.
+            const locked = !!item.minPlan && !atLeast(plan, item.minPlan);
             return (
               <button
                 key={item.href}
@@ -57,6 +68,9 @@ export default function NavList({ onNavigate }: { onNavigate?: () => void }) {
                   }`}
                 />
                 {t(item.labelKey)}
+                {locked && (
+                  <Lock className="ml-auto w-3.5 h-3.5 shrink-0 text-af-muted" aria-hidden="true" />
+                )}
               </button>
             );
           })}

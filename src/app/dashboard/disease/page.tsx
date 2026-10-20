@@ -5,6 +5,8 @@ import Reveal from "@/components/ui/Reveal";
 import { Microscope } from "lucide-react";
 import { getDashboardData } from "@/lib/dashboard";
 import { getRecentDiagnoses, signLeafImage, type DiagnosisRecord } from "@/lib/history";
+import { historyCutoff } from "@/lib/entitlements";
+import { planOf } from "@/lib/plans";
 import { ShieldCheck, AlertTriangle, History, Sprout } from "lucide-react";
 import Card from "@/components/ui/Card";
 
@@ -12,7 +14,12 @@ export const dynamic = "force-dynamic";
 
 export default async function DiseasePage() {
   const { farmer } = await getDashboardData();
-  const scans = farmer ? await getRecentDiagnoses(farmer.id, 8) : [];
+  // Windowed by plan: Krishi Mitra sees 30 days of scans, Pro 12 months,
+  // Elite everything. The records are never deleted — a farmer who moves up a
+  // tier gets their older scans back.
+  const scans = farmer
+    ? await getRecentDiagnoses(farmer.id, 8, historyCutoff(planOf(farmer.plan)))
+    : [];
 
   // The bucket is private (migration 014), so a stored path is not a viewable
   // link. Sign them here, on the server, where the service role can — the

@@ -1,4 +1,5 @@
 import { getDashboardData } from "@/lib/dashboard";
+import { extractStateFromAddress } from "@/lib/market";
 import { SCHEMES } from "@/lib/schemes";
 import SchemesBoard from "@/components/dashboard/SchemesBoard";
 import { T } from "@/components/i18n/LanguageProvider";
@@ -18,6 +19,11 @@ export default async function SchemesPage() {
     ? `${farmer.name}, ${farms.length} farm(s) totalling ${totalArea} acres of ${soils.join(", ")}, growing ${crops.join(", ") || "no crop yet"}, located at ${farmer.house_address ?? "India"}`
     : "an Indian smallholder farmer";
 
+  // The board fetches the live desk itself on mount; this is the state it asks
+  // about. SCHEMES below stays the floor that renders before that answers, so
+  // first paint is unchanged and instant.
+  const state = extractStateFromAddress(farmer?.house_address ?? "");
+
   return (
     <div className="max-w-[1100px] mx-auto">
       <PageHeader
@@ -26,7 +32,7 @@ export default async function SchemesPage() {
         subtitle={<T k="schemes.subtitle" />}
       />
       <Reveal>
-        <SchemesBoard schemes={SCHEMES} profile={profile} />
+        <SchemesBoard schemes={SCHEMES} profile={profile} state={state} />
       </Reveal>
     </div>
   );

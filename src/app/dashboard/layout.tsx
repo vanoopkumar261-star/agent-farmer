@@ -9,6 +9,7 @@ import AssistantProvider from "@/components/dashboard/AssistantProvider";
 import AssistantDock from "@/components/dashboard/AssistantDock";
 import VoiceMode from "@/components/dashboard/VoiceMode";
 import { getDashboardData } from "@/lib/dashboard";
+import { planOf } from "@/lib/plans";
 import { getRecentChat } from "@/lib/history";
 import { assistantSuggestions } from "@/lib/assistant-suggestions";
 
@@ -43,9 +44,9 @@ export default async function DashboardLayout({
         <div data-shell="app" className="relative flex bg-af-bg min-h-screen text-af-ink">
           <AppBackground />
           <SpotlightLayer />
-          <Sidebar />
+          <Sidebar plan={planOf(farmer.plan)} />
           <div className="relative z-10 flex-1 min-w-0 flex flex-col">
-            <TopBar farmerName={farmerName} farmerId={farmerId} />
+            <TopBar farmerName={farmerName} farmerId={farmerId} plan={planOf(farmer.plan)} />
             <main className="flex-1 px-6 lg:px-8 py-7">{children}</main>
             <AppFooter />
           </div>

@@ -1,6 +1,8 @@
 import { getDashboardData } from "@/lib/dashboard";
 import PageHeader from "@/components/ui/PageHeader";
 import SettingsPanel from "@/components/dashboard/SettingsPanel";
+import PlanPanel from "@/components/plans/PlanPanel";
+import { planOf } from "@/lib/plans";
 import { T } from "@/components/i18n/LanguageProvider";
 import { Settings as SettingsIcon } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +10,7 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const { farmer } = await getDashboardData();
+  const { farmer, farms } = await getDashboardData();
 
   if (!farmer) {
     return (
@@ -29,6 +31,16 @@ export default async function SettingsPage() {
         title={<T k="title.settings" />}
         subtitle={<T k="settings.subtitle" />}
       />
+
+      {/*
+        Above the profile form: a farmer who came here to change their plan
+        should not have to scroll past their phone number to find it. The
+        field count comes from the data this page already loaded, and is what
+        stops a downgrade being offered that would strand existing fields.
+      */}
+      <div className="mb-5">
+        <PlanPanel initialPlan={planOf(farmer.plan)} fieldCount={farms?.length ?? 0} />
+      </div>
 
       <SettingsPanel
         profile={{

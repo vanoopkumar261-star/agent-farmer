@@ -1,6 +1,7 @@
 import { buildAssistantContext } from "@/lib/chatContext";
 import { aiLanguageName } from "@/lib/i18n/config";
-import { getSessionFarmer } from "@/lib/auth";
+import { getSessionFarmer, getSessionUser } from "@/lib/auth";
+import { checkQuota, consumeQuota, getPlan, planDenied } from "@/lib/entitlements";
 import { saveChatTurn } from "@/lib/history";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
@@ -43,7 +44,20 @@ export async function POST(req: Request) {
   // Keep only the last ~10 turns to stay within budget.
   messages = messages.slice(-10);
 
-  const [context, farmer] = await Promise.all([buildAssistantContext(), getSessionFarmer()]);
+  const [context, farmer, user] = await Promise.all([
+    buildAssistantContext(),
+    getSessionFarmer(),
+    getSessionUser(),
+  ]);
+
+  // The assistant is metered per calendar month. Anonymous callers were already
+  // answerable here; they stay answerable only up to the rate limit, since
+  // there is no account to hold an allowance against.
+  const plan = getPlan(farmer);
+  if (user) {
+    const guard = await checkQuota(user.id, "assistant_query", plan);
+    if (!guard.ok) return planDenied(guard);
+  }
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
   const language = aiLanguageName(locale);
 
@@ -129,6 +143,12 @@ ${sourceBlock}`;
         : "The AI engine is busy right now. Please try again in a moment.";
     return new Response(msg, { status: 502 });
   }
+
+  // Charged here rather than at stream close: Groq has accepted the request and
+  // the first bytes are on their way, so the farmer is getting their answer.
+  // Waiting for the last token would mean a dropped connection silently
+  // refunding a query that was genuinely served.
+  if (user) await consumeQuota(user.id, "assistant_query", plan);
 
   // Transform Groq's SSE stream into a plain text delta stream for the client,
   // accumulating the reply so we can persist the turn once it completes.

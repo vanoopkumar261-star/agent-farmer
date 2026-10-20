@@ -28,12 +28,29 @@ export async function createFarmerProfile(profile: any) {
     .eq("owner_id", user.id)
     .maybeSingle();
 
+  // The membership chosen at step 2. Only written when onboarding actually
+  // asked — an undefined plan must not quietly reset a farmer who upgraded
+  // from Settings and then re-ran the wizard to add a field.
+  const planPatch =
+    typeof profile.plan === "string"
+      ? {
+          plan: profile.plan,
+          plan_cycle: profile.plan === "free" ? null : (profile.planCycle ?? "annual"),
+          plan_selected_at: new Date().toISOString(),
+        }
+      : null;
+
   if (existing) {
     // Returning farmer — refresh their acknowledgement if they answered again.
-    if (!prefsPatch) return existing;
+    if (!prefsPatch && !planPatch) return existing;
     const { data: updated, error: updateError } = await supabase
       .from("farmer_profiles")
-      .update({ preferences: { ...(existing.preferences ?? {}), ...prefsPatch } })
+      .update({
+        ...(prefsPatch
+          ? { preferences: { ...(existing.preferences ?? {}), ...prefsPatch } }
+          : {}),
+        ...(planPatch ?? {}),
+      })
       .eq("id", existing.id)
       .select()
       .single();
@@ -64,6 +81,7 @@ export async function createFarmerProfile(profile: any) {
         ...(prefsPatch ?? {}),
         ...(pincode ? { house_pincode: pincode } : {}),
       },
+      ...(planPatch ?? {}),
     }])
     .select()
     .single();

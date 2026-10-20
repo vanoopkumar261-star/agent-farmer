@@ -1,6 +1,7 @@
 import { buildAssistantContext } from "@/lib/chatContext";
 import { aiLanguageName } from "@/lib/i18n/config";
-import { getSessionFarmer } from "@/lib/auth";
+import { getSessionFarmer, getSessionUser } from "@/lib/auth";
+import { checkQuota, consumeQuota, getPlan, planDenied } from "@/lib/entitlements";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
@@ -110,8 +111,16 @@ export async function POST(req: Request) {
   messages = messages.slice(-6); // tool turns need less history than open chat
 
   const farmer = await getSessionFarmer();
+  const user = await getSessionUser();
   if (!farmer) {
     return Response.json({ reply: "Please finish setting up your farm profile first." }, { status: 401 });
+  }
+
+  // Refused before the model is called, so a farmer who is out of queries is
+  // not charged Groq tokens to be told so.
+  if (user) {
+    const guard = await checkQuota(user.id, "assistant_query", getPlan(farmer));
+    if (!guard.ok) return planDenied(guard);
   }
 
   const context = await buildAssistantContext();
@@ -175,5 +184,9 @@ ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : "
   }
 
   const reply = typeof message?.content === "string" && message.content.trim() ? message.content.trim() : "";
+  // Same allowance as the chat assistant: this is the same question answered
+  // through a different surface, so it draws on the same monthly budget.
+  if (user) await consumeQuota(user.id, "assistant_query", getPlan(farmer));
+
   return Response.json({ reply: reply || "I didn't quite catch that." });
 }

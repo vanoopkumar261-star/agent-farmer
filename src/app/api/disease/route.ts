@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { narrativeFromLabel, diagnoseFromImage, DiseaseResult } from "@/lib/disease";
-import { getSessionFarmer } from "@/lib/auth";
+import { getSessionFarmer, getSessionUser } from "@/lib/auth";
+import { checkQuota, consumeQuota, getPlan, planDenied } from "@/lib/entitlements";
 import { saveDiagnosis, uploadLeafImage } from "@/lib/history";
 import { inferenceBaseUrl } from "@/lib/inference";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
@@ -42,6 +43,28 @@ export async function POST(req: Request) {
   // call, not to do it and then complain.
   const rl = await checkRateLimit(req, "disease");
   if (!rl.ok) return rateLimited(rl);
+
+  // SECURITY / BILLING — this route used to accept anonymous uploads, with
+  // persistScan simply skipping the save when nobody was signed in. Every call
+  // spends Groq vision tokens, and a monthly allowance needs somebody to spend
+  // it, so both reasons point the same way: identify the caller first.
+  const [farmer, user] = await Promise.all([getSessionFarmer(), getSessionUser()]);
+  if (!farmer || !user) {
+    return NextResponse.json({ error: "Sign in to scan a leaf." }, { status: 401 });
+  }
+
+  const plan = getPlan(farmer);
+  const guard = await checkQuota(user.id, "disease_scan", plan);
+  if (!guard.ok) return planDenied(guard);
+
+  /**
+   * Spend one scan.
+   *
+   * Called only on a path that produced a diagnosis. A Groq timeout or a
+   * rejected image must not consume one of a Krishi Mitra farmer's three
+   * scans — they would have paid an allowance for an error message.
+   */
+  const charge = () => consumeQuota(user.id, "disease_scan", plan);
 
   try {
     const form = await req.formData();
@@ -136,6 +159,7 @@ export async function POST(req: Request) {
         note: "Identified by the trained PlantVillage model.",
       };
       await persistScan(result, clean, mime);
+      await charge();
       return NextResponse.json(result);
     }
 
@@ -147,6 +171,7 @@ export async function POST(req: Request) {
       )}%) — diagnosed with AI vision instead.`;
     }
     await persistScan(visionResult, clean, mime);
+    await charge();
     return NextResponse.json(visionResult);
   } catch (e: any) {
     console.error("DISEASE route error:", e);

@@ -24,8 +24,9 @@ import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES } from "@/lib/i18n/config";
 import AddFarmButton from "./AddFarmButton";
 import NavList from "./NavList";
+import type { PlanId } from "@/lib/plans";
 
-export default function MobileNav() {
+export default function MobileNav({ plan = "free" }: { plan?: PlanId }) {
   const { t, locale, setLocale } = useT();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -100,7 +101,7 @@ export default function MobileNav() {
               </button>
             </div>
 
-            <NavList onNavigate={() => setOpen(false)} />
+            <NavList onNavigate={() => setOpen(false)} plan={plan} />
 
             <div className="mt-auto flex flex-col gap-4 pt-2">
               <AddFarmButton
