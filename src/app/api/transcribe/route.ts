@@ -96,25 +96,54 @@ export async function POST(req: Request) {
     return Response.json({ error: "That doesn't look like an audio recording." }, { status: 415 });
   }
 
-  const upstream = new FormData();
-  upstream.append("file", audio, `speech.${ext}`);
-  upstream.append("model", "whisper-large-v3-turbo");
-  upstream.append("language", iso639(locale));
-  upstream.append("response_format", "json");
-  // Per-locale prompt strategy, chosen by a 384-call benchmark rather than
-  // guessed — see transcribePromptFor()'s docstring for the measured numbers
-  // and why a single English prompt broke six of the nine languages.
-  const prompt = transcribePromptFor(locale);
-  if (prompt) upstream.append("prompt", prompt);
+  // English and Hindi speakers switch between the two freely, whatever the
+  // app is set to. Forcing `language` to the app's setting made Whisper
+  // *translate* Hindi speech into English nonsense ("prepare the meat" for
+  // "मिट्टी कैसे तैयार करें") whenever the app was on English. For these two the
+  // spoken language is detected instead and reported back, so the reply can
+  // follow it. The other seven keep the benchmarked forced-language path.
+  const detect = locale === "en" || locale === "hi";
 
-  try {
-    const res = await fetchWithRetry("https://api.groq.com/openai/v1/audio/transcriptions", {
+  const transcribe = (language: string | null) => {
+    const upstream = new FormData();
+    upstream.append("file", audio!, `speech.${ext}`);
+    upstream.append("model", "whisper-large-v3-turbo");
+    if (language) upstream.append("language", language);
+    upstream.append("response_format", detect ? "verbose_json" : "json");
+    // Per-locale prompt strategy, chosen by a 384-call benchmark rather than
+    // guessed — see transcribePromptFor()'s docstring for the measured numbers
+    // and why a single English prompt broke six of the nine languages. With
+    // detection on, no prompt: an English hint would tilt the guess to English.
+    const prompt = detect ? undefined : transcribePromptFor(locale);
+    if (prompt) upstream.append("prompt", prompt);
+    return fetchWithRetry("https://api.groq.com/openai/v1/audio/transcriptions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}` },
       body: upstream,
     }, { label: "groq/transcribe" });
+  };
 
-    if (!res.ok) {
+  try {
+    let res = await transcribe(detect ? null : iso639(locale));
+    let data = res.ok ? await res.json() : null;
+
+    let spoken = locale;
+    if (detect && data) {
+      const heard = String(data.language ?? "").toLowerCase();
+      if (heard === "english" || heard === "en") {
+        spoken = "en";
+      } else {
+        // Hindi — or what Whisper files as Urdu (same speech, Perso-Arabic
+        // script, useless to a Hindi reader) — is transcribed again as Hindi.
+        spoken = "hi";
+        if (heard !== "hindi" && heard !== "hi") {
+          res = await transcribe("hi");
+          data = res.ok ? await res.json() : null;
+        }
+      }
+    }
+
+    if (!res.ok || !data) {
       const detail = await res.text().catch(() => "");
       console.error("GROQ transcribe error:", res.status, detail);
       return Response.json(
@@ -123,8 +152,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const data = await res.json();
-    return Response.json({ text: (data?.text ?? "").trim() });
+    return Response.json({ text: (data?.text ?? "").trim(), locale: spoken });
   } catch (e) {
     console.error("GROQ transcribe error:", e);
     return Response.json({ error: "Could not reach the voice service." }, { status: 502 });

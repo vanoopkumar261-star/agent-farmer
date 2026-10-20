@@ -24,10 +24,31 @@ const MIN_SPEECH_MS = 350; // ignore coughs and door slams shorter than this
  * never open while the assistant talks — otherwise it transcribes its own
  * reply and the conversation runs away by itself.
  */
+/**
+ * What voice mode says for a chat answer: the server's spoken summary, or —
+ * if that call fails — the answer's first two sentences, so it is never silent.
+ */
+async function summariseForVoice(reply: string, locale: string): Promise<string> {
+  try {
+    const res = await fetch("/api/voice-summary", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: reply, locale }),
+    });
+    const summary = res.ok ? (await res.text()).trim() : "";
+    if (summary) return toSpeakableText(summary);
+  } catch {
+    /* fall through */
+  }
+  const plain = toSpeakableText(reply).replace(/\s+/g, " ");
+  return plain.split(/(?<=[.!?।])\s+/).slice(0, 2).join(" ");
+}
+
 export function useVoiceChat({
   send,
   active,
   locale,
+  onLanguageHeard,
 }: {
   /** Sends a message and resolves with the assistant's full reply. */
   send: (text: string, localeOverride?: string) => Promise<string>;
@@ -35,6 +56,11 @@ export function useVoiceChat({
   active: boolean;
   /** Language the farmer speaks and the assistant answers in. */
   locale: string;
+  /**
+   * Called when the farmer is heard speaking a different language (English
+   * vs Hindi) from `locale`, so the chat can follow them.
+   */
+  onLanguageHeard?: (locale: string) => void;
 }) {
   const [phase, setPhase] = useState<VoicePhase>("idle");
   const [level, setLevel] = useState(0);
@@ -48,11 +74,13 @@ export function useVoiceChat({
   const localeRef = useRef(locale);
   const sendRef = useRef(send);
   const ttsRef = useRef(tts);
+  const onLanguageHeardRef = useRef(onLanguageHeard);
   useEffect(() => {
     activeRef.current = active;
     localeRef.current = locale;
     sendRef.current = send;
     ttsRef.current = tts;
+    onLanguageHeardRef.current = onLanguageHeard;
   });
 
   // Recording state, torn down by `stopCapture`.
@@ -83,6 +111,9 @@ export function useVoiceChat({
 
     setPhase("transcribing");
     let text = "";
+    // The language this turn is answered in: what the farmer actually spoke,
+    // when the server could tell (English vs Hindi), else the chat's.
+    let turnLocale = localeRef.current;
     try {
       const form = new FormData();
       form.append("audio", blob, "speech.webm");
@@ -96,6 +127,10 @@ export function useVoiceChat({
         return;
       }
       text = String(data?.text ?? "").trim();
+      if (typeof data?.locale === "string" && data.locale !== turnLocale) {
+        turnLocale = data.locale;
+        onLanguageHeardRef.current?.(turnLocale);
+      }
     } catch {
       if (!alive()) return;
       setError("Could not hear that. Please try again.");
@@ -115,18 +150,23 @@ export function useVoiceChat({
 
     let reply = "";
     try {
-      reply = await sendRef.current(text, localeRef.current);
+      reply = await sendRef.current(text, turnLocale);
     } catch {
       if (alive()) setError("Something went wrong. Please try again.");
     }
     if (!alive()) return;
 
     if (reply) {
-      // The model answers in Markdown; flatten it for both the screen and the voice.
-      const spoken = toSpeakableText(reply);
+      // The full answer is already in the chat thread. Read aloud it is far too
+      // long, so voice says a short summary of it instead (see /api/voice-summary).
+      const spoken = await summariseForVoice(reply, turnLocale);
+      if (!alive()) return;
       setLastReply(spoken);
       setPhase("speaking");
-      await ttsRef.current.speak(spoken);
+      await ttsRef.current.speak(spoken, turnLocale);
+    } else {
+      // send() resolves "" on failure; the reason is already in the chat thread.
+      setError("Something went wrong. Please try again.");
     }
     if (!alive()) return;
     startListeningRef.current();

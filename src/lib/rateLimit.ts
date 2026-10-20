@@ -48,6 +48,8 @@ export const LIMITS = {
   // A long answer can be eight or ten calls, so this budget is per-reply
   // generous while still capping GPU time per farmer.
   tts: { limit: 90, windowSec: 60 },
+  // One per spoken reply: the chat answer boiled down to what voice mode says.
+  "voice-summary": { limit: 20, windowSec: 60 },
   feedback: { limit: 5, windowSec: 60 },
   market: { limit: 30, windowSec: 60 },
   // Far tighter than the rest, and for a different reason: every call starts a

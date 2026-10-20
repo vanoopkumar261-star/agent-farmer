@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Mic, Loader2, Volume2, X, VolumeX } from "lucide-react";
 import { useAssistant } from "./AssistantProvider";
 import { useT } from "@/components/i18n/LanguageProvider";
+import type { Locale } from "@/lib/i18n/config";
 import { useVoiceChat, type VoicePhase } from "@/hooks/useVoiceChat";
 
 /**
@@ -16,11 +17,17 @@ import { useVoiceChat, type VoicePhase } from "@/hooks/useVoiceChat";
  * a readable conversation rather than something that vanished.
  */
 export default function VoiceMode() {
-  const { voiceOpen, closeVoice, send, chatLocale } = useAssistant();
+  const { voiceOpen, closeVoice, send, chatLocale, setChatLocale } = useAssistant();
   const { t, locale } = useT();
 
   const { phase, level, lastQuestion, lastReply, error, begin, end, interrupt, voiceFailed } =
-    useVoiceChat({ send, active: voiceOpen, locale: chatLocale ?? locale });
+    useVoiceChat({
+      send,
+      active: voiceOpen,
+      locale: chatLocale ?? locale,
+      // Speaking Hindi to an English chat (or the reverse) switches the chat too.
+      onLanguageHeard: (heard) => setChatLocale(heard as Locale),
+    });
   const canSpeak = !voiceFailed;
 
   // The click that opened voice mode is the user gesture browsers require
