@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
+import { shrinkImageForUpload } from "@/lib/imageUpload";
 import {
   Upload,
   ScanLine,
@@ -87,8 +88,11 @@ export default function DiseaseScanner() {
     setError(null);
     setResult(null);
     try {
+      // Vercel refuses a request body over 4.5 MB before the route runs, and a
+      // phone photo is routinely larger than that. See src/lib/imageUpload.ts.
+      const upload = await shrinkImageForUpload(file);
       const fd = new FormData();
-      fd.append("image", file);
+      fd.append("image", upload);
       const res = await fetch("/api/disease", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {

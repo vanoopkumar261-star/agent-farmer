@@ -13,6 +13,7 @@ import {
   Pencil,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
+import { shrinkImageForUpload } from "@/lib/imageUpload";
 import { supabase } from "@/lib/supabase";
 import { useT } from "@/components/i18n/LanguageProvider";
 import { phBand } from "@/lib/soilPh";
@@ -113,8 +114,11 @@ export default function SoilPhScanner({
     setReading(true);
     setError(null);
     try {
+      // Same 4.5 MB Vercel body limit that broke the leaf scanner — a meter
+      // photo off a phone is just as large. See src/lib/imageUpload.ts.
+      const upload = await shrinkImageForUpload(file);
       const fd = new FormData();
-      fd.append("image", file);
+      fd.append("image", upload);
       const res = await fetch("/api/soil-reading", { method: "POST", body: fd });
       if (res.status === 429) {
         setError(t("soilPh.rateLimited"));

@@ -10,8 +10,17 @@ import { sniffImageType, normalizeImage, ImageRejectedError } from "@/lib/image"
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-/** Matches the bucket ceiling set in migration 014. */
-const MAX_UPLOAD_MB = 5;
+/**
+ * Upload ceiling.
+ *
+ * 4 MB, not the bucket's 5 MB (migration 014), because Vercel refuses a request
+ * body over 4.5 MB at the platform edge — the function never runs, so a 5 MB
+ * limit here could only ever be reached on localhost. Staying under the
+ * platform cap means the farmer gets this sentence instead of an opaque 413.
+ * The client shrinks photos to a few hundred KB first (src/lib/imageUpload.ts);
+ * this is the backstop for when that cannot run.
+ */
+const MAX_UPLOAD_MB = 4;
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 const CONFIDENCE_THRESHOLD = 0.6;
