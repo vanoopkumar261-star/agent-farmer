@@ -49,6 +49,7 @@ export function useVoiceChat({
   active,
   locale,
   onLanguageHeard,
+  handleTranscript,
 }: {
   /** Sends a message and resolves with the assistant's full reply. */
   send: (text: string, localeOverride?: string) => Promise<string>;
@@ -61,6 +62,19 @@ export function useVoiceChat({
    * vs Hindi) from `locale`, so the chat can follow them.
    */
   onLanguageHeard?: (locale: string) => void;
+  /**
+   * First refusal on the transcript, before it is sent to the chat.
+   *
+   * This is where the agent tiers live: a navigation phrase matched locally,
+   * or an action the gateway turned into a tool call. Return the sentence to
+   * speak when the turn was handled here, or null to fall through to the
+   * normal chat path.
+   *
+   * Kept as a hook parameter rather than built in, because this hook's job is
+   * the audio loop — capture, silence detection, playback — and it should stay
+   * usable by any caller, including one with no agent at all.
+   */
+  handleTranscript?: (text: string, locale: string) => Promise<string | null>;
 }) {
   const [phase, setPhase] = useState<VoicePhase>("idle");
   const [level, setLevel] = useState(0);
@@ -75,10 +89,12 @@ export function useVoiceChat({
   const sendRef = useRef(send);
   const ttsRef = useRef(tts);
   const onLanguageHeardRef = useRef(onLanguageHeard);
+  const handleTranscriptRef = useRef(handleTranscript);
   useEffect(() => {
     activeRef.current = active;
     localeRef.current = locale;
     sendRef.current = send;
+    handleTranscriptRef.current = handleTranscript;
     ttsRef.current = tts;
     onLanguageHeardRef.current = onLanguageHeard;
   });
@@ -147,6 +163,27 @@ export function useVoiceChat({
     setLastReply("");
     setError(null);
     setPhase("thinking");
+
+    // Tier 1 and 2: a local navigation command, or an action the gateway
+    // turned into a tool call. Either way the answer is already a short
+    // sentence, so it is spoken as-is — no chat round trip and no summary
+    // pass, which is most of the latency a farmer feels on a simple command.
+    try {
+      const handled = await handleTranscriptRef.current?.(text, turnLocale);
+      if (!alive()) return;
+      if (handled) {
+        setLastReply(handled);
+        setPhase("speaking");
+        await ttsRef.current.speak(handled, turnLocale);
+        if (!alive()) return;
+        startListeningRef.current();
+        return;
+      }
+    } catch {
+      // An agent failure must not swallow the turn — fall through and let the
+      // ordinary assistant answer, which it can always do.
+    }
+    if (!alive()) return;
 
     let reply = "";
     try {

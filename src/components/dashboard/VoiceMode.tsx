@@ -6,6 +6,7 @@ import { useAssistant } from "./AssistantProvider";
 import { useT } from "@/components/i18n/LanguageProvider";
 import type { Locale } from "@/lib/i18n/config";
 import { useVoiceChat, type VoicePhase } from "@/hooks/useVoiceChat";
+import { useVoiceAgent } from "@/hooks/useVoiceAgent";
 
 /**
  * Full voice chat.
@@ -17,8 +18,12 @@ import { useVoiceChat, type VoicePhase } from "@/hooks/useVoiceChat";
  * a readable conversation rather than something that vanished.
  */
 export default function VoiceMode() {
-  const { voiceOpen, closeVoice, send, chatLocale, setChatLocale } = useAssistant();
+  const { voiceOpen, closeVoice, send, chatLocale, setChatLocale, farmerId } = useAssistant();
   const { t, locale } = useT();
+
+  // Navigation commands, undo, and the tool-calling gateway. Returns a
+  // sentence when it handled the turn, or null to let the chat answer.
+  const { handleTranscript } = useVoiceAgent({ farmerId, closeVoice });
 
   const { phase, level, lastQuestion, lastReply, error, begin, end, interrupt, voiceFailed } =
     useVoiceChat({
@@ -27,6 +32,7 @@ export default function VoiceMode() {
       locale: chatLocale ?? locale,
       // Speaking Hindi to an English chat (or the reverse) switches the chat too.
       onLanguageHeard: (heard) => setChatLocale(heard as Locale),
+      handleTranscript,
     });
   const canSpeak = !voiceFailed;
 

@@ -82,6 +82,15 @@ type AssistantContextValue = {
   chatLocale: Locale | null;
   setChatLocale: (l: Locale | null) => void;
   farmerName: string;
+  /**
+   * The farmer's own profile id, for the voice agent's tool executor.
+   *
+   * Needed because a voice-originated write goes through the browser's
+   * RLS-scoped session, exactly like the manual expense form — the agent
+   * gateway never sees an id and never touches the database. See
+   * src/lib/agent/tools.ts.
+   */
+  farmerId: string;
   suggestions: string[];
   /** Floating-dock visibility. The route page ignores this. */
   isOpen: boolean;
@@ -105,11 +114,13 @@ export function useAssistant() {
 export default function AssistantProvider({
   children,
   farmerName,
+  farmerId,
   initialMessages = [],
   suggestions = [],
 }: {
   children: React.ReactNode;
   farmerName: string;
+  farmerId: string;
   initialMessages?: Msg[];
   suggestions?: string[];
 }) {
@@ -235,6 +246,7 @@ export default function AssistantProvider({
       chatLocale,
       setChatLocale,
       farmerName,
+      farmerId,
       suggestions,
       isOpen,
       open: () => setIsOpen(true),
@@ -244,7 +256,7 @@ export default function AssistantProvider({
       openVoice: () => setVoiceOpen(true),
       closeVoice: () => setVoiceOpen(false),
     }),
-    [messages, input, streaming, send, chatLocale, farmerName, suggestions, isOpen, voiceOpen]
+    [messages, input, streaming, send, chatLocale, farmerName, farmerId, suggestions, isOpen, voiceOpen]
   );
 
   return <AssistantContext.Provider value={value}>{children}</AssistantContext.Provider>;

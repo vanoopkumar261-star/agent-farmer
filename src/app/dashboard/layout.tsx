@@ -38,6 +38,7 @@ export default async function DashboardLayout({
     <LanguageProvider>
       <AssistantProvider
         farmerName={farmerName}
+        farmerId={farmer.id}
         initialMessages={initialMessages}
         suggestions={assistantSuggestions(farms)}
       >
