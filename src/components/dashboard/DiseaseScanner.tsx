@@ -112,7 +112,7 @@ export default function DiseaseScanner() {
       {/* Upload panel */}
       <Card className="p-6">
         <div className="flex items-center gap-2.5 mb-4">
-          <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-primary">
             <ScanLine className="w-[18px] h-[18px]" />
           </span>
           <div>

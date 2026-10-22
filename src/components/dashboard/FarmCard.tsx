@@ -15,7 +15,7 @@ export default function FarmCard({ farm }: { farm: FarmWithCrop }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-af-sage flex items-center justify-center">
-            <Sprout className="w-[18px] h-[18px] text-af-secondary" />
+            <Sprout className="w-[18px] h-[18px] text-af-primary" />
           </div>
           <div>
             <div className="text-sm font-semibold text-af-ink leading-tight"><T k="farmCard.title" params={{ n: farm.farm_index }} /></div>

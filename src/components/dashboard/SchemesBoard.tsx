@@ -311,7 +311,7 @@ export default function SchemesBoard({
             <Card key={s.id} className="p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary shrink-0">
+                  <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-primary shrink-0">
                     <Landmark className="w-[18px] h-[18px]" />
                   </span>
                   <div className="min-w-0">

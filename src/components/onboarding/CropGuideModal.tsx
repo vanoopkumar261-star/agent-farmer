@@ -153,7 +153,7 @@ export default function CropGuideModal({
             {facts?.stages?.map((s) => (
               <span
                 key={s}
-                className="rounded-full bg-af-sage px-2.5 py-1 text-[11px] font-semibold text-af-secondary"
+                className="rounded-full bg-af-sage px-2.5 py-1 text-[11px] font-semibold text-af-ink"
               >
                 {s}
               </span>
@@ -217,7 +217,7 @@ function Section({
   return (
     <div>
       <div className="flex items-center gap-2 text-af-ink">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-af-sage text-af-secondary">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-af-sage text-af-primary">
           {icon}
         </span>
         <h3 className="text-[15px] font-semibold">{title}</h3>

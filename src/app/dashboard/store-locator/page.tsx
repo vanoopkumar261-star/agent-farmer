@@ -16,7 +16,7 @@ export default async function StoreLocatorPage() {
     return (
       <div className="max-w-md mx-auto mt-20 text-center rounded-2xl bg-af-card border border-af-border shadow-af-sm p-10">
         <div className="w-12 h-12 rounded-2xl bg-af-sage mx-auto flex items-center justify-center">
-          <MapPin className="w-6 h-6 text-af-secondary" />
+          <MapPin className="w-6 h-6 text-af-primary" />
         </div>
         <h2 className="mt-4 text-[19px] font-semibold tracking-[-0.02em] text-af-ink"><T k="stores.noLocationTitle" /></h2>
         <p className="mt-2 text-sm text-af-ink-2">
@@ -60,7 +60,7 @@ export default async function StoreLocatorPage() {
           className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-af-border bg-af-card px-4 py-3.5 transition hover:border-af-primary/40 hover:shadow-af-sm"
         >
           <span className="flex items-center gap-3 min-w-0">
-            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary shrink-0">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-primary shrink-0">
               <PackageSearch className="w-[18px] h-[18px]" />
             </span>
             <span className="text-[13px] text-af-ink-2 leading-snug">

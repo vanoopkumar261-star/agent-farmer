@@ -78,7 +78,7 @@ export default function TransactionPanel({
       {/* Add form */}
       <Card className="p-6 h-fit">
         <div className="flex items-center gap-2.5 mb-4">
-          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-primary">
             <Plus className="w-4 h-4" />
           </span>
           <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">{t("transactionPanel.addTransaction")}</h2>
@@ -163,7 +163,7 @@ export default function TransactionPanel({
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
-            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-primary">
               <Receipt className="w-4 h-4" />
             </span>
             <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">{t("transactionPanel.ledger")}</h2>

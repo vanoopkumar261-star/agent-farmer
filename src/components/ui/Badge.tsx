@@ -8,7 +8,7 @@ const tones: Record<Tone, string> = {
   amber: "bg-af-amber/10 text-af-amber-ink",
   danger: "bg-af-danger/10 text-af-danger",
   neutral: "bg-af-neutral/10 text-af-ink-2",
-  sage: "bg-af-sage text-af-secondary",
+  sage: "bg-af-sage text-af-primary",
 };
 
 export default function Badge({

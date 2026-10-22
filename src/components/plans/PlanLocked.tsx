@@ -33,7 +33,7 @@ export default function PlanLocked({
 
   return (
     <div className="max-w-xl mx-auto mt-10 rounded-2xl border border-af-border bg-af-card p-8 text-center shadow-af-sm">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-af-sage text-af-secondary">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-af-sage text-af-primary">
         <Lock className="h-5 w-5" />
       </div>
 

@@ -55,7 +55,7 @@ export default function NavList({
                   outline-none focus-visible:ring-2 focus-visible:ring-af-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-af-card
                   ${
                     isActive
-                      ? "af-nav-active text-af-secondary"
+                      ? "af-nav-active text-af-ink"
                       : "text-af-ink-2 hover:bg-af-bg hover:text-af-ink"
                   }`}
               >

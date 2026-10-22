@@ -62,7 +62,7 @@ export default function IrrigationVerdictCard({ plan }: { plan: IrrigationPlan }
     <Card className="p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <span className="flex items-center justify-center w-11 h-11 rounded-[14px] bg-af-sage text-af-secondary shrink-0">
+          <span className="flex items-center justify-center w-11 h-11 rounded-[14px] bg-af-sage text-af-primary shrink-0">
             <v.Icon className="w-5 h-5" />
           </span>
           <div>

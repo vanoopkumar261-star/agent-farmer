@@ -100,7 +100,7 @@ export default function AssistantDock() {
                 <button
                   key={s}
                   onClick={() => send(s)}
-                  className="flex items-start gap-2.5 text-left rounded-[12px] bg-af-card border border-af-border px-3.5 py-3 text-meta font-semibold text-af-ink-2 hover:border-af-primary/40 hover:bg-af-sage/40 hover:text-af-secondary transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
+                  className="flex items-start gap-2.5 text-left rounded-[12px] bg-af-card border border-af-border px-3.5 py-3 text-meta font-semibold text-af-ink-2 hover:border-af-primary/40 hover:bg-af-sage/40 hover:text-af-ink transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
                 >
                   <MessageCircleQuestion className="w-4 h-4 mt-0.5 text-af-muted shrink-0" />
                   {s}

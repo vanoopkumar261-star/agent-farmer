@@ -475,7 +475,7 @@ export default function MarketBoard({
           {/* Nearby Mandis - with expandable rows */}
           <Card className="p-6">
             <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-primary">
                 <Store className="w-4 h-4" />
               </span>
               <div>

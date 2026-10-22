@@ -1014,7 +1014,7 @@ function OnboardingContent() {
                                 type="button"
                                 onClick={() => setNumFarms(form.numFarms - 1)}
                                 disabled={form.numFarms <= 1}
-                                className="px-3.5 py-3 text-af-ink-2 hover:bg-af-sage hover:text-af-secondary disabled:opacity-40 transition"
+                                className="px-3.5 py-3 text-af-ink-2 hover:bg-af-sage hover:text-af-primary disabled:opacity-40 transition"
                                 aria-label={t("onboarding.decreaseFarms")}
                               >
                                 <Minus className="w-4 h-4" />
@@ -1026,7 +1026,7 @@ function OnboardingContent() {
                                 type="button"
                                 onClick={() => setNumFarms(form.numFarms + 1)}
                                 disabled={form.numFarms >= fieldCap}
-                                className="px-3.5 py-3 text-af-ink-2 hover:bg-af-sage hover:text-af-secondary disabled:opacity-40 transition"
+                                className="px-3.5 py-3 text-af-ink-2 hover:bg-af-sage hover:text-af-primary disabled:opacity-40 transition"
                                 aria-label={t("onboarding.increaseFarms")}
                               >
                                 <Plus className="w-4 h-4" />
@@ -1064,7 +1064,7 @@ function OnboardingContent() {
                           >
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-2.5">
-                                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-secondary text-xs font-semibold">
+                                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-ink text-xs font-semibold">
                                   {idx + 1}
                                 </span>
                                 <div className="font-sans font-semibold text-af-ink">{t("onboarding.farm.n", { n: idx + 1 })}</div>
@@ -1218,7 +1218,7 @@ function OnboardingContent() {
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
-                                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-secondary text-xs font-semibold">
+                                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-af-sage text-af-ink text-xs font-semibold">
                                     {idx + 1}
                                   </span>
                                   <div>

@@ -21,7 +21,7 @@ export default function AiChatPreview() {
 
       {/* sample exchange */}
       <div className="space-y-2.5">
-        <div className="max-w-[80%] ml-auto rounded-2xl rounded-br-sm bg-af-sage text-af-secondary px-3.5 py-2 text-meta font-medium">
+        <div className="max-w-[80%] ml-auto rounded-2xl rounded-br-sm bg-af-sage text-af-ink px-3.5 py-2 text-meta font-medium">
           {t("aiChatPreview.sampleQuestion")}
         </div>
         <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-af-bg border border-af-border px-3.5 py-2 text-meta text-af-ink-2">

@@ -32,7 +32,7 @@ export default function PageHeader({
     <div className="mb-6 flex items-start justify-between gap-3">
       <div className="flex items-center gap-3 min-w-0">
         {icon && (
-          <span className="flex items-center justify-center w-11 h-11 shrink-0 rounded-2xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-11 h-11 shrink-0 rounded-2xl bg-af-sage text-af-primary">
             {icon}
           </span>
         )}

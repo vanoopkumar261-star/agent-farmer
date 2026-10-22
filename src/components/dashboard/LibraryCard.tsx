@@ -14,7 +14,7 @@ export default function LibraryCard({ from = "/dashboard" }: { from?: string }) 
   return (
     <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm p-6">
       <div className="flex items-center gap-2.5">
-        <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+        <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-primary">
           <Library className="w-4 h-4" />
         </span>
         <div>

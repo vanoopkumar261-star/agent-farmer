@@ -48,7 +48,7 @@ export default function CropDetailCard({ farm, health: healthProp }: { farm: Far
     <Card className="p-6">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex items-center justify-center w-11 h-11 rounded-2xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-11 h-11 rounded-2xl bg-af-sage text-af-primary">
             <Sprout className="w-5 h-5" />
           </span>
           <div>

@@ -39,7 +39,7 @@ export default function StoreLocatorClient(props: {
     return (
       <div className="max-w-lg mx-auto mt-10 rounded-2xl bg-af-card border border-af-border shadow-af-sm p-8 text-center">
         <div className="w-12 h-12 rounded-2xl bg-af-sage mx-auto flex items-center justify-center">
-          <MapPinOff className="w-6 h-6 text-af-secondary" />
+          <MapPinOff className="w-6 h-6 text-af-primary" />
         </div>
         <h2 className="mt-4 text-[18px] font-semibold tracking-[-0.02em] text-af-ink">
           {t("stores.emptyTitle", { n: SEARCH_RADIUS_KM })}

@@ -124,7 +124,7 @@ export default function AssistantChat({
                             key={l.code}
                             type="button"
                             onClick={() => setChatLocale(l.code as Locale)}
-                            className="rounded-full bg-af-bg border border-af-border px-3.5 py-2 text-[13px] font-semibold text-af-ink-2 hover:border-af-primary/45 hover:bg-af-sage/40 hover:text-af-secondary transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45"
+                            className="rounded-full bg-af-bg border border-af-border px-3.5 py-2 text-[13px] font-semibold text-af-ink-2 hover:border-af-primary/45 hover:bg-af-sage/40 hover:text-af-ink transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45"
                           >
                             {l.label}
                           </button>
@@ -133,7 +133,7 @@ export default function AssistantChat({
                     </>
                   ) : (
                     <div className="flex flex-wrap items-center gap-2 text-[13px]">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-af-sage border border-af-border px-3 py-1.5 font-semibold text-af-secondary">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-af-sage border border-af-border px-3 py-1.5 font-semibold text-af-primary">
                         <Check className="w-3.5 h-3.5" />
                         {t("assistant.langSet", {
                           lang: LOCALES.find((l) => l.code === chatLocale)?.label ?? chatLocale,
@@ -164,7 +164,7 @@ export default function AssistantChat({
                   <button
                     key={s}
                     onClick={() => send(s)}
-                    className="text-left rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm font-semibold text-af-ink-2 hover:border-af-primary/45 hover:bg-af-sage/40 hover:text-af-secondary transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45"
+                    className="text-left rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm font-semibold text-af-ink-2 hover:border-af-primary/45 hover:bg-af-sage/40 hover:text-af-ink transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45"
                   >
                     {s}
                   </button>
@@ -176,7 +176,7 @@ export default function AssistantChat({
           messages.map((m, i) =>
             m.role === "user" ? (
               <div key={i} className="flex justify-end">
-                <div className="max-w-[78%] rounded-2xl rounded-br-md bg-af-sage text-af-secondary px-4 py-2.5 text-[14px] font-medium leading-relaxed">
+                <div className="max-w-[78%] rounded-2xl rounded-br-md bg-af-sage text-af-ink px-4 py-2.5 text-[14px] font-medium leading-relaxed">
                   {m.content}
                 </div>
               </div>
@@ -266,7 +266,7 @@ export default function AssistantChat({
               type="button"
               onClick={() => setLangOpen((v) => !v)}
               aria-expanded={langOpen}
-              className="inline-flex items-center gap-1.5 rounded-full bg-af-sage border border-af-border px-3.5 py-1.5 text-[12px] font-semibold text-af-secondary hover:border-af-primary/45 transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
+              className="inline-flex items-center gap-1.5 rounded-full bg-af-sage border border-af-border px-3.5 py-1.5 text-[12px] font-semibold text-af-ink hover:border-af-primary/45 transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40"
             >
               <Languages className="w-3.5 h-3.5" />
               {LOCALES.find((l) => l.code === replyLocale)?.label ?? replyLocale}
@@ -284,8 +284,8 @@ export default function AssistantChat({
                       }}
                       className={`rounded-full border px-3 py-1.5 text-[12px] font-semibold transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 ${
                         l.code === replyLocale
-                          ? "border-af-primary/45 bg-af-sage text-af-secondary"
-                          : "border-af-border bg-af-bg text-af-ink-2 hover:border-af-primary/45 hover:text-af-secondary"
+                          ? "border-af-primary/45 bg-af-sage text-af-primary"
+                          : "border-af-border bg-af-bg text-af-ink-2 hover:border-af-primary/45 hover:text-af-primary"
                       }`}
                     >
                       {l.label}
@@ -300,7 +300,7 @@ export default function AssistantChat({
               key={k}
               onClick={() => send(t(k))}
               disabled={streaming}
-              className="rounded-full bg-af-card border border-af-border px-3.5 py-1.5 text-[12px] font-semibold text-af-ink-2 hover:border-af-primary/45 hover:text-af-secondary transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40 disabled:opacity-50"
+              className="rounded-full bg-af-card border border-af-border px-3.5 py-1.5 text-[12px] font-semibold text-af-ink-2 hover:border-af-primary/45 hover:text-af-ink transition outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40 disabled:opacity-50"
             >
               {t(k)}
             </button>
@@ -331,7 +331,7 @@ export default function AssistantChat({
             disabled={streaming}
             aria-label={t("voice.start")}
             title={t("voice.start")}
-            className="flex items-center justify-center w-10 h-10 rounded-full text-af-muted shrink-0 transition hover:bg-af-sage hover:text-af-secondary active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 disabled:opacity-40 disabled:pointer-events-none"
+            className="flex items-center justify-center w-10 h-10 rounded-full text-af-muted shrink-0 transition hover:bg-af-sage hover:text-af-primary active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 disabled:opacity-40 disabled:pointer-events-none"
           >
             <AudioLines className="w-4 h-4" />
           </button>
@@ -362,13 +362,13 @@ export function AssistantAvatar({ className = "w-10 h-10" }: { className?: strin
       className={`relative flex items-center justify-center rounded-[12px] bg-af-primary shrink-0 overflow-hidden ${className}`}
     >
       <svg viewBox="0 0 40 40" className="absolute inset-0 w-full h-full" aria-hidden="true">
-        <g className="text-af-secondary" stroke="currentColor" strokeWidth="1.4" opacity="0.42" fill="none">
+        <g className="text-af-on-primary" stroke="currentColor" strokeWidth="1.4" opacity="0.42" fill="none">
           <path d="M0 12 H8 V4" />
           <path d="M40 27 H32 V36" />
           <path d="M0 30 H6" />
           <path d="M40 9 H34" />
         </g>
-        <g className="text-af-secondary" fill="currentColor" opacity="0.5">
+        <g className="text-af-on-primary" fill="currentColor" opacity="0.5">
           <circle cx="8" cy="4" r="1.6" />
           <circle cx="32" cy="36" r="1.6" />
           <circle cx="6" cy="30" r="1.4" />

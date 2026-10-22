@@ -122,7 +122,7 @@ export default function TransportPlanner({
         <div className="flex items-center justify-between px-6 py-5 border-b border-af-border shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage">
-              <Truck className="w-5 h-5 text-af-secondary" />
+              <Truck className="w-5 h-5 text-af-primary" />
             </div>
             <div>
               <h2 className="font-sans text-lg font-semibold text-af-ink">
@@ -180,7 +180,7 @@ export default function TransportPlanner({
                 }}
                 className="w-full rounded-[14px] bg-af-bg border border-af-border px-4 py-3 text-sm font-semibold text-af-ink outline-none focus:ring-2 focus:ring-af-primary/25 focus:border-af-primary/40 transition font-mono"
               />
-              <div className="shrink-0 rounded-[14px] bg-af-sage border border-af-border px-4 py-3 text-sm font-semibold text-af-secondary">
+              <div className="shrink-0 rounded-[14px] bg-af-sage border border-af-border px-4 py-3 text-sm font-semibold text-af-ink">
                 {t("transportPlanner.quintals")}
               </div>
             </div>

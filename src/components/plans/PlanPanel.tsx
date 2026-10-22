@@ -101,7 +101,7 @@ export default function PlanPanel({
     <Card className="p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-primary">
             <CreditCard className="w-4 h-4" />
           </span>
           <div>

@@ -294,7 +294,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-af-border px-6 py-5">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-af-sage text-af-secondary">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-af-sage text-af-primary">
               <Sprout className="h-5 w-5" />
             </span>
             <div>

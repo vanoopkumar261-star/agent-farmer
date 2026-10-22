@@ -60,7 +60,7 @@ export default async function DashboardPage() {
     return (
       <div className="max-w-md mx-auto mt-20 text-center rounded-2xl bg-af-card border border-af-border shadow-af-sm p-10">
         <div className="w-12 h-12 rounded-2xl bg-af-sage mx-auto flex items-center justify-center">
-          <Sprout className="w-6 h-6 text-af-secondary" />
+          <Sprout className="w-6 h-6 text-af-primary" />
         </div>
         <h2 className="mt-4 text-[19px] font-semibold tracking-[-0.02em] text-af-ink"><T k="dashboard.home.noFarmTitle" /></h2>
         <p className="mt-2 text-sm text-af-ink-2"><T k="dashboard.home.noFarmSubtitle" /></p>

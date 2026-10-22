@@ -59,7 +59,7 @@ export default function ExpenseCharts({
       {/* Category composition */}
       <Card className="p-6">
         <div className="flex items-center gap-2.5 mb-4">
-          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-primary">
             <PieIcon className="w-4 h-4" />
           </span>
           <div>
@@ -138,7 +138,7 @@ export default function ExpenseCharts({
       {/* Monthly cash flow */}
       <Card className="p-6">
         <div className="flex items-center gap-2.5 mb-4">
-          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-primary">
             <BarChart3 className="w-4 h-4" />
           </span>
           <div>

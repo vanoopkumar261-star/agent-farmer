@@ -71,7 +71,7 @@ export default function Sidebar({ plan = "free" }: { plan?: PlanId }) {
 
         <div className="flex items-center gap-3 px-1 py-1">
           <div className="w-9 h-9 rounded-full bg-af-sage flex items-center justify-center shrink-0">
-            <User className="w-4 h-4 text-af-secondary" />
+            <User className="w-4 h-4 text-af-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-meta font-semibold text-af-ink truncate">{t("nav.farmerProfile")}</p>

@@ -297,7 +297,7 @@ export default function SettingsPanel({
 function SectionTitle({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary">{icon}</span>
+      <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-primary">{icon}</span>
       <div>
         <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink leading-tight">{title}</h2>
         <p className="text-meta text-af-muted">{subtitle}</p>

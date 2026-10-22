@@ -51,7 +51,7 @@ export default function TerraSelect({
                 <Select.Item
                   key={opt.value}
                   value={opt.value}
-                  className="relative flex cursor-pointer select-none items-center rounded-[12px] px-10 py-2.5 text-sm text-af-ink-2 outline-none data-[highlighted]:bg-af-sage data-[highlighted]:text-af-secondary data-[state=checked]:text-af-ink"
+                  className="relative flex cursor-pointer select-none items-center rounded-[12px] px-10 py-2.5 text-sm text-af-ink-2 outline-none data-[highlighted]:bg-af-sage data-[highlighted]:text-af-ink data-[state=checked]:text-af-ink"
                 >
                   <Select.ItemText>{opt.label}</Select.ItemText>
                   <Select.ItemIndicator className="absolute left-3 inline-flex items-center justify-center text-af-primary">

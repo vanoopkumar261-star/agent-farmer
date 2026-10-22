@@ -72,7 +72,7 @@ function ScanRow({ s, viewUrl }: { s: DiagnosisRecord; viewUrl: string | null })
         // eslint-disable-next-line @next/next/no-img-element
         <img src={viewUrl} alt="Leaf photograph from this scan" className="w-14 h-14 rounded-full object-cover border border-af-border shrink-0" />
       ) : (
-        <span className="flex items-center justify-center w-14 h-14 rounded-full bg-af-sage text-af-secondary shrink-0">
+        <span className="flex items-center justify-center w-14 h-14 rounded-full bg-af-sage text-af-primary shrink-0">
           <Sprout className="w-6 h-6" />
         </span>
       )}

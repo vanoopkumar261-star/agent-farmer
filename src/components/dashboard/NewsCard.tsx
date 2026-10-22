@@ -31,7 +31,7 @@ const categoryConfig = {
   oilseed: {
     labelKey: "newsCard.category.oilseed",
     icon: Droplets,
-    color: "text-af-secondary",
+    color: "text-af-primary",
     bg: "bg-af-secondary/10",
     border: "border-af-secondary/20",
     dot: "bg-af-secondary",
@@ -131,7 +131,7 @@ function ArticleCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-af-sage">
-              <Newspaper className="w-10 h-10 text-af-secondary opacity-40" />
+              <Newspaper className="w-10 h-10 text-af-primary opacity-40" />
             </div>
           )}
           {/* The photo is ours, not the publisher's. Say so, quietly but
@@ -210,7 +210,7 @@ function ArticleCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-af-sage">
-            <Icon className="w-5 h-5 text-af-secondary opacity-50" />
+            <Icon className="w-5 h-5 text-af-primary opacity-50" />
           </div>
         )}
       </div>
@@ -310,7 +310,7 @@ export default function NewsCard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex items-center justify-center w-10 h-10 rounded-2xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-10 h-10 rounded-2xl bg-af-sage text-af-primary">
             <Newspaper className="w-5 h-5" />
           </span>
           <div>

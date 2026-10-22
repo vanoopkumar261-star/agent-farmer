@@ -30,7 +30,7 @@ export default function SpeakButton({ text, locale }: { text: string; locale: st
       }}
       aria-label={label}
       title={label}
-      className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-af-muted transition hover:bg-af-sage hover:text-af-secondary outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40 shrink-0"
+      className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-af-muted transition hover:bg-af-sage hover:text-af-primary outline-none focus-visible:ring-2 focus-visible:ring-af-primary/40 shrink-0"
     >
       {loading ? (
         <Loader2 className="w-3.5 h-3.5 animate-spin" />

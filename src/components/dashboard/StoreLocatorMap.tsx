@@ -67,7 +67,7 @@ export default function StoreLocatorMap({
       <div className="rounded-2xl bg-af-card border border-af-border shadow-af-sm p-5 order-2 lg:order-1">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
-            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-secondary">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-af-sage text-af-primary">
               <StoreIcon className="w-4 h-4" />
             </span>
             <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-af-ink">{t("storeLocatorMap.nearbyStores")}</h2>
@@ -197,7 +197,7 @@ export default function StoreLocatorMap({
         </div>
         <div className="flex items-center gap-4 px-2 py-2 text-[11px] text-af-muted">
           <span className="inline-flex items-center gap-1.5">
-            <Home className="w-3.5 h-3.5 text-af-secondary" /> {t("storeLocatorMap.yourFarm")}
+            <Home className="w-3.5 h-3.5 text-af-primary" /> {t("storeLocatorMap.yourFarm")}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-af-primary" /> {t("storeLocatorMap.store")}

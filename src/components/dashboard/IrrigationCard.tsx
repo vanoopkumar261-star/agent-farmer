@@ -40,7 +40,7 @@ export default function IrrigationCard({ plans }: { plans: IrrigationPlan[] }) {
     <Card className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-secondary">
+          <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage text-af-primary">
             <Droplets className="w-[18px] h-[18px]" />
           </span>
           <div>

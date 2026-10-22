@@ -29,7 +29,7 @@ export function TermsModal({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between px-7 py-5 border-b border-af-border shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage">
-              <ScrollText className="w-5 h-5 text-af-secondary" />
+              <ScrollText className="w-5 h-5 text-af-primary" />
             </div>
             <div>
               <h2 className="font-sans text-lg font-semibold text-af-ink">Terms &amp; Conditions</h2>
@@ -91,7 +91,7 @@ export function PrivacyModal({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between px-7 py-5 border-b border-af-border shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-af-sage">
-              <ShieldCheck className="w-5 h-5 text-af-secondary" />
+              <ShieldCheck className="w-5 h-5 text-af-primary" />
             </div>
             <div>
               <h2 className="font-sans text-lg font-semibold text-af-ink">Privacy Policy</h2>

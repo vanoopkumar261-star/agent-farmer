@@ -80,7 +80,7 @@ export default function AppBackground() {
           {/* Topographic contour lines */}
           <div ref={topoRef} className="absolute inset-0 will-change-transform">
             <TopoContours className="absolute -top-24 -left-24 w-[560px] h-[560px] text-af-ink opacity-[0.04]" />
-            <TopoContours className="absolute bottom-[-8rem] right-[-6rem] w-[640px] h-[640px] text-af-secondary opacity-[0.05] rotate-180" />
+            <TopoContours className="absolute bottom-[-8rem] right-[-6rem] w-[640px] h-[640px] text-af-primary opacity-[0.05] rotate-180" />
           </div>
         </>
       )}
