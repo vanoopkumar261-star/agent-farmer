@@ -30,3 +30,9 @@
 # Working material (also gitignored — listed here in case a clone still has it).
 /Screenshots/
 /team images/
+
+# The 4K60 hero master (239 MB). It is gitignored, so a Git-integration build
+# never sees it — but `vercel deploy` from a developer machine uploads the
+# working directory, where it still sits. The committed web loops
+# (public/videos/hero-dark*.mp4) are what the app actually plays.
+/public/videos/Hero_dark.mp4

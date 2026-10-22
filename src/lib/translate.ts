@@ -1,6 +1,5 @@
 /**
- * Machine translation via NVIDIA Riva Translate, for text the dictionaries
- * cannot hold.
+ * Machine translation via Groq, for text the dictionaries cannot hold.
  *
  * ── Why this exists at all ────────────────────────────────────────────────────
  *
@@ -21,6 +20,16 @@
  *     static UI copy      → dictionaries, pre-translated, zero latency
  *     engine-composed prose → here, at request time, cached
  *
+ * ── Why Groq and not a dedicated translation model ───────────────────────────
+ *
+ * This used to call NVIDIA Riva Translate. Every AI feature in the app now runs
+ * on one provider, so there is one key to rotate, one rate limit to reason about
+ * and one outage to handle. `gpt-oss-120b` was checked against the engine's own
+ * sentences in Hindi and Kannada before the swap: it keeps the figures and units
+ * intact ("5.2 mm" → "5.2 मिमी") and reads naturally, and it needs none of
+ * Riva's fragile `en-hi` pair-tag protocol, which silently returned Danish when
+ * the tag was a character off.
+ *
  * ── Which locales this touches ───────────────────────────────────────────────
  *
  * Only the ones in `TRANSLATE_LOCALES`. Every other locale is returned
@@ -32,7 +41,7 @@
  *
  * ── Failure ──────────────────────────────────────────────────────────────────
  *
- * Every path returns the English input. No key, no network, a 500 from NVIDIA,
+ * Every path returns the English input. No key, no network, a 500 from Groq,
  * a malformed reply, a timeout — the caller gets usable text in all five cases.
  * A farmer who needs to know whether to run a pump this morning is not served
  * by an error where the reason used to be, and this is garnish on numbers that
@@ -40,48 +49,45 @@
  */
 
 import type { Locale } from "./i18n/config";
-import { fetchWithRetry } from "./http";
+import { fetchWithRetry, GROQ_TEXT_MODEL } from "./http";
 
-const ENDPOINT = "https://integrate.api.nvidia.com/v1/chat/completions";
-
-const MODEL = process.env.NVIDIA_TRANSLATE_MODEL || "nvidia/riva-translate-4b-instruct-v2";
+const ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 
 /**
  * The locales machine translation is enabled for.
  *
  * English is the source and is never sent anywhere. Adding a locale here is the
- * only thing needed to turn it on — the Riva v2 model covers all nine of the
- * app's languages — but it is a deliberate act, not a default, because MT
- * output is unreviewed by definition and the hand-written dictionaries are not.
+ * only thing needed to turn it on — the model covers all nine of the app's
+ * languages — but it is a deliberate act, not a default, because MT output is
+ * unreviewed by definition and the hand-written dictionaries are not.
  */
 export const TRANSLATE_LOCALES: readonly Locale[] = ["hi"];
 
 /**
- * Locale → the model's language-pair tag.
+ * Locale → the language's English name, as the instruction names it.
  *
- * This is not a general language code. The model takes the pair in the system
- * message as `en-hi`, and gets it wrong in a way that is easy to miss if you
- * guess: a plain-prose instruction ("translate to Hindi") returned Danish, and
- * `en-hi-in` also returned Danish. Only the exact two-part tag works, so the
- * mapping is explicit and the unknown case refuses rather than improvises.
+ * A general-purpose model wants the language said plainly. The old Riva path
+ * needed an exact `en-hi` pair tag in the system slot and silently returned
+ * Danish for anything it did not recognise, so the mapping stays explicit here
+ * too: an unlisted locale refuses to translate rather than improvising.
  */
-const PAIR_TAG: Partial<Record<Locale, string>> = {
-  hi: "en-hi",
-  kn: "en-kn",
-  ta: "en-ta",
-  te: "en-te",
-  ml: "en-ml",
-  mr: "en-mr",
-  bn: "en-bn",
-  pa: "en-pa",
+const LANGUAGE_NAME: Partial<Record<Locale, string>> = {
+  hi: "Hindi",
+  kn: "Kannada",
+  ta: "Tamil",
+  te: "Telugu",
+  ml: "Malayalam",
+  mr: "Marathi",
+  bn: "Bengali",
+  pa: "Punjabi",
 };
 
 export function translationEnabled(locale: Locale): boolean {
   return (
     locale !== "en" &&
     TRANSLATE_LOCALES.includes(locale) &&
-    !!PAIR_TAG[locale] &&
-    !!process.env.NVIDIA_API_KEY
+    !!LANGUAGE_NAME[locale] &&
+    !!process.env.GROQ_API_KEY
   );
 }
 
@@ -136,14 +142,19 @@ export async function translateText(text: string, locale: Locale): Promise<strin
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: MODEL,
-          // The pair tag IS the system message. See PAIR_TAG above.
+          model: GROQ_TEXT_MODEL,
+          // A general model will happily explain, transliterate or wrap the
+          // answer in quotes unless told not to — and any of those would be
+          // spliced straight into the page as if it were the translation.
           messages: [
-            { role: "system", content: PAIR_TAG[locale] },
+            {
+              role: "system",
+              content: `You are a translation engine. Translate the user message from English into ${LANGUAGE_NAME[locale]}. Output ONLY the translation — no quotes, no notes, no transliteration, no explanation. Keep every number, unit and crop name accurate.`,
+            },
             { role: "user", content: trimmed },
           ],
           // Translation is not a creative task, and a drifting temperature
@@ -156,11 +167,11 @@ export async function translateText(text: string, locale: Locale): Promise<strin
         }),
         signal: AbortSignal.timeout(12_000),
       },
-      { label: "nvidia-translate", retries: 1 }
+      { label: "groq/translate", retries: 1 }
     );
 
     if (!res.ok) {
-      console.warn(`nvidia-translate: HTTP ${res.status} for ${locale}`);
+      console.warn(`groq/translate: HTTP ${res.status} for ${locale}`);
       return text;
     }
 
@@ -177,7 +188,7 @@ export async function translateText(text: string, locale: Locale): Promise<strin
     remember(locale, trimmed, out);
     return out;
   } catch (e) {
-    console.warn(`nvidia-translate: ${(e as Error)?.message || "failed"}`);
+    console.warn(`groq/translate: ${(e as Error)?.message || "failed"}`);
     return text;
   }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCropRecommendations, FarmInput } from "@/lib/gemini";
+import { getCropRecommendations, FarmInput } from "@/lib/cropAdvisor";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { clampArr, clampStr, payloadTooLarge, PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 

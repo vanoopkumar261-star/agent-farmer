@@ -28,7 +28,7 @@ import type {
   MetricKey,
   SensorMetric,
   SensorSnapshot,
-} from "@/app/api/sensors/route";
+} from "@/lib/sensors";
 
 /**
  * Per-metric identity — icon + a slot from the validated chart palette.

@@ -51,6 +51,31 @@ const en: Dict = {
   "health.note.watch": "Healthy, with a few items to watch.",
   "health.note.risk": "Needs attention — check alerts.",
 
+  // Measured growing conditions behind the base score (src/lib/health.ts).
+  "health.cond.temperature": "Air temperature {value}°C — judged against {crop}",
+  "health.cond.temperature.none": "Air temperature — no reading",
+  "health.cond.moisture": "Soil moisture {value}%",
+  "health.cond.moisture.none": "Soil moisture — no sensor connected",
+  "health.cond.humidity": "Humidity {value}%",
+  "health.cond.humidity.none": "Humidity — no reading",
+  "health.cond.wind": "Wind {value} km/h",
+  "health.cond.wind.none": "Wind — no reading",
+  "health.cond.ph": "Soil pH {value} — judged against {crop}",
+  "health.cond.ph.none": "Soil pH — no reading logged",
+  "health.cond.water": "Root-zone water {value}% of capacity",
+  "health.cond.water.none": "Root-zone water — not modelled yet",
+
+  // Crop feasibility (src/lib/cropFeasibility.ts).
+  "feasibility.ph.blocking": "Soil pH {ph} is well outside {crop}'s range of {min}-{max}",
+  "feasibility.ph.warning": "Soil pH {ph} is just outside {crop}'s preferred {min}-{max}",
+  "feasibility.soil.blocking": "{crop} does not perform on {soil} soil",
+  "feasibility.temp.blocking": "Daytime highs near {temp}°C are too hot for {crop} to set a crop",
+  "feasibility.temp.warning": "{crop} wants a cooler season than {temp}°C highs",
+  "feasibility.cold.blocking": "{crop} will not survive lows near {temp}°C",
+  "feasibility.water.blocking": "{crop} is grown under standing water and this plot is rain-fed",
+  "feasibility.water.warning": "{crop} needs heavy irrigation and this plot is rain-fed",
+  "feasibility.notACrop": "\"{crop}\" is not a crop we can plan for",
+
   // ── Alerts (src/lib/alerts.ts) ──
   "alert.missed.titleOne": "{missed} of {total} task missed yesterday",
   "alert.missed.titleMany": "{missed} of {total} tasks missed yesterday",
@@ -152,6 +177,31 @@ const hi: Dict = {
   "health.note.good": "आपके खेत बहुत अच्छी स्थिति में हैं।",
   "health.note.watch": "स्वस्थ हैं, कुछ बातों पर ध्यान रखें।",
   "health.note.risk": "ध्यान देने की ज़रूरत है — अलर्ट देखें।",
+
+  // Measured growing conditions behind the base score (src/lib/health.ts).
+  "health.cond.temperature": "हवा का तापमान {value}°C — {crop} के अनुसार आंका गया",
+  "health.cond.temperature.none": "हवा का तापमान — कोई रीडिंग नहीं",
+  "health.cond.moisture": "मिट्टी की नमी {value}%",
+  "health.cond.moisture.none": "मिट्टी की नमी — कोई सेंसर नहीं जुड़ा",
+  "health.cond.humidity": "आर्द्रता {value}%",
+  "health.cond.humidity.none": "आर्द्रता — कोई रीडिंग नहीं",
+  "health.cond.wind": "हवा {value} किमी/घंटा",
+  "health.cond.wind.none": "हवा — कोई रीडिंग नहीं",
+  "health.cond.ph": "मिट्टी का pH {value} — {crop} के अनुसार आंका गया",
+  "health.cond.ph.none": "मिट्टी का pH — कोई रीडिंग दर्ज नहीं",
+  "health.cond.water": "जड़ क्षेत्र में पानी, क्षमता का {value}%",
+  "health.cond.water.none": "जड़ क्षेत्र का पानी — अभी गणना नहीं",
+
+  // Crop feasibility (src/lib/cropFeasibility.ts).
+  "feasibility.ph.blocking": "मिट्टी का pH {ph}, {crop} की सीमा {min}-{max} से काफी बाहर है",
+  "feasibility.ph.warning": "मिट्टी का pH {ph}, {crop} की पसंदीदा सीमा {min}-{max} से थोड़ा बाहर है",
+  "feasibility.soil.blocking": "{soil} मिट्टी में {crop} अच्छी पैदावार नहीं देता",
+  "feasibility.temp.blocking": "{temp}°C के आसपास का तापमान {crop} में फल लगने के लिए बहुत गर्म है",
+  "feasibility.temp.warning": "{crop} को {temp}°C से ठंडा मौसम चाहिए",
+  "feasibility.cold.blocking": "{temp}°C के आसपास की ठंड में {crop} नहीं बचेगा",
+  "feasibility.water.blocking": "{crop} खड़े पानी में उगता है और यह खेत बारानी है",
+  "feasibility.water.warning": "{crop} को भारी सिंचाई चाहिए और यह खेत बारानी है",
+  "feasibility.notACrop": "\"{crop}\" ऐसी फसल नहीं है जिसकी योजना हम बना सकें",
 
   "alert.missed.titleOne": "कल {total} में से {missed} कार्य छूट गया",
   "alert.missed.titleMany": "कल {total} में से {missed} कार्य छूट गए",

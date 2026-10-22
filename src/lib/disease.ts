@@ -75,7 +75,7 @@ export async function diagnoseFromImage(dataUrl: string): Promise<DiseaseResult>
     apiKey,
     {
       model: VISION_MODEL,
-      // Qwen3.6 is a reasoning model: without this it spends the whole token budget
+      // Qwen3.8 is a reasoning model: without this it spends the whole token budget
       // inside <think> and returns truncated, unparseable JSON.
       reasoning_effort: "none",
       messages: [

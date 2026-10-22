@@ -110,49 +110,54 @@ export async function upstreamProbes() {
     )
   );
 
-  // ── NVIDIA Riva Translate — the Hindi half of the irrigation page ────────
+  // ── Groq translate — the Hindi half of the irrigation page ───────────────
   //
-  // Checks the one thing about this endpoint that fails silently. The language
-  // pair is passed as a system-message tag (`en-hi`), and when the model does
-  // not recognise it the request still returns 200 with a confident-looking
-  // translation into the wrong language — `en-hi-in` returns Danish, and a
-  // plain-prose instruction returns Danish too. Nothing downstream can detect
-  // that: `translate.ts` would cache it and the page would render Danish under
-  // a Hindi UI.
+  // Checks the one thing about machine translation that fails silently: a 200
+  // carrying confident-looking text in the WRONG language, or an obliging model
+  // that explains itself instead of translating. Nothing downstream can detect
+  // either — `translate.ts` caches the reply and the page renders it under a
+  // Hindi UI.
   //
-  // So the assertion is on the script of the reply, not merely on the status
-  // code: Devanagari present, and the English not echoed back unchanged.
+  // This replaced NVIDIA Riva Translate, whose `en-hi` system-tag protocol
+  // returned Danish whenever the tag was a character off. A general model needs
+  // no tag, but it will happily add quotes or a note, so the assertion is on the
+  // script of the reply: Devanagari present, the English not echoed back, and
+  // nothing Latin left over.
   out.push(
     await runProbe(
       {
-        id: "upstream.nvidia.translate",
+        id: "upstream.groq.translate",
         layer: "upstream",
-        title: "NVIDIA Riva Translate (en→hi)",
+        title: "Groq translate (en→hi)",
         expected: [STATUS.LIVE, STATUS.SKIP],
       },
       async () => {
-        if (!env.NVIDIA_API_KEY) {
+        if (!env.GROQ_API_KEY) {
           return {
             status: STATUS.SKIP,
-            evidence: { NVIDIA_API_KEY: "unset" },
+            evidence: { GROQ_API_KEY: "unset" },
             verdict:
-              "NVIDIA_API_KEY unset — the irrigation engine's prose stays English in every locale, which is the documented fallback",
+              "GROQ_API_KEY unset — the irrigation engine's prose stays English in every locale, which is the documented fallback",
           };
         }
 
         const source = "Irrigate today";
         const r = await probeJson({
-          url: "https://integrate.api.nvidia.com/v1/chat/completions",
+          url: "https://api.groq.com/openai/v1/chat/completions",
           init: {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${env.NVIDIA_API_KEY}`,
+              Authorization: `Bearer ${env.GROQ_API_KEY}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: env.NVIDIA_TRANSLATE_MODEL || "nvidia/riva-translate-4b-instruct-v2",
+              model: env.GROQ_TEXT_MODEL || "openai/gpt-oss-120b",
               messages: [
-                { role: "system", content: "en-hi" },
+                {
+                  role: "system",
+                  content:
+                    "You are a translation engine. Translate the user message from English into Hindi. Output ONLY the translation — no quotes, no notes, no transliteration, no explanation. Keep every number, unit and crop name accurate.",
+                },
                 { role: "user", content: source },
               ],
               temperature: 0,
@@ -165,9 +170,12 @@ export async function upstreamProbes() {
         const text = r.json?.choices?.[0]?.message?.content?.trim() ?? "";
         const devanagari = /[ऀ-ॿ]/.test(text);
         const echoed = text.toLowerCase() === source.toLowerCase();
+        // A stray Latin word means it commented on the translation instead of
+        // just giving it — that text would be spliced into the page verbatim.
+        const chatty = /[A-Za-z]{3,}/.test(text);
 
         return {
-          status: r.ok && devanagari && !echoed ? STATUS.LIVE : STATUS.FAIL,
+          status: r.ok && devanagari && !echoed && !chatty ? STATUS.LIVE : STATUS.FAIL,
           ms: r.ms,
           attempts: r.attempts,
           evidence: {
@@ -177,14 +185,17 @@ export async function upstreamProbes() {
             translated: text,
             devanagari,
             echoed,
+            chatty,
           },
           verdict: !r.ok
             ? `${r.res.status}; translation unavailable`
             : echoed
-              ? `${r.res.status} but the English came back unchanged — the en-hi tag was not applied`
+              ? `${r.res.status} but the English came back unchanged — nothing was translated`
               : !devanagari
                 ? `${r.res.status} but the reply is not Devanagari ("${text}") — wrong target language`
-                : `${r.res.status}; "${source}" → "${text}"`,
+                : chatty
+                  ? `${r.res.status} but the reply carries Latin prose ("${text}") — the model explained instead of translating`
+                  : `${r.res.status}; "${source}" → "${text}"`,
         };
       }
     )

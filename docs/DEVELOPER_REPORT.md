@@ -166,8 +166,10 @@ There is **no single tracked base-schema file** — `farmer_profiles`, `farms`, 
 | Integration | Env var | Used for | Cost |
 |---|---|---|---|
 | **Groq — text** | `GROQ_API_KEY`, `GROQ_TEXT_MODEL` (default `openai/gpt-oss-120b`) | Chat assistant, crop recommendations, crop guide, market advice, scheme matching, disease narrative | Pay-per-token |
-| **Groq — vision** | `GROQ_API_KEY`, `GROQ_VISION_MODEL` (default `qwen/qwen3.6-27b`) | Disease-diagnosis fallback when the local CNN is absent or unsure | Pay-per-token |
+| **Groq — vision** | `GROQ_API_KEY`, `GROQ_VISION_MODEL` (default `qwen/qwen3.8-27b`) | Disease-diagnosis fallback when the local CNN is absent or unsure | Pay-per-token |
 | **Groq — Whisper** | `GROQ_API_KEY` | Speech-to-text fallback (`whisper-large-v3-turbo`) for browsers without Web Speech (mainly Firefox) | Pay-per-token |
+| **Groq — translate** | `GROQ_API_KEY`, `GROQ_TEXT_MODEL` | Machine-translates the irrigation engine's generated prose (`src/lib/translate.ts`). Replaced NVIDIA Riva Translate so every AI feature sits on one provider | Pay-per-token |
+| **NVIDIA Magpie TTS** | `NVIDIA_API_KEY`, `NVIDIA_TTS_VOICE` (optional) | Spoken replies when the Chatterbox GPU server is absent — i.e. on Vercel. **The only non-Groq AI provider left**, and deliberately: Groq's catalogue has one TTS model and it is English-only, so moving voice to Groq would silence Hindi. English + Hindi only | Free tier |
 | **data.gov.in Agmarknet** | `DATA_GOV_API_KEY` (optional) | Live cross-mandi commodity prices, 6h cache | Free (public sample key works, rate-limited) |
 | **Open-Meteo** | none | 7-day weather forecast | Free, no key |
 | **Overpass / Nominatim (OSM)** | none | Nearby agri-store search, address geocoding | Free, no key |

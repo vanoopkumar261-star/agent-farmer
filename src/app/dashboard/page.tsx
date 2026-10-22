@@ -10,7 +10,8 @@ import { computeIrrigationPlan, irrigationAlerts, irrigationTaskSeeds } from "@/
 import { extractStateFromAddress } from "@/lib/market";
 import { getMarketForState } from "@/lib/market-server";
 import { syncNotifications } from "@/lib/notifications-server";
-import { getRecentDiagnoses } from "@/lib/history";
+import { getRecentDiagnoses, getLatestSoilReading } from "@/lib/history";
+import { readHealthSensors } from "@/lib/sensors";
 import { historyCutoff } from "@/lib/entitlements";
 import { planOf } from "@/lib/plans";
 import { recordDayTasks, tallyDayTasks, serverYesterday } from "@/lib/tasks-server";
@@ -165,11 +166,36 @@ export default async function DashboardPage() {
   // Real farm-health score. Yesterday's unfinished work is a genuine stressor,
   // and until now this argument was never supplied — so the overdue factor in
   // computeFarmHealth could never fire.
+  //
+  // The score is no longer "100 unless something went wrong". It is built from
+  // six measured conditions — temperature, soil moisture, humidity, wind, pH
+  // and root-zone water — with events deducted on top, so it moves with the
+  // weather and can explain itself. See src/lib/health.ts.
+  //
+  // Both reads are cheap and independent: the sensors come from a 60s-revalidated
+  // ThingSpeak fetch, the pH from the farmer's own latest logged reading.
+  const [healthSensors, latestSoil] = await Promise.all([
+    readHealthSensors(),
+    getLatestSoilReading(farmer.id),
+  ]);
+
+  // Root-zone water for the holding: the mean across plots the engine could
+  // actually model, so one unplanted field does not drag the average down.
+  const modelledPlots = irrigationPlans.filter((p) => p.cropName && !p.ponded);
+  const availableWaterPct = modelledPlots.length
+    ? modelledPlots.reduce((s, p) => s + p.availablePct, 0) / modelledPlots.length
+    : null;
+
   const healthResult = computeFarmHealth({
     farms,
     weather,
     overdueTasks: yesterdayTally.missed,
     activeDiseases,
+    signals: {
+      sensors: healthSensors,
+      soilPh: latestSoil?.ph ?? null,
+      availableWaterPct,
+    },
   });
   const health = healthResult.score;
 
@@ -397,9 +423,61 @@ export default async function DashboardPage() {
                 <T k={healthResult.noteMsg.k} />
               </p>
 
-              {/* The score's working, shown. computeFarmHealth has always built
-                  this list and nothing ever rendered it, so the farmer saw a
-                  bare number with no way to tell what it was reacting to. */}
+              {/* The growing conditions the base score is built from. This is
+                  the answer to "how can health always be 100?" — six real
+                  readings, each shown with its own value and how much it cost,
+                  and an explicit "no reading" where nothing reports one. */}
+              {healthResult.conditions.length > 0 && (
+                <ul className="mt-4 w-full space-y-1.5 border-t border-af-border pt-4">
+                  {healthResult.conditions.map((c) => (
+                    <li key={c.key} className="flex items-start justify-between gap-3 text-[12px]">
+                      <span className="flex items-start gap-2 leading-snug">
+                        <span
+                          aria-hidden
+                          className={`mt-[5px] w-1.5 h-1.5 rounded-full shrink-0 ${
+                            c.band === "good"
+                              ? "bg-af-primary"
+                              : c.band === "watch"
+                                ? "bg-af-warn"
+                                : c.band === "risk"
+                                  ? "bg-af-danger"
+                                  : "bg-af-border"
+                          }`}
+                        />
+                        <span className={c.value === null ? "text-af-muted" : "text-af-ink-2"}>
+                          <T k={c.msg.k} params={c.msg.p} />
+                        </span>
+                      </span>
+                      <span
+                        className={`font-mono shrink-0 ${
+                          c.delta < 0 ? "text-af-danger" : "text-af-muted"
+                        }`}
+                      >
+                        {c.delta < 0 ? c.delta : "—"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Coverage, stated plainly. A score built on two of six signals
+                  is a different claim from one built on all six, and the farmer
+                  is the one who can close the gap by logging a pH reading or
+                  wiring a probe. */}
+              {healthResult.coverage < 1 && (
+                <p className="mt-3 w-full text-[11px] text-af-muted leading-snug">
+                  <T
+                    k="dashboard.home.healthCoverage"
+                    params={{
+                      have: healthResult.conditions.filter((c) => c.value !== null).length,
+                      total: healthResult.conditions.length,
+                    }}
+                  />
+                </p>
+              )}
+
+              {/* Events on top of the conditions: what has actually gone wrong
+                  and needs acting on. */}
               {healthResult.factors.length > 0 && (
                 <ul className="mt-4 w-full space-y-1.5 border-t border-af-border pt-4">
                   {healthResult.factors.map((f, i) => (

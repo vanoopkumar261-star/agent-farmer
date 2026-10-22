@@ -43,7 +43,7 @@
  *
  * Two models on the current list are traps and were rejected after testing:
  * `openai/gpt-oss-20b` returns an EMPTY `content` string and puts its answer in
- * a separate `reasoning` field, and `qwen/qwen3.6-27b` leaks `<think>` blocks
+ * a separate `reasoning` field, and the `qwen/qwen3.x-27b` models leak `<think>` blocks
  * into the reply. `gpt-oss-120b` returns clean prose, supports JSON mode and
  * streaming, and answers correctly in Indic scripts.
  */

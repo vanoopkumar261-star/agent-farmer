@@ -21,7 +21,7 @@ import Tabs from "@/components/ui/Tabs";
 import EmptyState from "@/components/ui/EmptyState";
 import { useT } from "@/components/i18n/LanguageProvider";
 import type { IrrigationPlan } from "@/lib/irrigation";
-import type { SensorSnapshot } from "@/app/api/sensors/route";
+import type { SensorSnapshot } from "@/lib/sensors";
 import MoistureForecastChart from "./MoistureForecastChart";
 import IrrigationVerdictCard from "./IrrigationVerdictCard";
 import IrrigationSchedule from "./IrrigationSchedule";

@@ -60,7 +60,7 @@ const LAYERS: Layer[] = [
     nodes: [
       { id: "rsc", title: "Server Components", sub: "+ React cache()", x: 260, y: 150, detail: "Pages fetch on the server. getDashboardData is wrapped in React cache() to dedupe the layout+page double-fetch — warm dashboard load dropped ~3s → ~0.4s." },
       { id: "api", title: "Route Handlers /api/*", sub: "chat · disease · recs · market · schemes", x: 660, y: 300, detail: "Five API route handlers: /api/chat, /api/disease, /api/recommendations, /api/market-advice, /api/scheme-match. Each is force-dynamic; the disease route allows up to 60s." },
-      { id: "libs", title: "server-only libs", sub: "disease · gemini · dashboard", x: 300, y: 440, detail: "'server-only' modules in src/lib hold the secret-touching logic (Groq calls, Supabase queries, provider orchestration) so keys never reach the client bundle." },
+      { id: "libs", title: "server-only libs", sub: "disease · crop advisor · dashboard", x: 300, y: 440, detail: "'server-only' modules in src/lib hold the secret-touching logic (Groq calls, Supabase queries, provider orchestration) so keys never reach the client bundle." },
     ],
     edges: [["rsc", "api"], ["api", "libs"], ["rsc", "libs"]],
   },
@@ -84,7 +84,7 @@ const LAYERS: Layer[] = [
     blurb: "Where the intelligence lives.",
     nodes: [
       { id: "groq", title: "Groq LLM", sub: "gpt-oss-120b · chat, recs, schemes, market", x: 290, y: 140, detail: "Groq's gpt-oss-120b powers the assistant chat, crop recommendations, scheme matching and market advice — and writes the treatment plan once a disease is named. Replies come back in the user's chosen language." },
-      { id: "vision", title: "Groq Vision", sub: "qwen3.6-27b · fallback dx", x: 720, y: 150, detail: "When the trained classifier is unsure or the crop is out-of-distribution, qwen3.6-27b vision diagnoses directly from the leaf photo instead of guessing. It is a safety net, not a replacement — the trained CNN is markedly more precise on the crops it knows." },
+      { id: "vision", title: "Groq Vision", sub: "qwen3.8-27b · fallback dx", x: 720, y: 150, detail: "When the trained classifier is unsure or the crop is out-of-distribution, qwen3.8-27b vision diagnoses directly from the leaf photo instead of guessing. It is a safety net, not a replacement — the trained CNN is markedly more precise on the crops it knows." },
       { id: "cnn", title: "FastAPI + MobileNetV3", sub: "PyTorch · PlantVillage · :8008", x: 300, y: 420, detail: "A local FastAPI server (ml/server.py, port 8008) serves a MobileNetV3-Large fine-tuned on PlantVillage. /predict returns the top-3 classes with confidence." },
       { id: "hybrid", title: "Hybrid router", sub: "model ≥ 0.6 → narrative · else vision", x: 720, y: 420, detail: "The /api/disease handler tries the CNN first; if confidence ≥ 0.6 it enriches the label with a Groq narrative, otherwise it falls back to Groq vision — best of speed and coverage." },
     ],

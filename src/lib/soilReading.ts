@@ -39,7 +39,7 @@ export async function readPhFromImage(dataUrl: string): Promise<PhReadingResult>
     apiKey,
     {
       model: VISION_MODEL,
-      // Qwen3.6 is a reasoning model: without this it burns the token budget in
+      // Qwen3.8 is a reasoning model: without this it burns the token budget in
       // <think> and returns truncated JSON. See src/lib/disease.ts.
       reasoning_effort: "none",
       messages: [

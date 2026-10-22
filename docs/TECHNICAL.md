@@ -193,7 +193,7 @@ The platform uses a **hybrid** approach — a specialised vision model for detec
 - **Serving:** `ml/server.py` — a **FastAPI** app (uvicorn) exposing an image-classification endpoint with CORS, image transforms, and softmax confidence. The Next.js app calls it via `INFERENCE_URL`.
 
 ### 9.2 Groq LLM layer
-- The LLM (via `src/lib/gemini.ts`, using `GROQ_API_KEY`) powers the assistant, disease advisory text, market advice, and scheme matching.
+- The LLM (via `src/lib/cropAdvisor.ts`, using `GROQ_API_KEY`) powers the assistant, disease advisory text, market advice, and scheme matching.
 - It is language-aware — responses can be produced in the user's selected Indian language.
 
 ### 9.3 The pipeline
@@ -264,7 +264,7 @@ agent-farmer/
 │  │  ├─ dashboard/               # Farmer app (crops, assistant, disease, …)
 │  │  └─ api/                     # chat · disease · market-advice · recommendations · scheme-match
 │  ├─ components/                 # UI kit, dashboard widgets, landing, i18n, three/
-│  └─ lib/                        # supabase, gemini(Groq), disease, dashboard, market, schemes, stores, weather, i18n/
+│  └─ lib/                        # supabase, cropAdvisor(Groq), disease, dashboard, market, schemes, stores, weather, i18n/
 ├─ ml/                            # MobileNetV3 disease model (train.py) + FastAPI server (server.py)
 ├─ public/                        # images, team photos, videos, generated assets
 ├─ scripts/                       # db-exec.mjs + SQL migrations

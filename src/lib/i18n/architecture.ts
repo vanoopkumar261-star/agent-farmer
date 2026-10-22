@@ -59,7 +59,7 @@ const en: Dict = {
   "architecture.node.api.sub": "chat · disease · recs · market · schemes",
   "architecture.node.api.detail": "Five API route handlers: /api/chat, /api/disease, /api/recommendations, /api/market-advice, /api/scheme-match. Each is force-dynamic; the disease route allows up to 60s.",
   "architecture.node.libs.title": "server-only libs",
-  "architecture.node.libs.sub": "disease · gemini · dashboard",
+  "architecture.node.libs.sub": "disease · crop advisor · dashboard",
   "architecture.node.libs.detail": "'server-only' modules in src/lib hold the secret-touching logic (Groq calls, Supabase queries, provider orchestration) so keys never reach the client bundle.",
 
   "architecture.node.pg.title": "Postgres",
@@ -79,8 +79,8 @@ const en: Dict = {
   "architecture.node.groq.sub": "gpt-oss-120b · chat, recs, schemes, market",
   "architecture.node.groq.detail": "Groq's gpt-oss-120b powers the assistant chat, crop recommendations, scheme matching and market advice — and writes the treatment plan once a disease is named. Replies come back in the user's chosen language.",
   "architecture.node.vision.title": "Groq Vision",
-  "architecture.node.vision.sub": "qwen3.6-27b · fallback dx",
-  "architecture.node.vision.detail": "When the trained classifier is unsure or the crop is out-of-distribution, qwen3.6-27b vision diagnoses directly from the leaf photo instead of guessing. It is a safety net, not a replacement — the trained CNN is markedly more precise on the crops it knows.",
+  "architecture.node.vision.sub": "qwen3.8-27b · fallback dx",
+  "architecture.node.vision.detail": "When the trained classifier is unsure or the crop is out-of-distribution, qwen3.8-27b vision diagnoses directly from the leaf photo instead of guessing. It is a safety net, not a replacement — the trained CNN is markedly more precise on the crops it knows.",
   "architecture.node.cnn.title": "FastAPI + MobileNetV3",
   "architecture.node.cnn.sub": "PyTorch · PlantVillage · :8008",
   "architecture.node.cnn.detail": "A local FastAPI server (ml/server.py, port 8008) serves a MobileNetV3-Large fine-tuned on PlantVillage. /predict returns the top-3 classes with confidence.",
@@ -148,7 +148,7 @@ const hi: Dict = {
   "architecture.node.admin.detail": "एक Node स्क्रिप्ट सर्विस-रोल की का उपयोग करके Supabase पर माइग्रेशन/एडमिन SQL चलाती है, ऐप से अलग।",
 
   "architecture.node.groq.detail": "Groq का gpt-oss-120b असिस्टेंट चैट, फसल सिफारिशें, योजना मिलान और बाज़ार सलाह को शक्ति देता है — और बीमारी का नाम मिलते ही उपचार योजना लिखता है। जवाब उपयोगकर्ता की चुनी हुई भाषा में आते हैं।",
-  "architecture.node.vision.detail": "जब प्रशिक्षित क्लासिफायर अनिश्चित हो या फसल पहचान से बाहर हो, तो qwen3.6-27b विज़न सीधे पत्ती की फोटो से निदान करता है, अनुमान लगाने के बजाय। यह एक सुरक्षा जाल है, प्रतिस्थापन नहीं — प्रशिक्षित CNN उन फसलों पर काफी अधिक सटीक है जिन्हें वह जानता है।",
+  "architecture.node.vision.detail": "जब प्रशिक्षित क्लासिफायर अनिश्चित हो या फसल पहचान से बाहर हो, तो qwen3.8-27b विज़न सीधे पत्ती की फोटो से निदान करता है, अनुमान लगाने के बजाय। यह एक सुरक्षा जाल है, प्रतिस्थापन नहीं — प्रशिक्षित CNN उन फसलों पर काफी अधिक सटीक है जिन्हें वह जानता है।",
   "architecture.node.cnn.detail": "एक स्थानीय FastAPI सर्वर (ml/server.py, पोर्ट 8008) PlantVillage पर फाइन-ट्यून किया गया MobileNetV3-Large परोसता है। /predict शीर्ष-3 वर्गों को कॉन्फिडेंस के साथ लौटाता है।",
   "architecture.node.hybrid.detail": "/api/disease हैंडलर पहले CNN आज़माता है; यदि कॉन्फिडेंस ≥ 0.6 है तो यह लेबल को Groq नैरेटिव से समृद्ध करता है, अन्यथा यह Groq विज़न पर वापस चला जाता है — गति और कवरेज दोनों का सर्वश्रेष्ठ।",
 
@@ -205,7 +205,7 @@ const kn: Dict = {
   "architecture.node.admin.detail": "ಒಂದು Node ಸ್ಕ್ರಿಪ್ಟ್ ಸೇವಾ-ಪಾತ್ರ ಕೀ ಬಳಸಿ Supabase ವಿರುದ್ಧ ಮೈಗ್ರೇಶನ್‌ಗಳು/ಅಡ್ಮಿನ್ SQL ಅನ್ನು ಅಪ್ಲಿಕೇಶನ್‌ನಿಂದ ಪ್ರತ್ಯೇಕವಾಗಿ ಚಲಾಯಿಸುತ್ತದೆ.",
 
   "architecture.node.groq.detail": "Groq ನ gpt-oss-120b ಸಹಾಯಕ ಚಾಟ್, ಬೆಳೆ ಶಿಫಾರಸುಗಳು, ಯೋಜನೆ ಹೊಂದಾಣಿಕೆ ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಸಲಹೆಗೆ ಶಕ್ತಿ ನೀಡುತ್ತದೆ — ಮತ್ತು ರೋಗ ಹೆಸರಿಸಿದ ನಂತರ ಚಿಕಿತ್ಸಾ ಯೋಜನೆ ಬರೆಯುತ್ತದೆ. ಉತ್ತರಗಳು ಬಳಕೆದಾರರ ಆಯ್ಕೆಯ ಭಾಷೆಯಲ್ಲಿ ಬರುತ್ತವೆ.",
-  "architecture.node.vision.detail": "ತರಬೇತಿ ಪಡೆದ ವರ್ಗೀಕರಣಕಾರ ಅನಿಶ್ಚಿತವಾಗಿದ್ದಾಗ ಅಥವಾ ಬೆಳೆ ಗುರುತಿಸಲಾಗದಿದ್ದಾಗ, qwen3.6-27b ವಿಷನ್ ಎಲೆಯ ಫೋಟೋದಿಂದ ನೇರವಾಗಿ ರೋಗನಿರ್ಣಯ ಮಾಡುತ್ತದೆ, ಊಹಿಸುವ ಬದಲು. ಇದು ಸುರಕ್ಷತಾ ಜಾಲ, ಬದಲಿಯಲ್ಲ — ತರಬೇತಿ ಪಡೆದ CNN ಅದಕ್ಕೆ ತಿಳಿದಿರುವ ಬೆಳೆಗಳಲ್ಲಿ ಗಮನಾರ್ಹವಾಗಿ ಹೆಚ್ಚು ನಿಖರವಾಗಿದೆ.",
+  "architecture.node.vision.detail": "ತರಬೇತಿ ಪಡೆದ ವರ್ಗೀಕರಣಕಾರ ಅನಿಶ್ಚಿತವಾಗಿದ್ದಾಗ ಅಥವಾ ಬೆಳೆ ಗುರುತಿಸಲಾಗದಿದ್ದಾಗ, qwen3.8-27b ವಿಷನ್ ಎಲೆಯ ಫೋಟೋದಿಂದ ನೇರವಾಗಿ ರೋಗನಿರ್ಣಯ ಮಾಡುತ್ತದೆ, ಊಹಿಸುವ ಬದಲು. ಇದು ಸುರಕ್ಷತಾ ಜಾಲ, ಬದಲಿಯಲ್ಲ — ತರಬೇತಿ ಪಡೆದ CNN ಅದಕ್ಕೆ ತಿಳಿದಿರುವ ಬೆಳೆಗಳಲ್ಲಿ ಗಮನಾರ್ಹವಾಗಿ ಹೆಚ್ಚು ನಿಖರವಾಗಿದೆ.",
   "architecture.node.cnn.detail": "ಸ್ಥಳೀಯ FastAPI ಸರ್ವರ್ (ml/server.py, ಪೋರ್ಟ್ 8008) PlantVillage ನಲ್ಲಿ ಫೈನ್-ಟ್ಯೂನ್ ಮಾಡಿದ MobileNetV3-Large ಅನ್ನು ಒದಗಿಸುತ್ತದೆ. /predict ಟಾಪ್-3 ವರ್ಗಗಳನ್ನು ವಿಶ್ವಾಸಾರ್ಹತೆಯೊಂದಿಗೆ ಹಿಂತಿರುಗಿಸುತ್ತದೆ.",
   "architecture.node.hybrid.detail": "/api/disease ಹ್ಯಾಂಡ್ಲರ್ ಮೊದಲು CNN ಅನ್ನು ಪ್ರಯತ್ನಿಸುತ್ತದೆ; ವಿಶ್ವಾಸಾರ್ಹತೆ ≥ 0.6 ಆಗಿದ್ದರೆ ಅದು ಲೇಬಲ್ ಅನ್ನು Groq ನಿರೂಪಣೆಯೊಂದಿಗೆ ಉತ್ಕೃಷ್ಟಗೊಳಿಸುತ್ತದೆ, ಇಲ್ಲದಿದ್ದರೆ ಅದು Groq ವಿಷನ್‌ಗೆ ಹಿಂತಿರುಗುತ್ತದೆ — ವೇಗ ಮತ್ತು ವ್ಯಾಪ್ತಿ ಎರಡರಲ್ಲೂ ಉತ್ತಮ.",
 
@@ -262,7 +262,7 @@ const ta: Dict = {
   "architecture.node.admin.detail": "ஒரு Node ஸ்கிரிப்ட், சேவை-பங்கு விசையைப் பயன்படுத்தி Supabase க்கு எதிராக மைக்ரேஷன்கள் / நிர்வாக SQL ஐ செயலிலிருந்து தனியாக இயக்குகிறது.",
 
   "architecture.node.groq.detail": "Groq இன் gpt-oss-120b உதவியாளர் அரட்டை, பயிர் பரிந்துரைகள், திட்ட பொருத்தம் மற்றும் சந்தை ஆலோசனையை இயக்குகிறது — மேலும் ஒரு நோய் பெயரிடப்பட்டதும் சிகிச்சை திட்டத்தை எழுதுகிறது. பதில்கள் பயனர் தேர்ந்தெடுத்த மொழியில் வருகின்றன.",
-  "architecture.node.vision.detail": "பயிற்சி பெற்ற வகைப்படுத்தி நிச்சயமற்றதாக இருக்கும்போது அல்லது பயிர் அடையாளம் காண முடியாதபோது, qwen3.6-27b விஷன் இலை புகைப்படத்திலிருந்து நேரடியாக கண்டறிகிறது, யூகிப்பதற்குப் பதிலாக. இது ஒரு பாதுகாப்பு வலை, மாற்று அல்ல — பயிற்சி பெற்ற CNN அது அறிந்த பயிர்களில் கணிசமாக துல்லியமானது.",
+  "architecture.node.vision.detail": "பயிற்சி பெற்ற வகைப்படுத்தி நிச்சயமற்றதாக இருக்கும்போது அல்லது பயிர் அடையாளம் காண முடியாதபோது, qwen3.8-27b விஷன் இலை புகைப்படத்திலிருந்து நேரடியாக கண்டறிகிறது, யூகிப்பதற்குப் பதிலாக. இது ஒரு பாதுகாப்பு வலை, மாற்று அல்ல — பயிற்சி பெற்ற CNN அது அறிந்த பயிர்களில் கணிசமாக துல்லியமானது.",
   "architecture.node.cnn.detail": "ஒரு உள்ளூர் FastAPI சர்வர் (ml/server.py, போர்ட் 8008) PlantVillage இல் நுணுக்கமாக-சரிசெய்யப்பட்ட MobileNetV3-Large ஐ வழங்குகிறது. /predict நம்பகத்தன்மையுடன் முதல்-3 வகைகளை திருப்பி அளிக்கிறது.",
   "architecture.node.hybrid.detail": "/api/disease ஹேண்ட்லர் முதலில் CNN ஐ முயற்சிக்கிறது; நம்பகத்தன்மை ≥ 0.6 எனில் அது லேபிளை Groq கதையாடலுடன் வளப்படுத்துகிறது, இல்லையெனில் அது Groq விஷனுக்குத் திரும்புகிறது — வேகம் மற்றும் கவரேஜ் இரண்டிலும் சிறந்தது.",
 
@@ -319,7 +319,7 @@ const te: Dict = {
   "architecture.node.admin.detail": "ఒక Node స్క్రిప్ట్ సర్వీస్-రోల్ కీని ఉపయోగించి Supabase కు వ్యతిరేకంగా మైగ్రేషన్లు/అడ్మిన్ SQL ను యాప్ నుండి విడిగా నడుపుతుంది.",
 
   "architecture.node.groq.detail": "Groq యొక్క gpt-oss-120b అసిస్టెంట్ చాట్, పంట సిఫార్సులు, పథకం సరిపోలిక మరియు మార్కెట్ సలహాకు శక్తినిస్తుంది — మరియు వ్యాధి పేరు పెట్టిన తర్వాత చికిత్స ప్రణాళికను రాస్తుంది. సమాధానాలు వినియోగదారు ఎంచుకున్న భాషలో వస్తాయి.",
-  "architecture.node.vision.detail": "శిక్షణ పొందిన వర్గీకరణదారు అనిశ్చితంగా ఉన్నప్పుడు లేదా పంట గుర్తించలేనప్పుడు, qwen3.6-27b విజన్ ఆకు ఫోటో నుండి నేరుగా నిర్ధారణ చేస్తుంది, ఊహించడానికి బదులుగా. ఇది ఒక భద్రతా వల, ప్రత్యామ్నాయం కాదు — శిక్షణ పొందిన CNN అది తెలిసిన పంటలపై గణనీయంగా ఖచ్చితమైనది.",
+  "architecture.node.vision.detail": "శిక్షణ పొందిన వర్గీకరణదారు అనిశ్చితంగా ఉన్నప్పుడు లేదా పంట గుర్తించలేనప్పుడు, qwen3.8-27b విజన్ ఆకు ఫోటో నుండి నేరుగా నిర్ధారణ చేస్తుంది, ఊహించడానికి బదులుగా. ఇది ఒక భద్రతా వల, ప్రత్యామ్నాయం కాదు — శిక్షణ పొందిన CNN అది తెలిసిన పంటలపై గణనీయంగా ఖచ్చితమైనది.",
   "architecture.node.cnn.detail": "ఒక స్థానిక FastAPI సర్వర్ (ml/server.py, పోర్ట్ 8008) PlantVillage పై ఫైన్-ట్యూన్ చేయబడిన MobileNetV3-Large ను అందిస్తుంది. /predict నమ్మకంతో టాప్-3 తరగతులను తిరిగి ఇస్తుంది.",
   "architecture.node.hybrid.detail": "/api/disease హ్యాండ్లర్ మొదట CNN ను ప్రయత్నిస్తుంది; నమ్మకం ≥ 0.6 అయితే అది లేబుల్‌ను Groq కథనంతో సుసంపన్నం చేస్తుంది, లేకపోతే అది Groq విజన్‌కు తిరిగి వెళుతుంది — వేగం మరియు కవరేజ్ రెండింటిలో ఉత్తమమైనది.",
 
@@ -376,7 +376,7 @@ const ml: Dict = {
   "architecture.node.admin.detail": "ഒരു Node സ്ക്രിപ്റ്റ് സേവന-റോൾ കീ ഉപയോഗിച്ച് Supabase ക്കെതിരെ മൈഗ്രേഷനുകൾ / അഡ്മിൻ SQL ആപ്പിൽ നിന്ന് വേറിട്ട് പ്രവർത്തിപ്പിക്കുന്നു.",
 
   "architecture.node.groq.detail": "Groq ന്റെ gpt-oss-120b അസിസ്റ്റന്റ് ചാറ്റ്, വിള ശുപാർശകൾ, പദ്ധതി പൊരുത്തപ്പെടുത്തൽ, മാർക്കറ്റ് ഉപദേശം എന്നിവയെ ശക്തിപ്പെടുത്തുന്നു — ഒരു രോഗം പേരിട്ടുകഴിഞ്ഞാൽ ചികിത്സാ പദ്ധതി എഴുതുന്നു. മറുപടികൾ ഉപയോക്താവ് തിരഞ്ഞെടുത്ത ഭാഷയിൽ വരുന്നു.",
-  "architecture.node.vision.detail": "പരിശീലനം ലഭിച്ച ക്ലാസിഫയർ അനിശ്ചിതത്വത്തിലായിരിക്കുമ്പോഴോ വിള തിരിച്ചറിയാൻ കഴിയാതെ വരുമ്പോഴോ, qwen3.6-27b വിഷൻ ഇല ഫോട്ടോയിൽ നിന്ന് നേരിട്ട് രോഗനിർണയം നടത്തുന്നു, ഊഹിക്കുന്നതിന് പകരം. ഇത് ഒരു സുരക്ഷാ വലയാണ്, പകരക്കാരനല്ല — പരിശീലനം ലഭിച്ച CNN അതിന് അറിയാവുന്ന വിളകളിൽ ഗണ്യമായി കൂടുതൽ കൃത്യതയുള്ളതാണ്.",
+  "architecture.node.vision.detail": "പരിശീലനം ലഭിച്ച ക്ലാസിഫയർ അനിശ്ചിതത്വത്തിലായിരിക്കുമ്പോഴോ വിള തിരിച്ചറിയാൻ കഴിയാതെ വരുമ്പോഴോ, qwen3.8-27b വിഷൻ ഇല ഫോട്ടോയിൽ നിന്ന് നേരിട്ട് രോഗനിർണയം നടത്തുന്നു, ഊഹിക്കുന്നതിന് പകരം. ഇത് ഒരു സുരക്ഷാ വലയാണ്, പകരക്കാരനല്ല — പരിശീലനം ലഭിച്ച CNN അതിന് അറിയാവുന്ന വിളകളിൽ ഗണ്യമായി കൂടുതൽ കൃത്യതയുള്ളതാണ്.",
   "architecture.node.cnn.detail": "ഒരു പ്രാദേശിക FastAPI സെർവർ (ml/server.py, പോർട്ട് 8008) PlantVillage ൽ ഫൈൻ-ട്യൂൺ ചെയ്ത MobileNetV3-Large നൽകുന്നു. /predict ആത്മവിശ്വാസത്തോടെ ടോപ്പ്-3 ക്ലാസുകൾ തിരികെ നൽകുന്നു.",
   "architecture.node.hybrid.detail": "/api/disease ഹാൻഡ്‌ലർ ആദ്യം CNN ശ്രമിക്കുന്നു; ആത്മവിശ്വാസം ≥ 0.6 ആണെങ്കിൽ അത് ലേബലിനെ Groq വിവരണത്തോടെ സമ്പന്നമാക്കുന്നു, അല്ലെങ്കിൽ അത് Groq വിഷനിലേക്ക് മടങ്ങുന്നു — വേഗതയിലും കവറേജിലും മികച്ചത്.",
 
@@ -433,7 +433,7 @@ const mr: Dict = {
   "architecture.node.admin.detail": "एक Node स्क्रिप्ट सर्व्हिस-रोल की वापरून Supabase विरुद्ध मायग्रेशन्स / अ‍ॅडमिन SQL अ‍ॅपपासून वेगळे चालवते.",
 
   "architecture.node.groq.detail": "Groq चे gpt-oss-120b सहाय्यक चॅट, पीक शिफारसी, योजना जुळणी आणि बाजार सल्ल्याला शक्ती देते — आणि रोगाचे नाव दिल्यावर उपचार योजना लिहिते. उत्तरे वापरकर्त्याने निवडलेल्या भाषेत येतात.",
-  "architecture.node.vision.detail": "जेव्हा प्रशिक्षित वर्गीकरणकर्ता अनिश्चित असतो किंवा पीक ओळखता येत नाही, तेव्हा qwen3.6-27b व्हिजन अंदाज लावण्याऐवजी थेट पानाच्या फोटोवरून निदान करते. हे एक सुरक्षा जाळे आहे, बदली नाही — प्रशिक्षित CNN त्याला माहीत असलेल्या पिकांवर लक्षणीयरीत्या अधिक अचूक आहे.",
+  "architecture.node.vision.detail": "जेव्हा प्रशिक्षित वर्गीकरणकर्ता अनिश्चित असतो किंवा पीक ओळखता येत नाही, तेव्हा qwen3.8-27b व्हिजन अंदाज लावण्याऐवजी थेट पानाच्या फोटोवरून निदान करते. हे एक सुरक्षा जाळे आहे, बदली नाही — प्रशिक्षित CNN त्याला माहीत असलेल्या पिकांवर लक्षणीयरीत्या अधिक अचूक आहे.",
   "architecture.node.cnn.detail": "एक स्थानिक FastAPI सर्व्हर (ml/server.py, पोर्ट 8008) PlantVillage वर फाइन-ट्यून केलेले MobileNetV3-Large सर्व्ह करतो. /predict आत्मविश्वासासह टॉप-3 वर्ग परत करतो.",
   "architecture.node.hybrid.detail": "/api/disease हँडलर प्रथम CNN वापरून पाहतो; आत्मविश्वास ≥ 0.6 असल्यास तो लेबल Groq कथनाने समृद्ध करतो, अन्यथा तो Groq व्हिजनकडे परत जातो — वेग आणि व्याप्ती दोन्हीमध्ये सर्वोत्तम.",
 
@@ -490,7 +490,7 @@ const bn: Dict = {
   "architecture.node.admin.detail": "একটি Node স্ক্রিপ্ট সার্ভিস-রোল কী ব্যবহার করে Supabase এর বিরুদ্ধে মাইগ্রেশন/অ্যাডমিন SQL অ্যাপ থেকে আলাদাভাবে চালায়।",
 
   "architecture.node.groq.detail": "Groq এর gpt-oss-120b সহায়ক চ্যাট, ফসলের সুপারিশ, স্কিম মিলকরণ এবং বাজার পরামর্শকে শক্তি দেয় — এবং একটি রোগের নাম দেওয়ার পরে চিকিৎসা পরিকল্পনা লেখে। উত্তরগুলি ব্যবহারকারীর নির্বাচিত ভাষায় আসে।",
-  "architecture.node.vision.detail": "প্রশিক্ষিত ক্লাসিফায়ার অনিশ্চিত থাকলে বা ফসল শনাক্ত করা না গেলে, qwen3.6-27b ভিশন অনুমান করার পরিবর্তে সরাসরি পাতার ছবি থেকে নির্ণয় করে। এটি একটি নিরাপত্তা জাল, প্রতিস্থাপন নয় — প্রশিক্ষিত CNN তার পরিচিত ফসলে উল্লেখযোগ্যভাবে বেশি নির্ভুল।",
+  "architecture.node.vision.detail": "প্রশিক্ষিত ক্লাসিফায়ার অনিশ্চিত থাকলে বা ফসল শনাক্ত করা না গেলে, qwen3.8-27b ভিশন অনুমান করার পরিবর্তে সরাসরি পাতার ছবি থেকে নির্ণয় করে। এটি একটি নিরাপত্তা জাল, প্রতিস্থাপন নয় — প্রশিক্ষিত CNN তার পরিচিত ফসলে উল্লেখযোগ্যভাবে বেশি নির্ভুল।",
   "architecture.node.cnn.detail": "একটি স্থানীয় FastAPI সার্ভার (ml/server.py, পোর্ট 8008) PlantVillage-এ ফাইন-টিউন করা MobileNetV3-Large পরিবেশন করে। /predict আত্মবিশ্বাসের সাথে শীর্ষ-3 শ্রেণী ফেরত দেয়।",
   "architecture.node.hybrid.detail": "/api/disease হ্যান্ডলার প্রথমে CNN চেষ্টা করে; আত্মবিশ্বাস ≥ 0.6 হলে এটি লেবেলটিকে Groq বর্ণনা দিয়ে সমৃদ্ধ করে, অন্যথায় এটি Groq ভিশনে ফিরে যায় — গতি এবং কভারেজ উভয়েই সেরা।",
 
@@ -547,7 +547,7 @@ const pa: Dict = {
   "architecture.node.admin.detail": "ਇੱਕ Node ਸਕ੍ਰਿਪਟ ਸੇਵਾ-ਭੂਮਿਕਾ ਕੁੰਜੀ ਦੀ ਵਰਤੋਂ ਕਰਕੇ Supabase ਦੇ ਵਿਰੁੱਧ ਮਾਈਗ੍ਰੇਸ਼ਨ/ਐਡਮਿਨ SQL ਐਪ ਤੋਂ ਵੱਖਰੇ ਤੌਰ 'ਤੇ ਚਲਾਉਂਦੀ ਹੈ।",
 
   "architecture.node.groq.detail": "Groq ਦਾ gpt-oss-120b ਸਹਾਇਕ ਚੈਟ, ਫਸਲ ਸਿਫਾਰਸ਼ਾਂ, ਸਕੀਮ ਮੇਲ ਅਤੇ ਮਾਰਕੀਟ ਸਲਾਹ ਨੂੰ ਸ਼ਕਤੀ ਦਿੰਦਾ ਹੈ — ਅਤੇ ਬਿਮਾਰੀ ਦਾ ਨਾਮ ਦੱਸੇ ਜਾਣ ਤੋਂ ਬਾਅਦ ਇਲਾਜ ਯੋਜਨਾ ਲਿਖਦਾ ਹੈ। ਜਵਾਬ ਉਪਭੋਗਤਾ ਦੀ ਚੁਣੀ ਭਾਸ਼ਾ ਵਿੱਚ ਆਉਂਦੇ ਹਨ।",
-  "architecture.node.vision.detail": "ਜਦੋਂ ਸਿਖਲਾਈ ਪ੍ਰਾਪਤ ਵਰਗੀਕਰਣਕਾਰ ਅਨਿਸ਼ਚਿਤ ਹੁੰਦਾ ਹੈ ਜਾਂ ਫਸਲ ਪਛਾਣ ਤੋਂ ਬਾਹਰ ਹੁੰਦੀ ਹੈ, ਤਾਂ qwen3.6-27b ਵਿਜ਼ਨ ਅੰਦਾਜ਼ਾ ਲਗਾਉਣ ਦੀ ਬਜਾਏ ਸਿੱਧੇ ਪੱਤੇ ਦੀ ਫੋਟੋ ਤੋਂ ਨਿਦਾਨ ਕਰਦਾ ਹੈ। ਇਹ ਇੱਕ ਸੁਰੱਖਿਆ ਜਾਲ ਹੈ, ਬਦਲ ਨਹੀਂ — ਸਿਖਲਾਈ ਪ੍ਰਾਪਤ CNN ਉਹਨਾਂ ਫਸਲਾਂ 'ਤੇ ਕਾਫ਼ੀ ਜ਼ਿਆਦਾ ਸਟੀਕ ਹੈ ਜਿਨ੍ਹਾਂ ਨੂੰ ਇਹ ਜਾਣਦਾ ਹੈ।",
+  "architecture.node.vision.detail": "ਜਦੋਂ ਸਿਖਲਾਈ ਪ੍ਰਾਪਤ ਵਰਗੀਕਰਣਕਾਰ ਅਨਿਸ਼ਚਿਤ ਹੁੰਦਾ ਹੈ ਜਾਂ ਫਸਲ ਪਛਾਣ ਤੋਂ ਬਾਹਰ ਹੁੰਦੀ ਹੈ, ਤਾਂ qwen3.8-27b ਵਿਜ਼ਨ ਅੰਦਾਜ਼ਾ ਲਗਾਉਣ ਦੀ ਬਜਾਏ ਸਿੱਧੇ ਪੱਤੇ ਦੀ ਫੋਟੋ ਤੋਂ ਨਿਦਾਨ ਕਰਦਾ ਹੈ। ਇਹ ਇੱਕ ਸੁਰੱਖਿਆ ਜਾਲ ਹੈ, ਬਦਲ ਨਹੀਂ — ਸਿਖਲਾਈ ਪ੍ਰਾਪਤ CNN ਉਹਨਾਂ ਫਸਲਾਂ 'ਤੇ ਕਾਫ਼ੀ ਜ਼ਿਆਦਾ ਸਟੀਕ ਹੈ ਜਿਨ੍ਹਾਂ ਨੂੰ ਇਹ ਜਾਣਦਾ ਹੈ।",
   "architecture.node.cnn.detail": "ਇੱਕ ਸਥਾਨਕ FastAPI ਸਰਵਰ (ml/server.py, ਪੋਰਟ 8008) PlantVillage 'ਤੇ ਫਾਈਨ-ਟਿਊਨ ਕੀਤਾ MobileNetV3-Large ਪਰੋਸਦਾ ਹੈ। /predict ਭਰੋਸੇ ਨਾਲ ਟਾਪ-3 ਕਲਾਸਾਂ ਵਾਪਸ ਕਰਦਾ ਹੈ।",
   "architecture.node.hybrid.detail": "/api/disease ਹੈਂਡਲਰ ਪਹਿਲਾਂ CNN ਅਜ਼ਮਾਉਂਦਾ ਹੈ; ਜੇਕਰ ਭਰੋਸਾ ≥ 0.6 ਹੈ ਤਾਂ ਇਹ ਲੇਬਲ ਨੂੰ Groq ਬਿਰਤਾਂਤ ਨਾਲ ਅਮੀਰ ਬਣਾਉਂਦਾ ਹੈ, ਨਹੀਂ ਤਾਂ ਇਹ Groq ਵਿਜ਼ਨ 'ਤੇ ਵਾਪਸ ਆ ਜਾਂਦਾ ਹੈ — ਗਤੀ ਅਤੇ ਕਵਰੇਜ ਦੋਵਾਂ ਵਿੱਚ ਸਭ ਤੋਂ ਵਧੀਆ।",
 

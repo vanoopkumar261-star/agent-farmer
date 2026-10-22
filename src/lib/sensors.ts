@@ -1,0 +1,273 @@
+/**
+ * Live field-sensor readings, from the ThingSpeak channels the ESP32 nodes
+ * publish to.
+ *
+ * Lives here rather than inside `/api/sensors` because two callers need it and
+ * only one of them is an HTTP request: the dashboard's health score reads
+ * temperature, humidity and soil moisture straight out of `readSensorSnapshot`
+ * during the server render. Going back out through our own API route to get
+ * them would mean a second HTTP hop, re-authentication, and a rate limit the
+ * page would be spending on itself.
+ *
+ * All configuration is environment-only (see `.env.example` → "Sensor
+ * readings") so a channel or read key can be pasted in without a code change:
+ *
+ *   THINGSPEAK_CHANNEL_A_ID / _READ_KEY
+ *   THINGSPEAK_CHANNEL_A_FIELD_TEMPERATURE | _HUMIDITY | _SOIL_MOISTURE  (1..8)
+ *   THINGSPEAK_CHANNEL_B_*  — a second node, same shape (optional)
+ *
+ * A metric is served by the first configured channel that maps a field number
+ * for it, so one node can carry all three or two nodes can split them.
+ */
+
+const THINGSPEAK = "https://api.thingspeak.com";
+
+// Enough history for the modal chart; the readings table shows the last 20.
+const RESULTS = 100;
+
+export type MetricKey = "temperature" | "humidity" | "soilMoisture" | "npk";
+
+export type SensorReading = { at: string; value: number };
+
+export type SensorMetric = {
+  key: MetricKey;
+  /** A channel maps a field number for this metric. */
+  configured: boolean;
+  unit: string;
+  /** Most recent reading, or null if the channel returned nothing usable. */
+  latest: SensorReading | null;
+  /** Newest first, up to RESULTS entries. */
+  readings: SensorReading[];
+  /**
+   * A stand-in value shown because no hardware reports this metric yet.
+   *
+   * Deliberately separate from `configured`: a placeholder must render a value
+   * without ever counting as a live channel. Marking it `configured` would make
+   * the "no sensor connected" empty state unreachable, and giving it a
+   * timestamp would pin the Live badge on for ever with the ESP32 unplugged.
+   */
+  placeholder?: boolean;
+  /** For metrics that are several numbers rather than one, e.g. N / P / K. */
+  parts?: { label: string; value: number }[];
+};
+
+export type SensorSnapshot = {
+  /** Any ThingSpeak channel is configured. */
+  configured: boolean;
+  /** Newest reading time across all metrics, ISO. */
+  updatedAt: string | null;
+  metrics: SensorMetric[];
+};
+
+const METRIC_KEYS: MetricKey[] = ["temperature", "humidity", "soilMoisture", "npk"];
+
+const UNITS: Record<MetricKey, string> = {
+  temperature: "°C",
+  humidity: "%",
+  soilMoisture: "%",
+  npk: "kg/ha",
+};
+
+const ENV_SUFFIX: Record<MetricKey, string> = {
+  temperature: "TEMPERATURE",
+  humidity: "HUMIDITY",
+  soilMoisture: "SOIL_MOISTURE",
+  npk: "NPK",
+};
+
+/**
+ * Soil Health Card sufficiency levels for Indian soils — the "healthy" end of
+ * the medium band for available N, P₂O₅ and K₂O.
+ */
+const NPK_BASELINE = [
+  { label: "N", value: 280 },
+  { label: "P", value: 22 },
+  { label: "K", value: 180 },
+];
+
+type ChannelCfg = {
+  id: string;
+  readKey?: string;
+  fields: Partial<Record<MetricKey, number>>;
+};
+
+/**
+ * The shared demo sensor rig.
+ *
+ * The ESP32 nodes for this project publish to one ThingSpeak channel, and the
+ * dashboard shows the same field readings to every farmer (there is no
+ * per-account sensor yet). When no THINGSPEAK_CHANNEL_* env var is set — e.g.
+ * on a deployment where they were never added — the route falls back to this so
+ * the panel still shows real data everywhere.
+ *
+ * Override per deployment with the env vars in `.env.example`. The key here is
+ * read-only for this one channel; regenerate it from the ThingSpeak dashboard
+ * if it ever needs to be rotated.
+ */
+const SHARED_DEMO_CHANNEL: ChannelCfg = {
+  id: "3469748",
+  readKey: "X8MKUPGQWRYSETTI",
+  fields: { temperature: 1, humidity: 2, soilMoisture: 3 },
+};
+
+/** Reads THINGSPEAK_CHANNEL_<tag>_* into a channel config, or null if unset. */
+function readChannel(tag: "A" | "B"): ChannelCfg | null {
+  const id = process.env[`THINGSPEAK_CHANNEL_${tag}_ID`]?.trim();
+  if (!id) return null;
+
+  const fieldNum = (m: MetricKey): number | undefined => {
+    const raw = process.env[`THINGSPEAK_CHANNEL_${tag}_FIELD_${ENV_SUFFIX[m]}`]?.trim();
+    const n = raw ? Number(raw) : NaN;
+    return Number.isInteger(n) && n >= 1 && n <= 8 ? n : undefined;
+  };
+
+  return {
+    id,
+    readKey: process.env[`THINGSPEAK_CHANNEL_${tag}_READ_KEY`]?.trim() || undefined,
+    fields: {
+      temperature: fieldNum("temperature"),
+      humidity: fieldNum("humidity"),
+      soilMoisture: fieldNum("soilMoisture"),
+    },
+  };
+}
+
+type Feed = Record<string, string | null> & { created_at: string };
+
+async function fetchFeeds(cfg: ChannelCfg): Promise<Feed[]> {
+  const params = new URLSearchParams({ results: String(RESULTS) });
+  if (cfg.readKey) params.set("api_key", cfg.readKey);
+  const url = `${THINGSPEAK}/channels/${encodeURIComponent(cfg.id)}/feeds.json?${params}`;
+
+  try {
+    const res = await fetch(url, { next: { revalidate: 60 } });
+    if (!res.ok) {
+      console.warn(`ThingSpeak channel ${cfg.id}: HTTP ${res.status}`);
+      return [];
+    }
+    const data = await res.json();
+    return Array.isArray(data?.feeds) ? (data.feeds as Feed[]) : [];
+  } catch (e) {
+    console.warn(`ThingSpeak channel ${cfg.id} fetch failed:`, e);
+    return [];
+  }
+}
+
+/** Pulls one field out of the feed list as a clean, newest-first number series. */
+function seriesFromFeeds(feeds: Feed[], fieldNum: number): SensorReading[] {
+  const key = `field${fieldNum}`;
+  const out: SensorReading[] = [];
+  for (const f of feeds) {
+    const raw = f[key];
+    if (raw == null || raw === "") continue;
+    const value = Number(raw);
+    if (!Number.isFinite(value)) continue;
+    out.push({ at: f.created_at, value: Math.round(value * 10) / 10 });
+  }
+  // ThingSpeak returns oldest-first; the UI wants newest-first.
+  out.reverse();
+  return out;
+}
+
+
+/**
+ * Reads every configured channel and assembles the snapshot.
+ *
+ * Never throws: an unreachable channel yields an empty series and the metric
+ * reports `configured: true` with `latest: null`, which the UI already renders
+ * as "no recent reading" rather than as an error.
+ */
+export async function readSensorSnapshot(): Promise<SensorSnapshot> {
+  const envChannels = [readChannel("A"), readChannel("B")].filter(
+    (c): c is ChannelCfg => c !== null
+  );
+
+  // No per-deployment channel configured -> fall back to the shared demo rig so
+  // every account still sees the readings.
+  const channels = envChannels.length > 0 ? envChannels : [SHARED_DEMO_CHANNEL];
+
+  // One fetch per configured channel, shared across whichever metrics map to it.
+  const feedsByChannel = new Map<ChannelCfg, Feed[]>();
+  await Promise.all(
+    channels.map(async (c) => {
+      feedsByChannel.set(c, await fetchFeeds(c));
+    })
+  );
+
+  const metrics: SensorMetric[] = METRIC_KEYS.map((key) => {
+    const owner = channels.find((c) => c.fields[key] != null);
+
+    // Nobody sells a cheap NPK probe that a farmer can leave in a field, so
+    // until one is wired up this reports the sufficiency levels a Soil Health
+    // Card would call healthy. It is not a reading and never claims to be:
+    // no timestamp, not `configured`, and flagged so the UI and the assistant
+    // both say where it came from. Wire `..._FIELD_NPK` to a real field and
+    // this branch stops running.
+    if (!owner && key === "npk") {
+      return {
+        key,
+        configured: false,
+        placeholder: true,
+        unit: UNITS.npk,
+        latest: null,
+        readings: [],
+        parts: NPK_BASELINE,
+      };
+    }
+
+    if (!owner) {
+      return { key, configured: false, unit: UNITS[key], latest: null, readings: [] };
+    }
+    const readings = seriesFromFeeds(feedsByChannel.get(owner) ?? [], owner.fields[key]!);
+    return {
+      key,
+      configured: true,
+      unit: UNITS[key],
+      latest: readings[0] ?? null,
+      readings,
+    };
+  });
+
+  // Placeholders are excluded on purpose. A synthetic timestamp here would keep
+  // the Live badge lit even when the real feed has been dead for hours.
+  const updatedAt =
+    metrics
+      .filter((m) => !m.placeholder)
+      .map((m) => m.latest?.at)
+      .filter((a): a is string => Boolean(a))
+      .sort()
+      .pop() ?? null;
+
+  return {
+    configured: metrics.some((m) => m.configured),
+    updatedAt,
+    metrics,
+  };
+}
+
+/**
+ * The three readings the health score cares about, as plain numbers.
+ *
+ * Placeholder metrics are excluded: a stand-in must never reach a score that
+ * presents itself as measured.
+ */
+export async function readHealthSensors(): Promise<{
+  temperature: number | null;
+  humidity: number | null;
+  soilMoisture: number | null;
+}> {
+  try {
+    const snap = await readSensorSnapshot();
+    const val = (k: MetricKey) => {
+      const m = snap.metrics.find((x) => x.key === k);
+      return m && m.configured && !m.placeholder ? m.latest?.value ?? null : null;
+    };
+    return {
+      temperature: val("temperature"),
+      humidity: val("humidity"),
+      soilMoisture: val("soilMoisture"),
+    };
+  } catch {
+    return { temperature: null, humidity: null, soilMoisture: null };
+  }
+}
