@@ -133,7 +133,7 @@ export default function AssistantDock() {
         )}
         <span className="hidden sm:flex flex-col items-start leading-tight">
           <span className="text-meta font-semibold text-white">{t("assistant.title")}</span>
-          <span className="text-[10px] text-af-sage/75">{t("assistant.askMeAnything")}</span>
+          <span className="text-[10px] text-af-ondark-ink/80">{t("assistant.askMeAnything")}</span>
         </span>
         {!isOpen && (
           <span className="absolute -top-0.5 -left-0.5 w-3 h-3 rounded-full bg-af-leaf border-2 border-af-card" />

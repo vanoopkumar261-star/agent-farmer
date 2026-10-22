@@ -120,7 +120,7 @@ function GraphPlane({ layer, onPick }: { layer: Layer; onPick: (n: Node) => void
       <div className="pointer-events-none absolute -top-14 left-0 flex items-baseline gap-3">
         <span className="font-mono text-[13px] text-[#39ffb0]">{layer.index}</span>
         <span className="font-inter text-[22px] font-medium tracking-tight text-white">{t(`architecture.layer.${layer.index}.name`)}</span>
-        <span className="font-inter text-[13px] font-light text-white/45">{t(`architecture.layer.${layer.index}.blurb`)}</span>
+        <span className="font-inter text-[13px] font-light text-white/70">{t(`architecture.layer.${layer.index}.blurb`)}</span>
       </div>
 
       {/* connectors */}
@@ -171,7 +171,7 @@ function GraphPlane({ layer, onPick }: { layer: Layer; onPick: (n: Node) => void
             <span className="h-2 w-2 rounded-full bg-[#39ffb0] shadow-[0_0_8px_rgba(57,255,176,0.9)]" />
             <span className="font-inter text-[14px] font-semibold text-white">{t(`architecture.node.${n.id}.title`)}</span>
           </div>
-          <p className="mt-1.5 font-inter text-[12px] font-light leading-snug text-white/50">{t(`architecture.node.${n.id}.sub`)}</p>
+          <p className="mt-1.5 font-inter text-[12px] font-light leading-snug text-white/65">{t(`architecture.node.${n.id}.sub`)}</p>
           <span className="mt-2 inline-block font-mono text-[10px] uppercase tracking-widest text-[#39ffb0]/0 transition-colors group-hover:text-[#39ffb0]/80">
             {t("architecture.node.detailsCta")}
           </span>
@@ -192,7 +192,7 @@ function IntroPlane({ layer }: { layer: Layer }) {
       <p className="mx-auto mt-6 max-w-[52ch] font-inter text-[16px] font-light leading-[1.7] text-white/60">
         {t(`architecture.layer.${layer.index}.blurb`)}
       </p>
-      <div className="mt-10 flex flex-col items-center gap-2 font-inter text-[13px] text-white/50">
+      <div className="mt-10 flex flex-col items-center gap-2 font-inter text-[13px] text-white/65">
         {t("architecture.scrollHint")}
         <svg viewBox="0 0 24 24" className="h-5 w-5 animate-af-float" fill="none" aria-hidden>
           <path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -328,7 +328,7 @@ function ArchitectureContent() {
               />
               <span
                 className={`font-mono text-[11px] tracking-widest transition-all ${
-                  isActive ? "text-[#39ffb0]" : "text-white/40 group-hover:text-white/70"
+                  isActive ? "text-[#39ffb0]" : "text-white/65 group-hover:text-white/90"
                 } ${isLock ? "drop-shadow-[0_0_6px_rgba(57,255,176,0.7)]" : ""}`}
               >
                 {l.index} {t(`architecture.layer.${l.index}.name`).toUpperCase()}
@@ -385,7 +385,7 @@ function ArchitectureContent() {
           className={`flex items-center gap-2.5 rounded-full border px-4 py-2 font-inter text-[12px] backdrop-blur-md transition-all duration-300 ${
             locked
               ? "border-[#39ffb0]/60 bg-[#39ffb0]/10 text-[#39ffb0] shadow-[0_0_22px_rgba(57,255,176,0.28)]"
-              : "border-white/10 bg-black/30 text-white/45"
+              : "border-white/10 bg-black/30 text-white/70"
           }`}
         >
           <span

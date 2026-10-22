@@ -72,6 +72,11 @@ const config: Config = {
           'on-primary': 'rgb(var(--af-on-primary) / <alpha-value>)',
           'primary-deep': 'rgb(var(--af-primary-deep) / <alpha-value>)',
           secondary: 'rgb(var(--af-secondary) / <alpha-value>)',   // Forest — dark bands
+          // Pinned for surfaces that are dark in BOTH themes (the voice
+          // overlay). These do not flip — see the note in globals.css.
+          'ondark-ink': 'rgb(var(--af-ondark-ink) / <alpha-value>)',
+          'ondark-orb': 'rgb(var(--af-ondark-orb) / <alpha-value>)',
+          'ondark-deep': 'rgb(var(--af-ondark-deep) / <alpha-value>)',
           leaf: 'rgb(var(--af-leaf) / <alpha-value>)',             // Fresh Leaf — hover, icons
           sage: 'rgb(var(--af-sage) / <alpha-value>)',             // Soft accent — card tints
           beige: 'rgb(var(--af-beige) / <alpha-value>)',           // Warm beige — highlight tint

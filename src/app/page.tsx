@@ -448,7 +448,7 @@ function Footer() {
 
           {cols.map((c) => (
             <div key={c.head}>
-              <p className="font-sans text-[13px] font-medium uppercase tracking-[0.025em] text-white/50">
+              <p className="font-sans text-[13px] font-medium uppercase tracking-[0.025em] text-white/65">
                 {c.head}
               </p>
               <ul className="mt-4 space-y-2.5">

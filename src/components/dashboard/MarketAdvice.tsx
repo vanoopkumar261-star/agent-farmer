@@ -171,7 +171,7 @@ export default function MarketAdvice({
                     <p className="mt-1 text-[12px] text-white/70 leading-snug">
                       {r.reason}
                     </p>
-                    <div className="mt-2 text-[10px] font-mono text-white/50">
+                    <div className="mt-2 text-[10px] font-mono text-white/65">
                       {t("marketAdvice.confidence", { pct: r.confidence })}
                     </div>
                   </div>

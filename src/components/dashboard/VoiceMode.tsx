@@ -75,13 +75,13 @@ export default function VoiceMode() {
       {/* What the farmer just said — kept on screen so they can see it landed. */}
       <div className="w-full max-w-2xl min-h-[3.5rem] text-center">
         {lastQuestion && (
-          <p className="text-[15px] text-white/60">&ldquo;{lastQuestion}&rdquo;</p>
+          <p className="text-[15px] text-white/80">&ldquo;{lastQuestion}&rdquo;</p>
         )}
       </div>
 
       <Orb phase={phase} level={level} onTap={interrupt} label={t("a11y.voiceTap")} />
 
-      <p className="mt-6 font-mono text-[11px] tracking-[0.16em] uppercase text-af-sage">
+      <p className="mt-6 font-mono text-[11px] tracking-[0.16em] uppercase text-af-ondark-ink">
         {phaseLabel(phase, t)}
       </p>
 
@@ -100,7 +100,7 @@ export default function VoiceMode() {
       {!canSpeak && (
         // justify-center keeps the icon beside the text; a `text-center` flex
         // row instead strands the icon at the far left of the container.
-        <div className="mt-2 flex max-w-md items-start justify-center gap-2 text-[12px] text-white/55">
+        <div className="mt-2 flex max-w-md items-start justify-center gap-2 text-[12px] text-white/75">
           <VolumeX className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span className="text-left">{t("voice.unavailable")}</span>
         </div>
@@ -113,7 +113,7 @@ export default function VoiceMode() {
         {t("voice.end")}
       </button>
 
-      <p className="mt-4 text-center text-[11px] text-white/40 max-w-sm">
+      <p className="mt-4 text-center text-[11px] text-white/70 max-w-sm">
         {t("voice.privacy")}
       </p>
     </div>
@@ -138,21 +138,21 @@ function Orb({ phase, level, onTap, label }: { phase: VoicePhase; level: number;
           being heard — and can tell at a glance whether it is their turn. */}
       {listening && (
         <span
-          className="absolute inset-0 rounded-full bg-af-leaf/25 transition-transform duration-100"
+          className="absolute inset-0 rounded-full bg-af-ondark-orb/30 transition-transform duration-100"
           style={{ transform: `scale(${0.7 + level * 0.3})` }}
         />
       )}
-      {speaking && <span className="absolute inset-2 rounded-full bg-af-sage/25 animate-pulse" />}
+      {speaking && <span className="absolute inset-2 rounded-full bg-af-ondark-ink/25 animate-pulse" />}
 
       <span
         className={`relative flex items-center justify-center w-28 h-28 rounded-full transition-colors duration-300 ${
-          listening ? "bg-af-leaf" : speaking ? "bg-af-sage text-af-secondary" : "bg-white/15"
+          listening ? "bg-af-ondark-orb" : speaking ? "bg-af-ondark-ink text-af-ondark-deep" : "bg-white/15"
         }`}
       >
         {working ? (
           <Loader2 className="w-10 h-10 animate-spin text-white" />
         ) : speaking ? (
-          <Volume2 className="w-10 h-10 text-af-secondary" />
+          <Volume2 className="w-10 h-10 text-af-ondark-deep" />
         ) : (
           <Mic className="w-10 h-10 text-white" />
         )}

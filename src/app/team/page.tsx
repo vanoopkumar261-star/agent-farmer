@@ -153,7 +153,7 @@ function TeamContent() {
             </span>
             <span className="font-sans text-[16px] font-bold tracking-tight">Agent Farmer</span>
           </a>
-          <p className="font-sans text-[13px] font-normal text-white/50">
+          <p className="font-sans text-[13px] font-normal text-white/65">
             © {new Date().getFullYear()} Agent Farmer. {t("l.foot.rights")}
           </p>
         </div>

@@ -56,6 +56,25 @@
                                       The mustard itself is 2.2:1 and unreadable
                                       as type; seven components had each
                                       hand-picked their own #9a7100 for this. */
+  /* ── Pinned, never themed ────────────────────────────────────────────────
+     For surfaces that are DARK IN BOTH THEMES. The voice overlay is the one
+     that forced these: it covers the screen with --af-secondary, which is a
+     near-black band in light and a raised green surface in dark — dark either
+     way. Type on it was written with --af-sage, and --af-sage inverts (#E9EDE3
+     light, #1C241E dark), so in dark mode the "LISTENING…" label and the
+     speaking orb were ~1.03:1 against their own background. Invisible.
+
+     These three are declared here and deliberately NOT redefined under
+     [data-theme="dark"], so they hold their value in both themes. Use them
+     only on a surface you know does not flip; anywhere else the themed tokens
+     are still correct. */
+  --af-ondark-ink: 233 237 227;    /* #E9EDE3 — sage, pinned light. 11.5:1 on
+                                      #173B2A and 12.6:1 on #1B2A21 */
+  --af-ondark-orb: 94 140 74;      /* #5E8C4A — leaf, pinned mid, so a white
+                                      icon stays legible on it in both themes */
+  --af-ondark-deep: 23 59 42;      /* #173B2A — forest, pinned dark, for type
+                                      and icons sitting ON af-ondark-ink */
+
   --af-wood: 139 115 85;           /* #8B7355 Earth Brown — the one colour named
                                       in the source palette above that never got
                                       a token. Grain and warm edges only; it is

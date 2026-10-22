@@ -129,7 +129,7 @@ export default function FindUs() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t("l.find.emailPlaceholder")}
                   aria-label={t("l.find.emailLabel")}
-                  className="w-full rounded-arva-input border border-white/25 bg-transparent px-6 py-4 font-sans text-[15px] text-white outline-none transition placeholder:text-white/45 focus:border-vivid-lime/70"
+                  className="w-full rounded-arva-input border border-white/25 bg-transparent px-6 py-4 font-sans text-[15px] text-white outline-none transition placeholder:text-white/70 focus:border-vivid-lime/70"
                 />
 
                 <textarea
@@ -138,7 +138,7 @@ export default function FindUs() {
                   rows={4}
                   placeholder={t("l.find.messagePlaceholder")}
                   aria-label={t("l.find.messageLabel")}
-                  className="w-full resize-y rounded-[24px] border border-white/25 bg-transparent px-6 py-4 font-sans text-[15px] text-white outline-none transition placeholder:text-white/45 focus:border-vivid-lime/70"
+                  className="w-full resize-y rounded-[24px] border border-white/25 bg-transparent px-6 py-4 font-sans text-[15px] text-white outline-none transition placeholder:text-white/70 focus:border-vivid-lime/70"
                 />
 
                 {/* Honeypot. Hidden from people and from screen readers; only a

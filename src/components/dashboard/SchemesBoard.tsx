@@ -219,7 +219,7 @@ export default function SchemesBoard({
         <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-af-leaf/30 blur-2xl" />
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1.5">
-            <Landmark className="w-3.5 h-3.5 text-af-sage" />
+            <Landmark className="w-3.5 h-3.5 text-af-ondark-ink" />
             <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-white/90">
               {t("schemesBoard.recommendedFor")}
             </span>
@@ -238,7 +238,7 @@ export default function SchemesBoard({
                   if (!s) return null;
                   return (
                     <span key={m.id} className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] border border-white/10 px-3 py-1.5 text-[12px] font-semibold text-white">
-                      <BadgeCheck className="w-3 h-3 text-af-sage" />
+                      <BadgeCheck className="w-3 h-3 text-af-ondark-ink" />
                       {s.name}
                     </span>
                   );

@@ -318,10 +318,10 @@ function Footer() {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 sm:flex-row">
-          <p className="font-sans text-[12px] font-normal text-white/50">
+          <p className="font-sans text-[12px] font-normal text-white/65">
             © {new Date().getFullYear()} Agent Farmer. {t("l.foot.rights")}
           </p>
-          <p className="font-sans text-[12px] font-normal text-white/50">{t("a.foot.built")}</p>
+          <p className="font-sans text-[12px] font-normal text-white/65">{t("a.foot.built")}</p>
         </div>
       </div>
     </footer>
