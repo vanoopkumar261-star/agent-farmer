@@ -22,7 +22,7 @@ import {
 } from "recharts";
 import Card from "@/components/ui/Card";
 import Skeleton from "@/components/ui/Skeleton";
-import { AXIS, CATEGORICAL, GRID, tooltipStyle } from "@/lib/chartTheme";
+import { useChartTheme } from "@/components/theme/useChartTheme";
 import { useT } from "@/components/i18n/LanguageProvider";
 import type {
   MetricKey,
@@ -38,11 +38,13 @@ import type {
  * which quietly broke the colour-vision separation the palette was checked
  * for, in the one place nobody would look for it.
  */
-const META: Record<MetricKey, { Icon: typeof Thermometer; color: string }> = {
-  temperature: { Icon: Thermometer, color: CATEGORICAL[1] }, // Mustard
-  humidity: { Icon: Droplets, color: CATEGORICAL[2] }, // Field Blue
-  soilMoisture: { Icon: Sprout, color: CATEGORICAL[0] }, // Crop Green
-  npk: { Icon: FlaskConical, color: CATEGORICAL[3] }, // Earth Brown
+// The SLOT, not the colour: the palette differs per theme, so resolving a
+// hex here would freeze whichever theme loaded the module first.
+const META: Record<MetricKey, { Icon: typeof Thermometer; slot: 0 | 1 | 2 | 3 }> = {
+  temperature: { Icon: Thermometer, slot: 1 }, // Mustard
+  humidity: { Icon: Droplets, slot: 2 }, // Field Blue
+  soilMoisture: { Icon: Sprout, slot: 0 }, // Crop Green
+  npk: { Icon: FlaskConical, slot: 3 }, // Earth Brown
 };
 
 const ORDER: MetricKey[] = ["temperature", "humidity", "soilMoisture", "npk"];
@@ -284,7 +286,9 @@ function MetricTile({
   updatedLabel: (iso: string) => string;
   onShowMore: () => void;
 }) {
-  const { Icon, color } = META[metric.key];
+  const { CATEGORICAL } = useChartTheme();
+  const { Icon, slot } = META[metric.key];
+  const color = CATEGORICAL[slot];
   const has = metric.configured && metric.latest != null;
   const parts = metric.placeholder ? metric.parts ?? [] : [];
 
@@ -358,6 +362,7 @@ function SensorDetailModal({
   label: string;
   onClose: () => void;
 }) {
+  const { GRID, AXIS, tooltipStyle, CATEGORICAL } = useChartTheme();
   const { t } = useT();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -370,7 +375,8 @@ function SensorDetailModal({
 
   if (!mounted) return null;
 
-  const { Icon, color } = META[metric.key];
+  const { Icon, slot } = META[metric.key];
+  const color = CATEGORICAL[slot];
   const gradId = `sensor-grad-${metric.key}`;
 
   // Chart wants oldest → newest; `readings` is newest first.

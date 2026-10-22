@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { LanguageProvider, useT } from "@/components/i18n/LanguageProvider";
 import SiteHeader, { LeafMark } from "@/components/landing/SiteHeader";
 import StarBorder from "@/components/landing/StarBorder";
 import SmoothScroll from "@/components/SmoothScroll";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import FindUs from "@/components/landing/FindUs";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 
@@ -34,28 +35,58 @@ import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 /* ── Full-bleed video hero ────────────────────────────────────────────────── */
 function Hero() {
   const { t } = useT();
+  const { theme } = useTheme();
+  const dark = theme === "dark";
+
+  /*
+    Two clips, one per theme. The dark one is golden-hour drone footage over a
+    harvested field, cut to a 15s loop from the 58s master and dimmed in CSS
+    rather than in the file — so the grade stays tunable without a re-encode.
+    The master itself is 4K60 at 250MB and is gitignored; see .gitignore.
+  */
+  const src = dark ? "/videos/hero-dark.mp4" : "/videos/hero.mp4";
+  const srcMobile = dark ? "/videos/hero-dark-720.mp4" : "/videos/hero.mp4";
+  const poster = dark ? "/images/hero-dark.webp" : "/images/hero.png";
+
+  // A 15s loop is the loudest thing on the page. Everything else in the app
+  // (AppBackground, SpotlightLayer, ReflectiveCard) stands down under
+  // reduced-motion, so this does too — the poster still carries the image.
+  const [still, setStill] = useState(false);
+  useEffect(() => {
+    setStill(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
   // 76px is SiteHeader's block height (pt-4 + its 58px pill + the 1px ring
   // either side). It is sticky rather than fixed, so it occupies layout space
   // above the hero; subtracting it keeps the hero exactly one viewport tall
   // instead of overflowing by the height of the nav.
   return (
     <section className="relative h-[calc(100vh-76px)] min-h-[560px] w-full overflow-hidden">
+      {/* key={src} matters: swapping a <source> on a playing <video> does
+          nothing on its own, so the element is remounted when the theme
+          changes. brightness is applied here rather than baked into the file
+          so the grade can be retuned without a re-encode. */}
       <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
+        key={src}
+        className="absolute inset-0 h-full w-full object-cover dark:[filter:brightness(0.62)saturate(0.9)]"
+        autoPlay={!still}
         muted
         loop
         playsInline
-        poster="/images/hero.png"
+        poster={poster}
         aria-label="Aerial drone footage of farmland"
       >
-        <source src="/videos/hero.mp4" type="video/mp4" />
+        {!still && (
+          <>
+            <source src={srcMobile} type="video/mp4" media="(max-width: 640px)" />
+            <source src={src} type="video/mp4" />
+          </>
+        )}
       </video>
 
       {/* Arva runs no overlay box, but our headline is longer than theirs and the
           footage is bright — a soft vertical scrim keeps it legible without
           turning into a panel. */}
-      <div className="absolute inset-0 bg-gradient-to-b from-charcoal/35 via-charcoal/15 to-charcoal/45" />
+      <div className="absolute inset-0 bg-gradient-to-b from-charcoal/35 via-charcoal/15 to-charcoal/45 dark:from-black/45 dark:via-black/25 dark:to-black/70" />
 
       <div className="relative flex h-full flex-col items-center justify-center px-6 text-center">
         <h1 className="max-w-[20ch] font-sans text-[38px] font-extralight leading-[1.06] tracking-[-0.03em] text-white sm:text-[57px]">
@@ -233,7 +264,7 @@ function HowItWorks() {
             role="img"
             aria-label="A farmer working the land"
           />
-          <div className="rounded-arva-card bg-forest-ink p-[30px] sm:p-10">
+          <div className="rounded-arva-card bg-arva-band p-[30px] sm:p-10">
             <p className="font-sans text-[13px] font-medium uppercase tracking-[0.025em] text-vivid-lime">
               {t("l.how.kicker")}
             </p>
@@ -347,7 +378,7 @@ function CtaBand() {
   return (
     <section className="bg-bone pb-[80px]">
       <div className="mx-auto max-w-[1200px] px-6">
-        <div className="rounded-arva-card bg-forest-ink px-8 py-16 text-center sm:px-12">
+        <div className="rounded-arva-card bg-arva-band px-8 py-16 text-center sm:px-12">
           <h2 className="mx-auto max-w-[20ch] font-sans text-[30px] font-light leading-[1.08] tracking-[-0.022em] text-white sm:text-[45px]">
             {t("l.cta2.title")}
           </h2>
@@ -402,7 +433,7 @@ function Footer() {
   ];
 
   return (
-    <footer className="bg-forest-ink">
+    <footer className="bg-arva-band">
       <div className="mx-auto max-w-[1200px] px-6 pb-14 pt-[110px]">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">

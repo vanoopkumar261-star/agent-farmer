@@ -67,7 +67,7 @@ type CheckResult = {
 const BAND = {
   red: {
     wrap: "border-af-danger/45 bg-af-danger/10",
-    chip: "bg-af-danger text-white",
+    chip: "bg-af-danger text-af-on-primary",
     icon: "text-af-danger",
     Icon: ShieldAlert,
   },

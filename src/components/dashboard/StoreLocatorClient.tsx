@@ -51,7 +51,7 @@ export default function StoreLocatorClient(props: {
           href={search}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center gap-2 rounded-[14px] bg-af-primary text-white px-5 py-3 text-sm font-semibold hover:bg-af-primary-deep transition"
+          className="mt-6 inline-flex items-center gap-2 rounded-[14px] bg-af-primary text-af-on-primary px-5 py-3 text-sm font-semibold hover:bg-af-primary-deep transition"
         >
           {t("stores.searchOnMaps")}
           <ExternalLink className="w-4 h-4" />

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react";
 import { useT } from "@/components/i18n/LanguageProvider";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { markTourSeen, shouldRunTour } from "@/lib/tour";
 import { TOUR_STEPS, type TourStep } from "./steps";
 
@@ -59,6 +60,7 @@ export default function DashboardTour({
   preferences: Record<string, any> | null | undefined;
 }) {
   const { t } = useT();
+  const { theme } = useTheme();
   const [open, setOpen] = useState(false);
   const [steps, setSteps] = useState<TourStep[]>([]);
   const [i, setI] = useState(0);
@@ -227,6 +229,11 @@ export default function DashboardTour({
 
   if (!open || !step || typeof document === "undefined") return null;
 
+  // A forest scrim reads as "the page, dimmed" on ivory. Over a near-black
+  // page it reads as nothing at all, so dark drops to true black and deeper —
+  // the dimming has to come from somewhere, and there is no light left to take.
+  const SCRIM = theme === "dark" ? "rgba(0,0,0,0.78)" : "rgba(23,59,42,0.62)";
+
   const body = (
     <div className="fixed inset-0 z-[200]" role="dialog" aria-modal="true" aria-label={t("tour.aria")}>
       {/*
@@ -242,11 +249,11 @@ export default function DashboardTour({
             left: rect.left - 6,
             width: rect.width + 12,
             height: rect.height + 12,
-            boxShadow: "0 0 0 9999px rgba(23,59,42,0.62)",
+            boxShadow: `0 0 0 9999px ${SCRIM}`,
           }}
         />
       ) : (
-        <div className="absolute inset-0" style={{ background: "rgba(23,59,42,0.62)" }} />
+        <div className="absolute inset-0" style={{ background: SCRIM }} />
       )}
 
       {/* Backdrop click skips. Sits under the card, over the dimmed page. */}
@@ -309,7 +316,7 @@ export default function DashboardTour({
             )}
             <button
               onClick={() => (isLast ? void close() : next())}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-af-primary px-3.5 py-1.5 text-[12.5px] font-semibold text-white hover:bg-af-primary-deep transition"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-af-primary px-3.5 py-1.5 text-[12.5px] font-semibold text-af-on-primary hover:bg-af-primary-deep transition"
             >
               {isLast ? t("tour.finish") : t("tour.next")}
               {isLast ? <Check className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}

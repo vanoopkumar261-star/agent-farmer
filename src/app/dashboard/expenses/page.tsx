@@ -35,7 +35,7 @@ export default async function ExpensesPage() {
       <div className="max-w-md mx-auto mt-20 text-center rounded-2xl bg-af-card border border-af-border shadow-af-sm p-10">
         <h2 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink"><T k="expenses.noProfileTitle" /></h2>
         <p className="mt-2 text-sm text-af-ink-2"><T k="expenses.noProfileBody" /></p>
-        <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold">
+        <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-af-on-primary px-6 py-3 text-sm font-semibold">
           <T k="dashboard.home.startOnboarding" />
         </Link>
       </div>

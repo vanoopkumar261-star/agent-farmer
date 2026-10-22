@@ -8,25 +8,26 @@
  * far faster than "depletion is 52 mm", and the refill point becomes a line to
  * stay above rather than one to stay below.
  *
- * Rain is drawn as bars behind the curve so the two read together: the eye
- * should land on a rainy day and see the curve climb without the farmer
- * pumping anything. That relationship is the whole argument for the feature.
+ * ── Why two lines rather than a curve over rain bars ─────────────────────────
+ * This was a Recharts ComposedChart: an area for soil water with rainfall as
+ * bars behind it. It is a Bklit line chart now, and rainfall became a second
+ * line on its own right-hand scale. The relationship the chart exists to show
+ * — rain goes up, the curve stops falling, nobody pumps anything — reads at
+ * least as well from two lines crossing as it did from a curve over bars, and
+ * the farmer gets Bklit's crosshair: one hover, both numbers, same day.
+ *
+ * The refill point is drawn by `Grid highlightRowValues`, which is the library's
+ * own idiom for a threshold row, rather than a ReferenceLine of our own.
  */
 
-import {
-  ComposedChart,
-  Area,
-  Bar,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ReferenceLine,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart } from "@/components/charts/line-chart";
+import { Line } from "@/components/charts/line";
+import { Grid } from "@/components/charts/grid";
+import { XAxis } from "@/components/charts/x-axis";
+import { YAxis } from "@/components/charts/y-axis";
+import { ChartTooltip } from "@/components/charts/tooltip";
 import Card from "@/components/ui/Card";
-import { AXIS, GRID, SERIES, CATEGORICAL, SEVERITY, tooltipStyle } from "@/lib/chartTheme";
+import { useChartTheme } from "@/components/theme/useChartTheme";
 import { useT } from "@/components/i18n/LanguageProvider";
 import type { IrrigationPlan } from "@/lib/irrigation";
 
@@ -39,6 +40,15 @@ export default function MoistureForecastChart({
   sensorPct: number | null;
   sensorAt: string | null;
 }) {
+  const { SERIES, CATEGORICAL, SEVERITY, GRID } = useChartTheme();
+  /*
+    Soil water is the crop's own state, so it takes the crop green; rain is
+    what arrives from the sky, so it keeps the blue. They were both blue when
+    one of them was drawn as bars — as two lines that reads as one series
+    rendered twice.
+  */
+  const SOIL = CATEGORICAL[0];
+  const RAIN = CATEGORICAL[2];
   const { t } = useT();
 
   if (!plan.forecast.length) return null;
@@ -47,16 +57,15 @@ export default function MoistureForecastChart({
   // sits well above RAW because the system tops up little and often.
   const triggerPct = Math.round(((plan.taw - plan.triggerMm) / Math.max(1, plan.taw)) * 100);
 
-  const data = plan.forecast.map((d, i) => ({
-    day: i === 0 ? t("weatherCard.today") : d.weekday,
+  // Bklit's x-scale is a time scale, so the day has to be a real Date rather
+  // than the weekday label Recharts was given. `dateISO` was already on every
+  // forecast row; nothing new is computed here.
+  const data = plan.forecast.map((d) => ({
+    date: new Date(d.dateISO),
     available: d.availablePct,
     rain: Math.round(d.rainMm * 10) / 10,
-    irrigation: d.irrigationMm > 0 ? Math.round(d.irrigationMm) : null,
-    // The probe reports one value now, so it is only meaningful against today.
-    probe: i === 0 && sensorPct != null ? Math.round(sensorPct) : null,
+    irrigation: d.irrigationMm > 0 ? Math.round(d.irrigationMm) : 0,
   }));
-
-  const maxRain = Math.max(10, ...data.map((d) => d.rain));
 
   return (
     <Card className="p-5">
@@ -72,110 +81,96 @@ export default function MoistureForecastChart({
         })}
       </p>
 
-      <div className="h-[260px] -ml-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-            <defs>
-              <linearGradient id="soilWater" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={SERIES.market} stopOpacity={0.35} />
-                <stop offset="100%" stopColor={SERIES.market} stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
+      <div className="h-[280px]">
+        <LineChart
+          data={data}
+          xDataKey="date"
+          /* No aspectRatio: the parent sets the height, which keeps the card
+             the same size it was before the chart changed library. */
+          style={{ height: "100%" }}
+          margin={{ top: 16, right: 52, bottom: 28, left: 8 }}
+        >
+          <Grid
+            horizontal
+            stroke={GRID}
+            /* The refill point. Below this row the crop starts paying for the
+               shortfall, so it is the one value on the chart a farmer has to
+               be able to find without reading an axis. */
+            highlightRowValues={[triggerPct]}
+            highlightRowStroke={SEVERITY.orange}
+            highlightRowStrokeDasharray="5,4"
+          />
+          <YAxis yAxisId="pct" formatValue={(v) => `${Math.round(v)}%`} />
+          <YAxis yAxisId="mm" orientation="right" formatValue={(v) => `${Math.round(v)}mm`} />
 
-            <CartesianGrid stroke={GRID} vertical={false} />
-            <XAxis dataKey="day" stroke={AXIS} tickLine={false} axisLine={false} fontSize={11} />
-            <YAxis
-              yAxisId="pct"
-              domain={[0, 100]}
-              stroke={AXIS}
-              tickLine={false}
-              axisLine={false}
-              fontSize={11}
-              unit="%"
-              width={44}
-            />
-            <YAxis yAxisId="mm" orientation="right" domain={[0, maxRain]} hide />
+          <Line
+            dataKey="available"
+            yAxisId="pct"
+            stroke={SOIL}
+            strokeWidth={2.5}
+            showMarkers
+          />
+          <Line
+            dataKey="rain"
+            yAxisId="mm"
+            stroke={RAIN}
+            strokeWidth={2}
+            /* Rain is a daily total, not a continuous level — the dashes say
+               "these are readings, not a trend you can interpolate". */
+            dashFromIndex={0}
+            dashArray="4,4"
+          />
 
-            <Tooltip
-              contentStyle={tooltipStyle}
-              /*
-                The unit is chosen from the series' `dataKey`, not its display
-                name. Matching on the name worked only while the names were
-                English literals: translate them and every series silently
-                falls through to the millimetre branch, so soil water would
-                have read "42 mm" instead of "42%".
-              */
-              formatter={(value: any, name: string, item: any) => {
-                if (value == null) return ["—", name];
-                const key = item?.dataKey;
-                const isPercent = key === "available" || key === "probe";
-                return [isPercent ? `${value}%` : `${value} mm`, name];
-              }}
-            />
+          <XAxis numTicks={7} />
 
-            <Bar
-              yAxisId="mm"
-              dataKey="rain"
-              name={t("irrigation.chart.rain")}
-              fill={CATEGORICAL[2]}
-              fillOpacity={0.22}
-              radius={[4, 4, 0, 0]}
-              barSize={26}
-            />
-            <Bar
-              yAxisId="mm"
-              dataKey="irrigation"
-              name={t("irrigation.chart.irrigation")}
-              fill={SERIES.income}
-              fillOpacity={0.55}
-              radius={[4, 4, 0, 0]}
-              barSize={14}
-            />
-
-            <ReferenceLine
-              yAxisId="pct"
-              y={triggerPct}
-              stroke={SEVERITY.orange}
-              strokeDasharray="5 4"
-              label={{
-                value: t("irrigation.chart.refillPoint"),
-                position: "insideTopRight",
-                fontSize: 10,
-                fill: SEVERITY.orange,
-              }}
-            />
-
-            <Area
-              yAxisId="pct"
-              type="monotone"
-              dataKey="available"
-              name={t("irrigation.chart.soilWater")}
-              stroke={SERIES.market}
-              strokeWidth={2}
-              fill="url(#soilWater)"
-            />
-
-            {sensorPct != null && (
-              <Line
-                yAxisId="pct"
-                type="monotone"
-                dataKey="probe"
-                name={t("irrigation.chart.probe")}
-                stroke={CATEGORICAL[3]}
-                strokeWidth={0}
-                dot={{ r: 5, fill: CATEGORICAL[3] }}
-              />
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
+          <ChartTooltip
+            indicatorColor={SOIL}
+            rows={(point) => {
+              const rows = [
+                {
+                  label: t("irrigation.chart.soilWater"),
+                  value: `${point.available ?? 0}%`,
+                  color: SOIL,
+                },
+                {
+                  label: t("irrigation.chart.rain"),
+                  value: `${point.rain ?? 0} mm`,
+                  color: RAIN,
+                },
+              ];
+              // Only on the days the plan actually waters — an "irrigation:
+              // 0 mm" row on five of seven days is noise.
+              if (Number(point.irrigation) > 0) {
+                rows.push({
+                  label: t("irrigation.chart.irrigation"),
+                  value: `${point.irrigation} mm`,
+                  color: SERIES.income,
+                });
+              }
+              return rows;
+            }}
+          />
+        </LineChart>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-af-muted">
-        <Key color={SERIES.market} label={t("irrigation.chart.soilWater")} />
-        <Key color={CATEGORICAL[2]} label={t("irrigation.chart.rainfall")} />
-        <Key color={SERIES.income} label={t("irrigation.chart.plannedIrrigation")} />
+        <Key color={SOIL} label={t("irrigation.chart.soilWater")} />
+        <Key color={RAIN} label={t("irrigation.chart.rainfall")} />
+        <Key color={SEVERITY.orange} label={t("irrigation.chart.refillPoint")} />
+        {/*
+          The probe reports one value, now, so it was always a single dot on a
+          seven-day line — and a line chart has nowhere honest to put one. It
+          reads as a number beside the key instead, which is also how a farmer
+          would say it out loud.
+        */}
         {sensorPct != null && (
-          <Key color={CATEGORICAL[3]} label={t("irrigation.chart.probeToday")} />
+          <span className="inline-flex items-center gap-1.5">
+            <span
+              className="w-2.5 h-2.5 rounded-sm"
+              style={{ backgroundColor: CATEGORICAL[3] }}
+            />
+            {t("irrigation.chart.probeToday")}: {Math.round(sensorPct)}%
+          </span>
         )}
         {sensorAt && (
           <span>

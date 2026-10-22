@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES } from "@/lib/i18n/config";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 /* Shared floating glass nav for the Agent Farmer OS re-theme (Home + Team).
    Sleek pill with a gradient hairline, backdrop blur, emerald CTA. */
@@ -110,7 +111,10 @@ export default function SiteHeader() {
       <div className="mx-auto max-w-[1220px] px-4 pt-4">
         {/* gradient hairline ring */}
         <div className="of-ring rounded-[20px] p-px shadow-of-nav">
-          <div className="flex h-[58px] items-center justify-between rounded-[19px] bg-white/70 px-3 pl-4 backdrop-blur-xl sm:px-4">
+          <div /* bg-of-surface, not bg-white: the pill is a SURFACE, and a literal
+                 white one stays a white bar on a near-black page. The blur
+                 is what makes it glass; the tint only has to be the card. */
+              className="flex h-[58px] items-center justify-between rounded-[19px] bg-of-surface/70 px-3 pl-4 backdrop-blur-xl sm:px-4">
             {/* logo */}
             <a href="/" className="flex items-center gap-2.5">
               <span className="of-grad-emerald flex h-8 w-8 items-center justify-center rounded-xl shadow-of-glow">
@@ -134,6 +138,9 @@ export default function SiteHeader() {
 
             {/* CTA + language */}
             <div className="flex items-center gap-3 sm:gap-4">
+              {/* Visible at every width: unlike the language menu, this is the
+                  control someone reaches for the moment the page is too bright. */}
+              <ThemeToggle />
               <div className="hidden sm:block">
                 <LanguageMenu tone="light" />
               </div>

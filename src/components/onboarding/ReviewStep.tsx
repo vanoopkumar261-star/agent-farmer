@@ -109,7 +109,7 @@ export default function ReviewStep({
         {farms.map((f, i) => (
           <div key={f.index} className="rounded-[16px] border border-af-border bg-af-card p-4">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-af-primary text-[11px] font-semibold text-white">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-af-primary text-[11px] font-semibold text-af-on-primary">
                 {f.index}
               </span>
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-af-muted">
@@ -143,7 +143,7 @@ export default function ReviewStep({
           type="button"
           onClick={onConfirm}
           disabled={saving}
-          className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary px-5 py-4 text-[15px] font-semibold text-white transition hover:bg-af-primary-deep active:scale-[0.99] disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary px-5 py-4 text-[15px] font-semibold text-af-on-primary transition hover:bg-af-primary-deep active:scale-[0.99] disabled:opacity-50"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           {t("onboarding.review.confirm")}

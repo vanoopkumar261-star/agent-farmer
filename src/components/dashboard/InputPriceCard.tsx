@@ -162,7 +162,7 @@ export default function InputPriceCard() {
                 onClick={() => setCategory(c)}
                 className={`rounded-full px-3.5 py-1.5 text-meta font-semibold transition ${
                   category === c
-                    ? "bg-af-primary text-white shadow-af-sm"
+                    ? "bg-af-primary text-af-on-primary shadow-af-sm"
                     : "bg-af-bg border border-af-border text-af-ink-2 hover:text-af-ink"
                 }`}
               >
@@ -185,7 +185,7 @@ export default function InputPriceCard() {
             <button
               onClick={run}
               disabled={busy || !term.trim()}
-              className="shrink-0 inline-flex items-center gap-2 rounded-[12px] bg-af-primary hover:bg-af-primary-deep text-white px-4 py-2 text-meta font-semibold transition disabled:opacity-50"
+              className="shrink-0 inline-flex items-center gap-2 rounded-[12px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-4 py-2 text-meta font-semibold transition disabled:opacity-50"
             >
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackageSearch className="w-4 h-4" />}
               {t("inputs.compare")}

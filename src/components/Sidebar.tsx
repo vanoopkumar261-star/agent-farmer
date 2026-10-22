@@ -61,7 +61,7 @@ export default function Sidebar({ plan = "free" }: { plan?: PlanId }) {
             for their name, phone and house pin before letting them add a field. */}
         <AddFarmButton
           variant="custom"
-          className="w-full flex items-center justify-center gap-2 bg-af-primary hover:bg-af-primary-deep text-white py-2.5 rounded-[12px] text-sm font-semibold tracking-[-0.01em] transition-all duration-150 active:scale-[0.99] shadow-af-sm"
+          className="w-full flex items-center justify-center gap-2 bg-af-primary hover:bg-af-primary-deep text-af-on-primary py-2.5 rounded-[12px] text-sm font-semibold tracking-[-0.01em] transition-all duration-150 active:scale-[0.99] shadow-af-sm"
         >
           <Plus className="w-4 h-4" />
           {t("nav.newFarm")}

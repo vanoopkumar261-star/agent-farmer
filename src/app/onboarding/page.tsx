@@ -886,7 +886,7 @@ function OnboardingContent() {
                       <button
                         disabled={!canGoStep2}
                         onClick={() => setStep(2)}
-                        className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
+                        className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                       >
                         {t("onboarding.continue")} <ArrowRight className="w-4 h-4" />
                       </button>
@@ -1155,7 +1155,7 @@ function OnboardingContent() {
                         <button
                           disabled={!canProceedCropSelection || loadingAI}
                           onClick={handleFetchAI}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
+                          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                         >
                           {loadingAI ? (
                             <>
@@ -1353,7 +1353,7 @@ function OnboardingContent() {
                         <button
                           disabled={!canContinueDashboard}
                           onClick={() => setStep(5)}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
+                          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
                         >
                           {t("onboarding.continueToDashboard")} <ArrowRight className="w-4 h-4" />
                         </button>
@@ -1480,9 +1480,9 @@ function Stepper({ current }: { current: number }) {
                 className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all
                   ${
                     done
-                      ? "bg-af-primary text-white"
+                      ? "bg-af-primary text-af-on-primary"
                       : active
-                      ? "bg-af-primary text-white ring-4 ring-af-primary/20"
+                      ? "bg-af-primary text-af-on-primary ring-4 ring-af-primary/20"
                       : "bg-af-card text-af-muted border border-af-border"
                   }`}
               >

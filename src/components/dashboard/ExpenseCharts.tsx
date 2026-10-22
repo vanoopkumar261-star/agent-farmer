@@ -1,35 +1,37 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import Card from "@/components/ui/Card";
+import { PieChart } from "@/components/charts/pie-chart";
+import { PieSlice } from "@/components/charts/pie-slice";
+import { PieCenter } from "@/components/charts/pie-center";
 import { PieChart as PieIcon, BarChart3 } from "lucide-react";
-import { SERIES, SEQUENTIAL_GREEN, GRID, AXIS, LEGEND_INK, tooltipStyle } from "@/lib/chartTheme";
+import { useChartTheme } from "@/components/theme/useChartTheme";
 import { rupee, rupeeShort } from "@/lib/format";
 import { useT } from "@/components/i18n/LanguageProvider";
 
-const EMERALD = SERIES.income;
-const AMBER = SERIES.expense;
+/*
+  EMERALD / AMBER / RAMP used to be module constants. They are resolved inside
+  the component now, because each is a different colour per theme and a module
+  constant would have captured whichever theme happened to load first.
 
-/**
- * Composition ramp. The old emerald version zig-zagged in lightness (#059669,
- * #10B981, #34D399, #6EE7B7, then back down to #047857) so slice order carried
- * no meaning; SEQUENTIAL_GREEN steps monotonically dark→light, which is what
- * makes the split readable without colour vision. Identity is the legend list.
- */
-const RAMP = SEQUENTIAL_GREEN;
-
+  On RAMP: the old emerald version zig-zagged in lightness (#059669, #10B981,
+  #34D399, #6EE7B7, then back down to #047857) so slice order carried no
+  meaning. SEQUENTIAL_GREEN steps monotonically, which is what makes the split
+  readable without colour vision — note it runs dark→light in the light theme
+  and light→dark in the dark one, for the same reason. Identity is the legend.
+*/
 
 export default function ExpenseCharts({
   byCategory,
@@ -39,7 +41,18 @@ export default function ExpenseCharts({
   byMonth: { month: string; income: number; expense: number }[];
 }) {
   const { t } = useT();
+  const { SERIES, SEQUENTIAL_GREEN, GRID, AXIS, LEGEND_INK, tooltipStyle, CURSOR_FILL, MARK } =
+    useChartTheme();
+  const EMERALD = SERIES.income;
+  const AMBER = SERIES.expense;
+  const RAMP = SEQUENTIAL_GREEN;
   const total = byCategory.reduce((s, c) => s + c.amount, 0);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const pieData = byCategory.map((c, i) => ({
+    label: c.category,
+    value: c.amount,
+    color: RAMP[i % RAMP.length],
+  }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -61,30 +74,54 @@ export default function ExpenseCharts({
           </div>
         ) : (
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-[150px] h-[180px] shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={byCategory}
-                    dataKey="amount"
-                    nameKey="category"
-                    innerRadius={45}
-                    outerRadius={72}
-                    paddingAngle={2}
-                    stroke="#fff"
-                    strokeWidth={2}
-                  >
-                    {byCategory.map((_, i) => (
-                      <Cell key={i} fill={RAMP[i % RAMP.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => rupee(v)} />
-                </PieChart>
-              </ResponsiveContainer>
+            {/*
+              Bklit donut. The slice colours still come from chartTheme's
+              sequential ramp, so the split stays readable without colour
+              vision — the ramp steps monotonically in lightness.
+
+              Hover is CONTROLLED and shared with the list beside it: pointing
+              at a slice lights its row and vice versa. That pairing is the
+              reason the list stays hand-rolled rather than using the library's
+              own Legend — ours carries the rupee amount and the share, which a
+              generic legend has nowhere to put.
+            */}
+            <div className="shrink-0">
+              <PieChart
+                data={pieData}
+                size={168}
+                innerRadius={48}
+                padAngle={0.02}
+                cornerRadius={3}
+                hoveredIndex={hoveredIndex}
+                onHoverChange={setHoveredIndex}
+              >
+                {pieData.map((_, i) => (
+                  <PieSlice index={i} key={i} />
+                ))}
+                <PieCenter defaultLabel={t("expenseCharts.total")}>
+                  {({ value, label }) => (
+                    <div className="text-center">
+                      <div className="font-mono text-[15px] font-semibold text-af-ink">
+                        {rupee(value)}
+                      </div>
+                      <div className="text-[10px] text-af-muted truncate max-w-[88px]">
+                        {label}
+                      </div>
+                    </div>
+                  )}
+                </PieCenter>
+              </PieChart>
             </div>
             <ul className="flex-1 space-y-1.5 min-w-0">
               {byCategory.map((c, i) => (
-                <li key={c.category} className="flex items-center gap-2 text-meta">
+                <li
+                  key={c.category}
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  className={`flex items-center gap-2 text-meta rounded-[8px] px-1.5 py-0.5 -mx-1.5 transition-colors ${
+                    hoveredIndex === i ? "bg-af-bg" : ""
+                  }`}
+                >
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: RAMP[i % RAMP.length] }} />
                   <span className="font-semibold text-af-ink truncate">{c.category}</span>
                   <span className="ml-auto font-mono text-af-ink-2">{rupee(c.amount)}</span>
@@ -120,7 +157,7 @@ export default function ExpenseCharts({
               <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="month" tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} />
               <YAxis tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => rupeeShort(v)} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => rupee(v)} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => rupee(v)} cursor={{ fill: CURSOR_FILL }} />
               <Legend
                 iconType="circle"
                 iconSize={8}

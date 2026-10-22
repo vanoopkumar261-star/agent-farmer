@@ -151,7 +151,7 @@ export default function TransactionPanel({
           <button
             type="submit"
             disabled={saving || !desc.trim() || !Number(amount)}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             {kind === "expense" ? t("transactionPanel.addExpense") : t("transactionPanel.addIncome")}

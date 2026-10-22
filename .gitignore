@@ -91,3 +91,9 @@ Stitch_mockups/
 graphify-out/
 /public/images/Loading screen ref*.png
 /public/images/logo_agent farmer.jpeg
+
+# Hero footage masters. Hero_dark.mp4 ships as 4K60 at 34 Mbps (250 MB) —
+# over GitHub's 100 MB file ceiling, and not something to put in front of a
+# farmer on mobile data. The transcoded web loops (public/videos/hero-dark*.mp4)
+# are what get committed; keep the master here locally and re-encode from it.
+/public/videos/Hero_dark.mp4

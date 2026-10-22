@@ -82,7 +82,7 @@ export default function CropRecCard({
           </span>
 
           {selected && (
-            <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-af-primary px-2.5 py-1 text-white">
+            <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-af-primary px-2.5 py-1 text-af-on-primary">
               <BadgeCheck className="h-3.5 h-3.5 w-3.5" />
               <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.16em]">
                 Selected

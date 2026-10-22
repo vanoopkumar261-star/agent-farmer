@@ -20,12 +20,21 @@
    Green carries branding, navigation and CTAs; mustard is an accent only.
    Backgrounds stay ivory/white so the interface never reads as "all green".
 
-   :root                 — /login and /onboarding.
-   [data-shell="app"]    — the dashboard shell. Now identical to :root (the
-                           split existed only to reconcile two old palettes);
-                           kept as a hook for any future shell-specific tuning.
+   :root                  — the light theme, everywhere.
+   [data-theme="dark"]    — the dark theme, everywhere. Set on <html> by the
+                            server (from the af_theme cookie) and by the
+                            pre-paint script in layout.tsx. See
+                            src/lib/theme/serverTheme.ts.
+
+   The old [data-shell="app"] block was retired here: all 14 of its
+   declarations had become byte-identical to :root, and keeping it would mean
+   writing every dark value twice — which is how a drifted seam ships. The
+   attribute stays on the dashboard shell div; it simply carries no tokens.
+   If per-shell dark tuning is ever wanted, add it scoped UNDER the theme
+   ([data-theme="dark"] [data-shell="app"]), not beside it.
    ───────────────────────────────────────────────────────────────────────── */
 :root {
+  color-scheme: light;
   --af-primary: 40 77 53;          /* #284D35 Deep Green — CTAs, active nav */
   --af-primary-deep: 23 59 42;     /* #173B2A Primary Forest — hover/pressed */
   --af-secondary: 23 59 42;        /* #173B2A — dark emphasis bands */
@@ -52,24 +61,168 @@
                                       a token. Grain and warm edges only; it is
                                       too low-contrast for type. */
   --af-danger: 168 69 47;          /* #A8452F — muted brick, genuine errors */
+  --af-on-primary: 255 255 255;    /* #FFFFFF on #284D35 — 9.3:1 */
+
+  /* Marketing palette (of-*) and the Arva editorial set, lifted verbatim from
+     the hexes that used to sit in tailwind.config.ts. Light mode is unchanged
+     by construction; they live here so the public pages can follow a theme. */
+  --of-bg: 247 246 240;            /* #F7F6F0 */
+  --of-bg-2: 240 239 230;          /* #F0EFE6 */
+  --of-surface: 255 255 255;       /* #FFFFFF */
+  --of-ink: 23 59 42;              /* #173B2A */
+  --of-body: 63 83 71;             /* #3F5347 */
+  --of-muted: 124 138 120;         /* #7C8A78 */
+  --of-border: 227 228 217;        /* #E3E4D9 */
+  --of-primary: 40 77 53;          /* #284D35 */
+  --of-primary-deep: 23 59 42;     /* #173B2A */
+  --of-forest: 23 59 42;           /* #173B2A — dark bands */
+  --of-blue: 74 111 165;           /* #4A6FA5 */
+  --of-slate: 110 122 107;         /* #6E7A6B */
+  --of-sage: 169 185 154;          /* #A9B99A */
+  --of-mustard: 214 167 44;        /* #D6A72C */
+  --of-earth: 139 115 85;          /* #8B7355 */
+
+  --arva-forest-ink: 7 80 63;      /* #07503F — as TYPE on light surfaces */
+  --arva-band: 7 80 63;            /* #07503F — as the big forest BANDS */
+  --arva-bone: 241 239 223;        /* #F1EFDF */
+  --arva-pure-white: 255 255 255;  /* #FFFFFF */
+  --arva-ash-gray: 239 239 239;    /* #EFEFEF */
+  --arva-charcoal: 33 37 41;       /* #212529 */
+  --arva-graphite: 53 53 53;       /* #353535 */
+  --arva-pewter: 109 109 109;      /* #6D6D6D */
+  --arva-sky-card: 178 206 231;    /* #B2CEE7 */
+  --arva-peach-card: 252 234 206;  /* #FCEACE */
+  --arva-sage-card: 230 236 213;   /* #E6ECD5 */
+  --arva-moss: 195 205 167;        /* #C3CDA7 */
+
+  /* Depth. Consumed by tailwind.config.ts as shadow-af-sm / -md / -float, so
+     dark can change the strategy without a call site moving. */
+  --af-shadow-sm: 0 1px 2px rgba(23, 59, 42, 0.04), 0 1px 3px rgba(23, 59, 42, 0.05);
+  --af-shadow-md: 0 2px 8px rgba(23, 59, 42, 0.05), 0 1px 3px rgba(23, 59, 42, 0.04);
+  --af-shadow-float: 0 10px 28px rgba(23, 59, 42, 0.07), 0 3px 10px rgba(23, 59, 42, 0.04);
+  --of-shadow-card: 0 1px 2px rgba(23, 59, 42, 0.04), 0 8px 24px rgba(23, 59, 42, 0.05);
+  --of-shadow-float: 0 18px 44px rgba(23, 59, 42, 0.09), 0 5px 14px rgba(23, 59, 42, 0.05);
+  --of-shadow-nav: 0 8px 28px rgba(23, 59, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --of-shadow-glow: 0 0 0 1px rgba(23, 59, 42, 0.12), 0 12px 32px rgba(23, 59, 42, 0.12);
 }
 
-/* Dashboard shell. Unified with :root — see the note above. */
-[data-shell="app"] {
-  --af-primary: 40 77 53;          /* #284D35 */
-  --af-primary-deep: 23 59 42;     /* #173B2A */
-  --af-secondary: 23 59 42;        /* #173B2A */
-  --af-leaf: 102 134 83;           /* #668653 */
-  --af-sage: 233 237 227;          /* #E9EDE3 */
-  --af-beige: 243 238 225;         /* #F3EEE1 */
-  --af-bg: 247 246 240;            /* #F7F6F0 */
-  --af-card: 255 255 255;          /* #FFFFFF */
-  --af-border: 227 228 217;        /* #E3E4D9 */
-  --af-ink: 23 59 42;              /* #173B2A */
-  --af-ink-2: 63 83 71;            /* #3F5347 */
-  --af-muted: 124 138 120;         /* #7C8A78 */
-  --af-amber-ink: 138 106 18;      /* #8A6A12 */
-  --af-wood: 139 115 85;           /* #8B7355 Earth Brown */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Dark theme — near-black / OLED.
+   ---------------------------------------------------------------------------
+   Ground #070809, card #121316, ink #FFFFFF, forest brightened to #5FBF82.
+   Contrast ratios in the comments are measured against the ground and the
+   card respectively; every text token clears 4.5:1 on BOTH.
+
+   Three tokens change MEANING here, not just value. They are the ones to
+   read before editing anything:
+
+     --af-primary-deep  light: darker-on-hover.  dark: LIGHTER-on-hover.
+                        Markup says `hover:bg-af-primary-deep` everywhere, so
+                        the inversion has to live in the token.
+     --af-secondary     light: a near-black emphasis band.
+                        dark: a raised green surface. Still "emphasis block",
+                        but anything setting TYPE in it needs checking.
+     --af-amber-ink     light: mustard darkened to be readable on white.
+                        dark: mustard brightened to out-rank its own /10 fill.
+                        Opposite job, same name, same call sites.
+   ───────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  /* Dark scrollbars, dark form controls and — the one thing this file's own
+     note says it cannot theme — a dark native <select> dropdown. */
+  color-scheme: dark;
+
+  --af-primary: 95 191 130;        /* #5FBF82 — 8.8:1 / 8.2:1 */
+  --af-primary-deep: 142 217 166;  /* #8ED9A6 — hover goes lighter here */
+  --af-secondary: 27 42 33;        /* #1B2A21 — a raised band, not near-black */
+  --af-leaf: 155 203 115;          /* #9BCB73 — kept yellower than primary so
+                                      icons stay distinguishable from CTAs */
+  --af-sage: 28 36 30;             /* #1C241E — the card tint, inverted */
+  --af-beige: 34 30 24;            /* #221E18 — the warm tint, inverted */
+  --af-ai: 127 168 232;            /* #7FA8E8 — 8.3:1 / 7.7:1 */
+  --af-ai-soft: 20 26 36;          /* #141A24 */
+  --af-neutral: 140 150 137;       /* #8C9689 — 6.5:1 / 6.1:1 */
+  --af-bg: 7 8 9;                  /* #070809 — OLED ground */
+  --af-card: 18 19 22;             /* #121316 — only 1.08:1 above the ground,
+                                      which is why --af-border below is now
+                                      load-bearing rather than decorative:
+                                      the border is what makes a card a card */
+  --af-border: 42 44 49;           /* #2A2C31 — 1.33:1 on the card, a touch
+                                      stronger than the light theme's hairline,
+                                      which is correct on a dark ground */
+  --af-ink: 255 255 255;           /* #FFFFFF — 20.0:1 / 18.6:1 */
+  --af-ink-2: 185 194 188;         /* #B9C2BC — green-cooled, so secondary text
+                                      stays in the brand's temperature */
+  --af-muted: 138 147 141;         /* #8A938D — 6.3:1 / 5.9:1. Kept well over
+                                      4.5 because af-muted carries real labels,
+                                      not just captions */
+  --af-amber: 227 179 65;          /* #E3B341 — barely moved; mustard was always
+                                      bright, it just needed a nudge for the
+                                      saturation the eye drops on dark */
+  --af-amber-ink: 240 199 95;      /* #F0C75F — see the note above: this token's
+                                      job inverts. Never collapse it into
+                                      --af-amber, or seven components will go
+                                      back to hand-picking their own */
+  --af-wood: 176 142 106;          /* #B08E6A — grain and warm edges, same as
+                                      ever. It happens to clear 6:1 here, but
+                                      it is NOT for type: using it as type
+                                      would fail in the light theme */
+  --af-danger: 239 111 87;         /* #EF6F57 — the light theme's brick is
+                                      1.5:1 on near-black, i.e. a genuine error
+                                      would be invisible */
+  --af-on-primary: 7 8 9;          /* the ground, on #5FBF82 — 8.8:1. White
+                                      here would be 2.3:1 */
+
+  /* The marketing and editorial sets on the same dark ground, so the site and
+     the product stay one company at night as well. */
+  --of-bg: 7 8 9;                  /* = af-bg */
+  --of-bg-2: 13 14 16;             /* #0D0E10 — the alt band, one step up */
+  --of-surface: 18 19 22;          /* = af-card */
+  --of-ink: 255 255 255;
+  --of-body: 185 194 188;
+  --of-muted: 138 147 141;
+  --of-border: 42 44 49;
+  --of-primary: 95 191 130;
+  --of-primary-deep: 142 217 166;
+  --of-forest: 14 23 17;           /* #0E1711 — a RAISED band now, the same
+                                      inversion --af-secondary makes */
+  --of-blue: 127 168 232;
+  --of-slate: 140 150 137;
+  --of-sage: 126 148 112;          /* #7E9470 — sage darkens, so it stays a
+                                      muted accent instead of becoming type */
+  --of-mustard: 227 179 65;
+  --of-earth: 176 142 106;
+
+  /* Arva. The three pastel tiles are the one part of the landing page with no
+     honest dark equivalent — desaturating them gives near-identical dark
+     rectangles and loses the editorial rhythm the page is built on. These are
+     holding values; that page is on the list for its own art direction. */
+  --arva-forest-ink: 95 191 130;   /* type: brightens with the surface */
+  --arva-band: 14 23 17;           /* #0E1711 — the band stays a band: white
+                                      type on a bright green fill would be
+                                      2.3:1 */
+  --arva-bone: 7 8 9;
+  --arva-pure-white: 18 19 22;
+  --arva-ash-gray: 26 27 31;
+  --arva-charcoal: 255 255 255;    /* was the ink — inverts with the ground */
+  --arva-graphite: 185 194 188;
+  --arva-pewter: 138 147 141;
+  --arva-sky-card: 18 26 34;       /* #121A22 */
+  --arva-peach-card: 32 26 20;     /* #201A14 */
+  --arva-sage-card: 22 28 19;      /* #161C13 */
+  --arva-moss: 92 107 69;          /* #5C6B45 */
+
+  /* Elevation changes strategy, not just colour: a forest-tinted drop shadow
+     is literally invisible on near-black. Resting surfaces get a 1px inset
+     highlight — the light source catching the top edge — and only the
+     floating tier, which genuinely leaves the plane, keeps a real shadow. */
+  --af-shadow-sm: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --af-shadow-md: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 0 1px rgb(var(--af-primary) / 0.14);
+  --af-shadow-float: 0 16px 40px rgb(0 0 0 / 0.6), 0 2px 8px rgb(0 0 0 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --of-shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --of-shadow-float: 0 18px 44px rgb(0 0 0 / 0.55), 0 5px 14px rgb(0 0 0 / 0.4);
+  --of-shadow-nav: 0 8px 28px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --of-shadow-glow: 0 0 0 1px rgb(var(--af-primary) / 0.22), 0 12px 32px rgb(0 0 0 / 0.45);
 }
 
 /* ── Lenis smooth scroll (recommended base styles) ── */
@@ -95,16 +248,16 @@ html.lenis body {
 /* Warm ivory ground with barely-there sage washes. Deliberately quiet: the
    photography carries the colour, not the background. */
 .of-canvas {
-  background-color: #f7f6f0;
+  background-color: rgb(var(--af-bg));
   background-image:
-    radial-gradient(60% 55% at 12% 8%, rgba(102, 134, 83, 0.07), transparent 60%),
-    radial-gradient(50% 50% at 92% 4%, rgba(169, 185, 154, 0.10), transparent 55%),
-    radial-gradient(45% 45% at 78% 96%, rgba(23, 59, 42, 0.05), transparent 60%);
+    radial-gradient(60% 55% at 12% 8%, rgb(var(--af-leaf) / 0.07), transparent 60%),
+    radial-gradient(50% 50% at 92% 4%, rgb(var(--af-leaf) / 0.10), transparent 55%),
+    radial-gradient(45% 45% at 78% 96%, rgb(var(--af-ink) / 0.05), transparent 60%);
 }
 
 /* Fine dot-grid texture (use as an overlay layer). */
 .of-dotgrid {
-  background-image: radial-gradient(rgba(23, 59, 42, 0.09) 1px, transparent 1px);
+  background-image: radial-gradient(rgb(var(--af-ink) / 0.09) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
@@ -113,12 +266,16 @@ html.lenis body {
    contour lines rather than perfect circles. Meant as a low-opacity overlay. */
 .of-topo {
   background-image:
-    repeating-radial-gradient(circle at 15% 18%, transparent 0 44px, rgba(23, 59, 42, 0.055) 44px 45px, transparent 45px 46px),
-    repeating-radial-gradient(circle at 85% 72%, transparent 0 58px, rgba(102, 134, 83, 0.05) 58px 59px, transparent 59px 60px),
-    repeating-radial-gradient(circle at 60% 40%, transparent 0 76px, rgba(139, 115, 85, 0.035) 76px 77px, transparent 77px 78px);
+    repeating-radial-gradient(circle at 15% 18%, transparent 0 44px, rgb(var(--af-ink) / 0.055) 44px 45px, transparent 45px 46px),
+    repeating-radial-gradient(circle at 85% 72%, transparent 0 58px, rgb(var(--af-leaf) / 0.05) 58px 59px, transparent 59px 60px),
+    repeating-radial-gradient(circle at 60% 40%, transparent 0 76px, rgb(var(--af-wood) / 0.035) 76px 77px, transparent 77px 78px);
 }
 
 /* Subtle grain to keep large flat areas from feeling plasticky. */
+[data-theme="dark"] .of-grain {
+  opacity: 0.6;
+}
+
 .of-grain {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
@@ -127,7 +284,7 @@ html.lenis body {
    than the old three-colour emerald gradient — restrained enough to read as a
    solid surface, which is what the redesign calls for. */
 .of-grad-emerald {
-  background-image: linear-gradient(135deg, #284d35 0%, #173b2a 100%);
+  background-image: linear-gradient(135deg, rgb(var(--af-primary)) 0%, rgb(var(--af-primary-deep)) 100%);
 }
 
 /* Display numerals and hero keywords. Now solid forest — large type reads as
@@ -136,20 +293,28 @@ html.lenis body {
   background-image: none;
   -webkit-background-clip: border-box;
   background-clip: border-box;
-  color: #173b2a;
+  color: rgb(var(--af-ink));
 }
 
 /* Hairline border for framed surfaces (wrap a card, put the fill inside). */
 .of-ring {
-  background-image: linear-gradient(135deg, rgba(23, 59, 42, 0.28), rgba(169, 185, 154, 0.45) 45%, rgba(255, 255, 255, 0.7));
+  background-image: linear-gradient(135deg, rgb(var(--af-ink) / 0.28), rgb(var(--af-leaf) / 0.45) 45%, rgba(255, 255, 255, 0.7));
+}
+
+/* The light version ends on 70% white: a specular highlight, not a colour.
+   Following the ink token would put 70% WHITE on a near-black card and turn a
+   hairline into a glowing outline — so dark restates the ramp, ending on a
+   tenth of that. */
+[data-theme="dark"] .of-ring {
+  background-image: linear-gradient(135deg, rgb(var(--af-border)), rgb(var(--af-primary) / 0.35) 45%, rgb(255 255 255 / 0.1));
 }
 
 /* Disable default chrome autocomplete yellow highlighting in input boxes */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #f7f6f0 inset !important;
-  -webkit-text-fill-color: #173b2a !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgb(var(--af-bg)) inset !important;
+  -webkit-text-fill-color: rgb(var(--af-ink)) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -176,6 +341,13 @@ select:focus {
   outline: none;
 }
 
+/* The chevron above is a data URI, and the stroke inside it is URL-encoded —
+   there is no way to feed it a var(). So the dark theme restates the whole
+   image with the ink it needs. One duplicated line, no runtime cost. */
+[data-theme="dark"] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23b9c2bc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
 /* Cursor-follow spotlight — a soft sage wash that tracks the mouse.
    Position vars (--mx/--my) are set by the SpotlightLayer controller.
 
@@ -190,7 +362,7 @@ select:focus {
   border-radius: inherit;
   background: radial-gradient(
     240px circle at var(--mx, 50%) var(--my, 0%),
-    rgba(102, 134, 83, 0.07),
+    rgb(var(--af-leaf) / 0.07),
     transparent 62%
   );
   opacity: 0;
@@ -570,3 +742,126 @@ select:focus {
 .af-nav-marker {
   background-image: linear-gradient(180deg, rgb(var(--af-amber)) 0%, rgb(var(--af-primary)) 58%, rgb(var(--af-primary)) 100%);
 }
+
+/* ── Leaflet chrome, dark ─────────────────────────────────────────────────────
+   leaflet/dist/leaflet.css is vendored and imported in the root layout, and
+   every piece of its furniture — zoom buttons, attribution bar, popups — is a
+   light-mode literal. Overriding here rather than editing the vendored file
+   keeps `npm update` from quietly reverting the theme.
+   ───────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .leaflet-bar a,
+[data-theme="dark"] .leaflet-bar a:hover {
+  background-color: rgb(var(--af-card));
+  color: rgb(var(--af-ink));
+  border-bottom-color: rgb(var(--af-border));
+}
+[data-theme="dark"] .leaflet-bar a:hover {
+  background-color: rgb(var(--af-sage));
+}
+[data-theme="dark"] .leaflet-control-attribution {
+  background: rgb(var(--af-card) / 0.78);
+  color: rgb(var(--af-muted));
+}
+[data-theme="dark"] .leaflet-control-attribution a {
+  color: rgb(var(--af-primary));
+}
+[data-theme="dark"] .leaflet-popup-content-wrapper,
+[data-theme="dark"] .leaflet-popup-tip {
+  background: rgb(var(--af-card));
+  color: rgb(var(--af-ink));
+  box-shadow: var(--af-shadow-float);
+}
+/* The default marker shadow PNG assumes a light basemap; on dark tiles it is
+   a grey smudge under every pin. */
+[data-theme="dark"] .leaflet-marker-shadow {
+  opacity: 0.35;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Bklit chart tokens
+   ---------------------------------------------------------------------------
+   The Bklit components (src/components/charts/, installed from its shadcn
+   registry) read these CSS variables. The CLI writes a greyscale default set
+   scoped to a `.dark` CLASS — we replaced it, for two reasons:
+
+     1. our carrier is [data-theme="dark"], so a `.dark` block would never
+        apply and dark charts would have silently stayed light;
+     2. the defaults are neutral greys, and this app has one validated chart
+        palette of record in src/lib/chartTheme.ts.
+
+   So the values below ARE chartTheme, transcribed. If you change a series
+   colour, change it there first — `scripts/check-ui-rules.mjs` enforces that
+   chart colours live in one place, and these variables are that place's
+   CSS-side mirror.
+
+   `--foreground` and `--muted-foreground` are shadcn base tokens a few of the
+   registry components reach for directly; they are mapped onto our ink rather
+   than introducing a second text palette.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --foreground: rgb(var(--af-ink));
+  --muted-foreground: rgb(var(--af-muted));
+  --radius-xl: 16px;
+
+  /* Series slots — chartTheme CATEGORICAL, in order. */
+  --chart-1: #3f7a2e;
+  --chart-2: #b58a18;
+  --chart-3: #3e6fb8;
+  --chart-4: #a35a2e;
+  --chart-5: #6e7a6b;
+  --chart-line-primary: var(--chart-1);
+  --chart-line-secondary: var(--chart-2);
+
+  --chart-background: rgb(var(--af-card));
+  --chart-foreground: rgb(var(--af-ink));
+  --chart-foreground-muted: rgb(var(--af-muted));
+  --chart-label: #3f5347;          /* chartTheme LEGEND_INK */
+  --chart-grid: #e3e4d9;           /* chartTheme GRID */
+  --chart-crosshair: rgb(var(--af-muted));
+  --chart-brush-border: var(--chart-grid);
+
+  --chart-tooltip-background: rgb(var(--af-card));
+  --chart-tooltip-foreground: rgb(var(--af-ink));
+  --chart-tooltip-muted: rgb(var(--af-muted));
+
+  --chart-marker-background: rgb(var(--af-sage));
+  --chart-marker-border: rgb(var(--af-border));
+  --chart-marker-foreground: rgb(var(--af-ink));
+  --chart-marker-badge-background: rgb(var(--af-primary));
+  --chart-marker-badge-foreground: rgb(var(--af-on-primary));
+
+  --chart-segment-background: rgb(var(--af-ink) / 0.06);
+  --chart-segment-line: rgb(var(--af-ink) / 0.25);
+  --chart-indicator-color: rgb(var(--af-primary));
+  --chart-indicator-secondary-color: rgb(var(--af-muted));
+
+  /* Sequential scale (heatmap / choropleth) — chartTheme SEQUENTIAL_GREEN,
+     thinned to five steps. */
+  --chart-scale-01: #a9c4b0;
+  --chart-scale-02: #7fae8c;
+  --chart-scale-03: #43825b;
+  --chart-scale-04: #275a3f;
+  --chart-scale-05: #143526;
+  --chart-scale-pattern-color: rgb(var(--af-border));
+}
+
+[data-theme="dark"] {
+  --chart-1: #62c57a;
+  --chart-2: #dcae2e;
+  --chart-3: #6e9fe8;
+  --chart-4: #d98a5a;
+  --chart-5: #8c9689;
+
+  --chart-label: #b9c2bc;
+  --chart-grid: #2a2c31;
+
+  /* The sequential ramp reverses on dark — its darkest steps are invisible on
+     a #121316 card. Same reason as chartTheme's SEQUENTIAL_GREEN_DARK. */
+  --chart-scale-01: #dcefe2;
+  --chart-scale-02: #a8d7b7;
+  --chart-scale-03: #74b88b;
+  --chart-scale-04: #478c61;
+  --chart-scale-05: #35734e;
+}
+
+

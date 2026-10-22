@@ -226,7 +226,7 @@ export default function AuthPanel({
                   setPassword("");
                   setMode("signin");
                 }}
-                className="w-full rounded-[12px] bg-af-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-af-primary-deep active:scale-[0.99]"
+                className="w-full rounded-[12px] bg-af-primary px-5 py-3 text-sm font-semibold text-af-on-primary transition hover:bg-af-primary-deep active:scale-[0.99]"
               >
                 {t("login.auth.goToSignIn")}
               </button>
@@ -356,7 +356,7 @@ export default function AuthPanel({
           // submit() validates and says what is wrong instead.
           disabled={loading}
           onClick={submit}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.99] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-6 py-3.5 text-sm font-semibold transition active:scale-[0.99] shadow-af-md disabled:opacity-50 disabled:hover:bg-af-primary disabled:cursor-not-allowed"
         >
           {loading ? (
             <>

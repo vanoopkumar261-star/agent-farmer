@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 /**
  * One chart palette for the whole app (Redesign v2).
  *
@@ -180,3 +182,186 @@ export const tooltipStyle = {
   fontSize: 12,
   padding: "8px 12px",
 } as const;
+
+/**
+ * Marks that are not charts but must still come from one palette.
+ *
+ * A status dot, a slice separator or a map pin is a coloured mark a farmer
+ * reads, and the moment one is hand-picked at a call site it starts drifting —
+ * which is the whole reason `scripts/check-ui-rules.mjs` fails a build on a
+ * hex literal in a `color`/`fill`/`stroke` position.
+ *
+ * `separator` is deliberately the surface it sits on, not white: it is a gap
+ * between slices, so it must equal the card beneath them. That is also what
+ * lets it follow a theme instead of punching a white line through a dark donut.
+ */
+export const MARK = {
+  /** "Active" dots and online badges. Brighter than STATUS.up, which has to
+   *  carry type-weight contrast; a 6px dot does not. */
+  active: "#4EA76A",
+  /** Slice/segment separator — matches the card surface. */
+  separator: "#FFFFFF",
+} as const;
+
+/**
+ * Leaflet basemap and marker chrome.
+ *
+ * Separate from MAP (which is the search-radius overlay) because these are the
+ * map's own furniture: the raster tiles, and the pin HTML. Leaflet builds its
+ * markers from HTML STRINGS inside `L.divIcon`, which cannot read a Tailwind
+ * class, so every pin colour has to be a value a component can interpolate —
+ * the same reason MAP exists.
+ */
+export const BASEMAP = {
+  light: {
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  },
+  /**
+   * CARTO Dark Matter. A bright OSM raster is a glowing white rectangle on a
+   * near-black page — the single most un-themeable surface in the app, and the
+   * one place a tile swap is the only fix. Its attribution is NOT the OSM one:
+   * CARTO requires its own credit, which is a licensing matter, not styling.
+   */
+  dark: {
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  },
+} as const;
+
+/** Pin fills and strokes, per theme. */
+export const PIN = {
+  light: { home: "#173B2A", onHome: "#ffffff", active: "#284D35", idle: "#ffffff", ring: "#284D35" },
+  dark: { home: "#5FBF82", onHome: "#07080A", active: "#5FBF82", idle: "#121316", ring: "#5FBF82" },
+} as const;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Dark theme
+   ---------------------------------------------------------------------------
+   Every value above is the LIGHT palette and stays exported under its own
+   name, so a component that has not been migrated yet still compiles and
+   still renders correctly in light mode. Components that have been migrated
+   call `useChartTheme()` and get the object for the active theme.
+
+   Recharts needs literal colour strings — it cannot read a CSS variable — so
+   this cannot be done with tokens the way the rest of the app is themed. The
+   provider seeds its state from the server, so the first client render already
+   knows the theme and no chart paints the wrong palette and then swaps.
+
+   Measured against the dark CARD (#121316), which is the surface charts
+   actually sit on — not the #070809 page.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/** Lifted for dark. Same four hue families, same slot order, same meanings. */
+const CATEGORICAL_DARK = [
+  "#62C57A", // Crop Green    — 8.7:1
+  "#DCAE2E", // Mustard       — 9.0:1
+  "#6E9FE8", // Field Blue    — 6.9:1
+  "#D98A5A", // Earth Brown   — 6.8:1
+] as const;
+
+/**
+ * Severity on dark — a correctness fix, not a taste call.
+ *
+ * The light ramp's red (#B3221A) is 2.80:1 on #121316, under the 3:1 floor for
+ * a graphical object, in the one feature that carries flood and cyclone
+ * warnings. Escalation is still read from chroma, not from contrast-vs-
+ * surface, so red remains the lowest-contrast of the four; that is correct.
+ */
+const SEVERITY_DARK = {
+  clear: "#3FB37A",
+  yellow: "#E8BE3C",
+  orange: "#F0803C",
+  red: "#F05B4F",
+} as const;
+
+/**
+ * The sequential ramp REVERSES direction on dark.
+ *
+ * Its darkest steps (#143526, #1D4732) are invisible on a #121316 card, so the
+ * ramp runs light→dark instead. Still monotonic in lightness, which is what
+ * makes the donut readable without colour vision.
+ */
+const SEQUENTIAL_GREEN_DARK = [
+  "#DCEFE2",
+  "#C2E4CD",
+  "#A8D7B7",
+  "#8EC9A1",
+  "#74B88B",
+  "#5CA476",
+  "#478C61",
+  "#35734E",
+] as const;
+
+export type ChartPalette = {
+  CATEGORICAL: readonly string[];
+  SERIES: { income: string; expense: string; market: string; yield: string };
+  STATUS: { up: string; down: string };
+  SEVERITY: Record<SeverityKey, string>;
+  SEVERITY_INK: Record<SeverityKey, string>;
+  SEQUENTIAL_GREEN: readonly string[];
+  MAP: { radius: string; radiusOnSatellite: string };
+  MARK: { active: string; separator: string };
+  GRID: string;
+  AXIS: string;
+  LEGEND_INK: string;
+  /** Recharts' hover scrim. Black on light, white on dark — it is a shade of
+   *  the surface, not a colour. */
+  CURSOR_FILL: string;
+  tooltipStyle: CSSProperties;
+};
+
+const LIGHT: ChartPalette = {
+  CATEGORICAL,
+  SERIES,
+  STATUS,
+  SEVERITY,
+  SEVERITY_INK,
+  SEQUENTIAL_GREEN,
+  MAP,
+  MARK,
+  GRID,
+  AXIS,
+  LEGEND_INK,
+  CURSOR_FILL: "rgba(0,0,0,0.03)",
+  tooltipStyle: { ...tooltipStyle, backgroundColor: "#FFFFFF", color: "#173B2A" },
+};
+
+const DARK: ChartPalette = {
+  CATEGORICAL: CATEGORICAL_DARK,
+  SERIES: {
+    income: CATEGORICAL_DARK[0],
+    expense: CATEGORICAL_DARK[1],
+    market: CATEGORICAL_DARK[2],
+    yield: CATEGORICAL_DARK[0],
+  },
+  STATUS: { up: CATEGORICAL_DARK[0], down: "#EF6F57" },
+  SEVERITY: SEVERITY_DARK,
+  // White ink fails on all four dark bands (1.8:1 on the yellow), so the label
+  // goes dark on every one of them.
+  SEVERITY_INK: { clear: "#0B0D0C", yellow: "#0B0D0C", orange: "#0B0D0C", red: "#0B0D0C" },
+  SEQUENTIAL_GREEN: SEQUENTIAL_GREEN_DARK,
+  // #668653 disappears over dark tiles; the satellite case is unchanged,
+  // since satellite imagery is dark in both themes.
+  MAP: { radius: "#8ED9A6", radiusOnSatellite: "#F7F6F0" },
+  MARK: { active: "#5FBF82", separator: "#121316" },
+  GRID: "#2A2C31",
+  AXIS: "#8A938D",
+  LEGEND_INK: "#B9C2BC",
+  CURSOR_FILL: "rgba(255,255,255,0.05)",
+  tooltipStyle: {
+    ...tooltipStyle,
+    border: "1px solid #2A2C31",
+    backgroundColor: "#121316",
+    color: "#FFFFFF",
+    // The light theme's forest shadow is invisible here; a tooltip genuinely
+    // floats above the card, so it keeps a real one.
+    boxShadow: "0 16px 40px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.45)",
+  },
+};
+
+/** The palette for a theme. Charts should reach for `useChartTheme()`. */
+export function chartTheme(theme: "light" | "dark"): ChartPalette {
+  return theme === "dark" ? DARK : LIGHT;
+}

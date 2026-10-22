@@ -8,23 +8,30 @@ import { MapPin, Navigation, Store as StoreIcon, Home, Layers } from "lucide-rea
 import type { Store } from "@/lib/stores";
 import { directionsUrl } from "@/lib/storeDirections";
 import { SEARCH_RADIUS_KM } from "@/lib/storeConfig";
-import { MAP } from "@/lib/chartTheme";
+import { BASEMAP, MAP, PIN } from "@/lib/chartTheme";
 import { useT } from "@/components/i18n/LanguageProvider";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
-const houseIcon = L.divIcon({
-  className: "",
-  html: `<div style="width:32px;height:32px;border-radius:50%;background:#173B2A;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(23,59,42,.35);border:2px solid #fff"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-});
+type Pins = (typeof PIN)[keyof typeof PIN];
 
-function storeIcon(active: boolean) {
-  const bg = active ? "#284D35" : "#ffffff";
-  const fg = active ? "#ffffff" : "#284D35";
+/* Leaflet draws these from an HTML string, so the colours have to be values,
+   not classes — hence the PIN palette in chartTheme rather than Tailwind. */
+function houseIcon(pin: Pins) {
+  return L.divIcon({
+    className: "",
+    html: `<div style="width:32px;height:32px;border-radius:50%;background:${pin.home};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.45);border:2px solid ${pin.onHome}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${pin.onHome}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+}
+
+function storeIcon(active: boolean, pin: Pins) {
+  const bg = active ? pin.active : pin.idle;
+  const fg = active ? pin.onHome : pin.active;
   const size = active ? 30 : 26;
   return L.divIcon({
     className: "",
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2px solid #284D35;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(23,59,42,.25)"><div style="transform:rotate(45deg);width:8px;height:8px;border-radius:50%;background:${fg}"></div></div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2px solid ${pin.ring};display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.35)"><div style="transform:rotate(45deg);width:8px;height:8px;border-radius:50%;background:${fg}"></div></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
   });
@@ -48,6 +55,9 @@ export default function StoreLocatorMap({
   const { t } = useT();
   const [selected, setSelected] = useState<string | null>(stores[0]?.id ?? null);
   const [satellite, setSatellite] = useState(false);
+  const { theme } = useTheme();
+  const basemap = BASEMAP[theme];
+  const pin = PIN[theme];
   const active = stores.find((s) => s.id === selected);
   const center = active ?? house;
 
@@ -158,9 +168,9 @@ export default function StoreLocatorMap({
               />
             ) : (
               <TileLayer
-                key="map"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                key={`map-${theme}`}
+                attribution={basemap.attribution}
+                url={basemap.url}
               />
             )}
             <Recenter lat={center.lat} lng={center.lng} />
@@ -174,12 +184,12 @@ export default function StoreLocatorMap({
                 fillOpacity: satellite ? 0 : 0.04,
               }}
             />
-            <Marker position={[house.lat, house.lng]} icon={houseIcon} />
+            <Marker position={[house.lat, house.lng]} icon={houseIcon(pin)} />
             {stores.map((s) => (
               <Marker
                 key={s.id}
                 position={[s.lat, s.lng]}
-                icon={storeIcon(s.id === selected)}
+                icon={storeIcon(s.id === selected, pin)}
                 eventHandlers={{ click: () => setSelected(s.id) }}
               />
             ))}

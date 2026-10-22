@@ -316,7 +316,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               <Link
                 href="/dashboard/settings"
                 onClick={onClose}
-                className="mt-3 inline-flex items-center justify-center rounded-[12px] bg-af-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-af-primary-deep"
+                className="mt-3 inline-flex items-center justify-center rounded-[12px] bg-af-primary px-4 py-2.5 text-sm font-semibold text-af-on-primary transition hover:bg-af-primary-deep"
               >
                 {t("plans.locked.cta")}
               </Link>
@@ -499,7 +499,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               <button
                 onClick={fetchRecommendations}
                 disabled={!canFetchAI || loadingAI}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-semibold text-white shadow-af-md transition hover:bg-af-primary-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-af-primary"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-semibold text-af-on-primary shadow-af-md transition hover:bg-af-primary-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-af-primary"
               >
                 {loadingAI ? (
                   <>
@@ -518,7 +518,7 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
               <button
                 onClick={handleApply}
                 disabled={!canApply}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-semibold text-white shadow-af-md transition hover:bg-af-primary-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-af-primary"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-semibold text-af-on-primary shadow-af-md transition hover:bg-af-primary-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-af-primary"
               >
                 {saving ? (
                   <>

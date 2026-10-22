@@ -71,7 +71,7 @@ export default function PlanLocked({
 
       <Link
         href="/dashboard/settings"
-        className="mt-6 inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-af-primary-deep"
+        className="mt-6 inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary px-6 py-3 text-sm font-semibold text-af-on-primary transition hover:bg-af-primary-deep"
       >
         <T k="plans.locked.cta" />
         <ArrowRight className="h-4 w-4" />

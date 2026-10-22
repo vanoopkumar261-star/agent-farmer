@@ -24,7 +24,7 @@ export default async function StoreLocatorPage() {
         </p>
         <Link
           href="/onboarding"
-          className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold"
+          className="mt-6 inline-flex rounded-[14px] bg-af-primary text-af-on-primary px-6 py-3 text-sm font-semibold"
         >
           <T k="stores.setLocation" />
         </Link>

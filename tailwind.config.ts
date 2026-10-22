@@ -4,6 +4,20 @@ const config: Config = {
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  /**
+   * Dark mode is carried by `data-theme="dark"` on <html>, not a class.
+   *
+   * An attribute is the safer carrier here: <html>'s className is computed on
+   * the server (the two font variables), and a pre-paint script toggling a
+   * class on that same string is how hydration class-mismatch warnings start.
+   * An attribute written by that script is invisible to React's reconciler.
+   *
+   * Nearly all of the theming is done by the af-* tokens, which flip in CSS
+   * without Tailwind knowing. This entry exists for the handful of things a
+   * token cannot express — blend modes, veil opacities, a filter on the hero
+   * video — which need a real `dark:` variant.
+   */
+  darkMode: ["selector", '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
@@ -43,14 +57,19 @@ const config: Config = {
         'sky-info': '#3b82f6',
         'alert-warning': '#ba1a1a',
 
-        // Official Agent Farmer light theme (Theme Guide v1.0) — used by the app pages.
+        // Agent Farmer app palette — used by the app pages.
         //
-        // Driven by CSS variables so the palette can be re-scoped per shell. The
-        // :root defaults (globals.css) are the original emerald theme used by
-        // /login and /onboarding; the dashboard shell overrides them with the
-        // deeper "New version" forest palette. See globals.css → [data-shell="app"].
+        // Driven by CSS variables so the palette can be re-themed wholesale:
+        // globals.css declares the light values on :root and the dark ones
+        // under [data-theme="dark"]. Nothing here changes between themes, which
+        // is the point — markup never learns which theme it is in.
         af: {
           primary: 'rgb(var(--af-primary) / <alpha-value>)',       // CTAs, active nav, success
+          // What goes ON a primary fill. White in light (9.3:1 on #284D35);
+          // the page ground in dark, because white on the brightened forest
+          // #5FBF82 is 2.3:1 and unreadable. Never write text-white on a
+          // primary surface — that is the one thing a theme flip cannot fix.
+          'on-primary': 'rgb(var(--af-on-primary) / <alpha-value>)',
           'primary-deep': 'rgb(var(--af-primary-deep) / <alpha-value>)',
           secondary: 'rgb(var(--af-secondary) / <alpha-value>)',   // Forest — dark bands
           leaf: 'rgb(var(--af-leaf) / <alpha-value>)',             // Fresh Leaf — hover, icons
@@ -70,38 +89,56 @@ const config: Config = {
           danger: 'rgb(var(--af-danger) / <alpha-value>)',         // Error
         },
 
-        // Marketing palette (landing / team / about). Redesign v2 — these now
-        // resolve to the same greens as the af-* app tokens in globals.css, so
-        // the site and the product look like one company. Names unchanged.
-        'of-bg': '#F7F6F0',        // Warm Ivory — the page ground
-        'of-bg-2': '#F0EFE6',      // slightly deeper alt band
-        'of-surface': '#FFFFFF',   // cards
-        'of-ink': '#173B2A',       // Primary Forest — headings
-        'of-body': '#3F5347',      // body text
-        'of-muted': '#7C8A78',     // muted / captions
-        'of-border': '#E3E4D9',    // sage-tinted hairlines
-        'of-primary': '#284D35',   // Deep Green — CTAs, accents
-        'of-primary-deep': '#173B2A',
-        'of-forest': '#173B2A',    // dark bands
-        'of-blue': '#4A6FA5',      // desaturated blue — AI accents only
-        'of-slate': '#6E7A6B',     // warm neutral
-        'of-sage': '#A9B99A',      // Sage — muted agricultural accent
-        'of-mustard': '#D6A72C',   // Mustard — sparing highlight
-        'of-earth': '#8B7355',     // Earth Brown — soil/organic accents
+        // Marketing palette (landing / team / about). Redesign v2 — these
+        // resolve to the same greens as the af-* app tokens, so the site and
+        // the product look like one company. Names unchanged.
+        //
+        // Now variable-driven for the same reason af-* is: the public pages
+        // are in scope for dark mode, and a literal hex cannot follow a theme.
+        // Light values are declared in globals.css and are byte-identical to
+        // the hexes that used to live here.
+        'of-bg': 'rgb(var(--of-bg) / <alpha-value>)',             // the page ground
+        'of-bg-2': 'rgb(var(--of-bg-2) / <alpha-value>)',         // alt band
+        'of-surface': 'rgb(var(--of-surface) / <alpha-value>)',   // cards
+        'of-ink': 'rgb(var(--of-ink) / <alpha-value>)',           // headings
+        'of-body': 'rgb(var(--of-body) / <alpha-value>)',         // body text
+        'of-muted': 'rgb(var(--of-muted) / <alpha-value>)',       // captions
+        'of-border': 'rgb(var(--of-border) / <alpha-value>)',     // hairlines
+        'of-primary': 'rgb(var(--of-primary) / <alpha-value>)',   // CTAs
+        'of-primary-deep': 'rgb(var(--of-primary-deep) / <alpha-value>)',
+        'of-forest': 'rgb(var(--of-forest) / <alpha-value>)',     // dark bands
+        'of-blue': 'rgb(var(--of-blue) / <alpha-value>)',         // AI accents only
+        'of-slate': 'rgb(var(--of-slate) / <alpha-value>)',       // warm neutral
+        'of-sage': 'rgb(var(--of-sage) / <alpha-value>)',
+        'of-mustard': 'rgb(var(--of-mustard) / <alpha-value>)',
+        'of-earth': 'rgb(var(--of-earth) / <alpha-value>)',
 
-        // Arva — pastoral editorial palette (landing page).
-        'forest-ink': '#07503f',
+        // Arva — pastoral editorial palette (landing page). Same treatment.
+        // `vivid-lime` is the one that does NOT move: it was already a
+        // dark-native accent, and it is the page's whole character.
+        // forest-ink does double duty in the Arva layout: TYPE on a light
+        // surface, and the fill of the big forest BANDS. Those invert in
+        // opposite directions on dark — type has to brighten, a band has to
+        // stay a band — so the band got its own token rather than one of them
+        // being wrong. Light values are identical, so nothing moved.
+        'forest-ink': 'rgb(var(--arva-forest-ink) / <alpha-value>)',
+        'arva-band': 'rgb(var(--arva-band) / <alpha-value>)',
         'vivid-lime': '#e8fe85',
-        'bone': '#f1efdf',
-        'pure-white': '#ffffff',
-        'ash-gray': '#efefef',
-        'charcoal': '#212529',
-        'graphite': '#353535',
-        'pewter': '#6d6d6d',
-        'sky-card': '#b2cee7',
-        'peach-card': '#fceace',
-        'sage-card': '#e6ecd5',
-        'moss': '#c3cda7',
+        'bone': 'rgb(var(--arva-bone) / <alpha-value>)',
+        'pure-white': 'rgb(var(--arva-pure-white) / <alpha-value>)',
+        'ash-gray': 'rgb(var(--arva-ash-gray) / <alpha-value>)',
+        'charcoal': 'rgb(var(--arva-charcoal) / <alpha-value>)',
+        'graphite': 'rgb(var(--arva-graphite) / <alpha-value>)',
+        'pewter': 'rgb(var(--arva-pewter) / <alpha-value>)',
+        'sky-card': 'rgb(var(--arva-sky-card) / <alpha-value>)',
+        'peach-card': 'rgb(var(--arva-peach-card) / <alpha-value>)',
+        'sage-card': 'rgb(var(--arva-sage-card) / <alpha-value>)',
+        'moss': 'rgb(var(--arva-moss) / <alpha-value>)',
+
+        // Bklit chart registry: one utility class its components use
+        // (`text-chart-label`). The rest of their colour comes from raw CSS
+        // variables, which need no Tailwind entry. See globals.css.
+        'chart-label': 'var(--chart-label)',
 
         // Dark HUD/terminal theme — landing page only.
         'hud-bg': '#050806',
@@ -159,13 +196,19 @@ const config: Config = {
         'hud-glow-blue': '0 0 0 1px rgba(76,158,255,0.15), 0 8px 40px rgba(76,158,255,0.10)',
         // Forest-tinted depth. Redesign v2 keeps these deliberately faint —
         // the direction calls for subtle borders over heavy shadows.
-        'af-sm': '0 1px 2px rgba(23,59,42,0.04), 0 1px 3px rgba(23,59,42,0.05)',
-        'af-md': '0 2px 8px rgba(23,59,42,0.05), 0 1px 3px rgba(23,59,42,0.04)',
-        'af-float': '0 10px 28px rgba(23,59,42,0.07), 0 3px 10px rgba(23,59,42,0.04)',
-        'of-card': '0 1px 2px rgba(23,59,42,0.04), 0 8px 24px rgba(23,59,42,0.05)',
-        'of-float': '0 18px 44px rgba(23,59,42,0.09), 0 5px 14px rgba(23,59,42,0.05)',
-        'of-nav': '0 8px 28px rgba(23,59,42,0.08), inset 0 1px 0 rgba(255,255,255,0.7)',
-        'of-glow': '0 0 0 1px rgba(23,59,42,0.12), 0 12px 32px rgba(23,59,42,0.12)',
+        //
+        // The values live in globals.css so dark mode can change the whole
+        // strategy (a tinted drop shadow is invisible on near-black; dark
+        // uses an inset top highlight instead) without a single call site
+        // moving. `shadow-af-sm` is on hundreds of screens — it must stay one
+        // utility that means "resting surface", whatever that takes to draw.
+        'af-sm': 'var(--af-shadow-sm)',
+        'af-md': 'var(--af-shadow-md)',
+        'af-float': 'var(--af-shadow-float)',
+        'of-card': 'var(--of-shadow-card)',
+        'of-float': 'var(--of-shadow-float)',
+        'of-nav': 'var(--of-shadow-nav)',
+        'of-glow': 'var(--of-shadow-glow)',
       },
       keyframes: {
         'hud-blink': {

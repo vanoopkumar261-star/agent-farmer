@@ -58,8 +58,12 @@ export default function AppBackground() {
             className="absolute inset-0 bg-cover bg-bottom bg-no-repeat"
             style={{ backgroundImage: `url('${backdrop}')` }}
           />
-          <div className="absolute inset-0 bg-af-bg/45" />
-          <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-af-bg via-af-bg/70 to-transparent" />
+          {/* The veil flips meaning with the theme for free — af-bg is ivory
+              in light and near-black in dark — but not strength. A daylight
+              field photo needs far more covering on an OLED ground than an
+              ivory one, or the page has a glowing rectangle in the middle. */}
+          <div className="absolute inset-0 bg-af-bg/45 dark:bg-af-bg/88" />
+          <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-af-bg via-af-bg/70 to-transparent dark:via-af-bg/85" />
         </>
       ) : (
         <>
@@ -86,9 +90,10 @@ export default function AppBackground() {
         <div
           className="absolute inset-0 opacity-50"
           style={{
-            // Forest ink, not the old near-black — on warm ivory a neutral grey
-            // dot reads as dirt on the page rather than as texture.
-            backgroundImage: "radial-gradient(rgba(23,59,42,0.055) 1px, transparent 1px)",
+            // The ink token, so the dot inverts with the theme: forest on
+            // ivory, off-white on near-black. A fixed rgba would simply
+            // vanish in one of the two.
+            backgroundImage: "radial-gradient(rgb(var(--af-ink) / 0.055) 1px, transparent 1px)",
             backgroundSize: "22px 22px",
             maskImage: "radial-gradient(ellipse at 50% 0%, black 0%, transparent 75%)",
             WebkitMaskImage: "radial-gradient(ellipse at 50% 0%, black 0%, transparent 75%)",
@@ -98,7 +103,7 @@ export default function AppBackground() {
 
       {/* Film grain */}
       <div
-        className="absolute inset-0 opacity-[0.025] mix-blend-multiply"
+        className="absolute inset-0 opacity-[0.025] mix-blend-multiply dark:opacity-[0.045] dark:mix-blend-screen"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",

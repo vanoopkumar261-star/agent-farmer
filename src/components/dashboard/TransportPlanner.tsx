@@ -314,7 +314,7 @@ export default function TransportPlanner({
           {/* Confirm button */}
           <button
             onClick={onClose}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md"
           >
             <CheckCircle className="w-4 h-4" />
             {t("transportPlanner.confirmBook")}

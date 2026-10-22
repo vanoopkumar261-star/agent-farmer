@@ -7,7 +7,10 @@ import { useT } from "@/components/i18n/LanguageProvider";
 import { LOCALES } from "@/lib/i18n/config";
 import Card from "@/components/ui/Card";
 import DataPrivacyModal from "@/components/dashboard/DataPrivacyModal";
+import MemberCard from "@/components/dashboard/MemberCard";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { resetTour } from "@/lib/tour";
+import type { PlanId } from "@/lib/plans";
 import {
   User,
   Globe,
@@ -22,6 +25,9 @@ import {
   Sparkles,
   LogOut,
   GraduationCap,
+  Palette,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 type NotifPrefs = { weather: boolean; disease: boolean; market: boolean; ai: boolean };
@@ -37,9 +43,19 @@ type Profile = {
 
 const DEFAULT_NOTIF: NotifPrefs = { weather: true, disease: true, market: false, ai: true };
 
-export default function SettingsPanel({ profile }: { profile: Profile }) {
+export default function SettingsPanel({
+  profile,
+  plan,
+  /** The plan panel, rendered by the page and slotted in below the card. */
+  planPanel,
+}: {
+  profile: Profile;
+  plan: PlanId;
+  planPanel?: React.ReactNode;
+}) {
   const router = useRouter();
   const { t, locale, setLocale } = useT();
+  const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.phone);
   const [email, setEmail] = useState(profile.email ?? "");
@@ -112,9 +128,18 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="space-y-6">
+      {/*
+        Identity row: the membership card beside the form that edits it.
+        The card takes `name` from state rather than from `profile`, so it
+        re-letters as the farmer types — the point of putting it here is
+        that they can see what they are changing.
+      */}
+      <section className="grid grid-cols-1 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] gap-6 items-start">
+      <MemberCard name={name} plan={plan} id={profile.id} />
+
       {/* Profile */}
-      <Card className="p-6">
+      <Card className="p-6 lg:min-h-[420px]">
         <SectionTitle icon={<User className="w-4 h-4" />} title={t("settings.section.profile")} subtitle={t("settings.section.profileSub")} />
         <div className="mt-5 space-y-4">
           <Field label={t("settings.field.fullName")} value={name} onChange={setName} />
@@ -129,14 +154,18 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
           <button
             onClick={save}
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-5 py-3 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : null}
             {saved ? t("common.saved") : t("common.save")}
           </button>
         </div>
       </Card>
+      </section>
 
+      {planPanel}
+
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       {/* Language */}
       <Card className="p-6">
         <SectionTitle icon={<Globe className="w-4 h-4" />} title={t("settings.section.language")} subtitle={t("settings.section.languageSub")} />
@@ -160,6 +189,34 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
         </p>
       </Card>
 
+      {/* Appearance */}
+      <Card className="p-6">
+        <SectionTitle icon={<Palette className="w-4 h-4" />} title={t("theme.title")} subtitle={t("theme.sub")} />
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          {/*
+            Two explicit choices rather than a switch. The header carries the
+            quick toggle; here a farmer should be able to see which mode they
+            are in without decoding an icon, in a page they reached precisely
+            because something was not behaving as expected.
+          */}
+          {(["light", "dark"] as const).map((option) => (
+            <button
+              key={option}
+              onClick={() => setTheme(option)}
+              aria-pressed={theme === option}
+              className={`flex items-center justify-center gap-2 rounded-[12px] border px-3 py-2.5 text-sm font-semibold transition ${
+                theme === option
+                  ? "border-af-primary/50 bg-af-primary/[0.06] text-af-primary-deep ring-2 ring-af-primary/15"
+                  : "border-af-border bg-af-card text-af-ink-2 hover:border-af-primary/30"
+              }`}
+            >
+              {option === "light" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {t(option === "light" ? "theme.light" : "theme.dark")}
+            </button>
+          ))}
+        </div>
+      </Card>
+
       {/* Notifications */}
       <Card className="p-6">
         <SectionTitle icon={<Bell className="w-4 h-4" />} title={t("settings.section.notifications")} subtitle={t("settings.section.notificationsSub")} />
@@ -174,12 +231,16 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
             on={notif.ai} onToggle={() => toggleNotif("ai")} />
         </div>
       </Card>
+      </section>
 
-
-      {/* Account */}
+      {/*
+        Account runs full width because its rows pair up two to a line on a
+        wide screen — a half-width column would have left them stacked with
+        the notification list beside an empty gutter.
+      */}
       <Card className="p-6">
         <SectionTitle icon={<Shield className="w-4 h-4" />} title={t("settings.section.account")} subtitle={t("settings.section.accountSub")} />
-        <div className="mt-5 space-y-3">
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex items-center justify-between rounded-[12px] bg-af-bg border border-af-border px-4 py-3">
             <span className="text-sm font-semibold text-af-ink">{t("settings.signedInAs")}</span>
             <span className="text-meta font-semibold text-af-primary-deep">{username ?? "—"}</span>
@@ -218,7 +279,7 @@ export default function SettingsPanel({ profile }: { profile: Profile }) {
           <button
             onClick={signOut}
             disabled={signingOut}
-            className="w-full flex items-center justify-center gap-2 rounded-[12px] bg-af-danger/10 border border-af-danger/20 px-4 py-3 text-sm font-semibold text-af-danger hover:bg-af-danger/15 transition disabled:opacity-50"
+            className="sm:col-span-2 w-full flex items-center justify-center gap-2 rounded-[12px] bg-af-danger/10 border border-af-danger/20 px-4 py-3 text-sm font-semibold text-af-danger hover:bg-af-danger/15 transition disabled:opacity-50"
           >
             {signingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
             {signingOut ? t("settings.signingOut") : t("settings.signOut")}

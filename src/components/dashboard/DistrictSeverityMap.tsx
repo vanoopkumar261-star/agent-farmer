@@ -3,7 +3,8 @@
 import { useMemo } from "react";
 import { ShieldCheck, ShieldAlert, AlertTriangle, Info } from "lucide-react";
 import { useT } from "@/components/i18n/LanguageProvider";
-import { SEVERITY, type SeverityKey } from "@/lib/chartTheme";
+import { type SeverityKey } from "@/lib/chartTheme";
+import { useChartTheme } from "@/components/theme/useChartTheme";
 import {
   centroidOf,
   contourPath,
@@ -80,6 +81,7 @@ export default function DistrictSeverityMap({
   count,
 }: SeverityMapProps) {
   const { t } = useT();
+  const { SEVERITY, MARK } = useChartTheme();
   const colour = SEVERITY[band];
   const Icon = ICON[band];
 
@@ -198,7 +200,7 @@ export default function DistrictSeverityMap({
               cy={shape.glowAt.y}
               r="2.6"
               fill={colour}
-              stroke="#fff"
+              stroke={MARK.separator}
               strokeWidth="1.2"
             />
           </g>

@@ -12,6 +12,8 @@ import { getDashboardData } from "@/lib/dashboard";
 import { planOf } from "@/lib/plans";
 import { getRecentChat } from "@/lib/history";
 import { assistantSuggestions } from "@/lib/assistant-suggestions";
+import ThemeAccountSync from "@/components/theme/ThemeAccountSync";
+import { themeFromPreferences } from "@/lib/theme";
 
 export default async function DashboardLayout({
   children,
@@ -42,6 +44,12 @@ export default async function DashboardLayout({
         {/* data-shell scopes the deeper "New version" af-* palette to the app
             shell, leaving /login and /onboarding on the original emerald. */}
         <div data-shell="app" className="relative flex bg-af-bg min-h-screen text-af-ink">
+          {/* Renders nothing; carries the theme between this account and this
+              device. The cookie already decided the first paint. */}
+          <ThemeAccountSync
+            farmerId={farmerId}
+            preference={themeFromPreferences(farmer.preferences)}
+          />
           <AppBackground />
           <SpotlightLayer />
           <Sidebar plan={planOf(farmer.plan)} />

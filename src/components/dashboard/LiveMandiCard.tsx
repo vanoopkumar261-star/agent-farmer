@@ -334,7 +334,7 @@ export default function LiveMandiCard({
                   <span
                     className={`flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-semibold shrink-0 ${
                       isBest
-                        ? "bg-af-primary text-white"
+                        ? "bg-af-primary text-af-on-primary"
                         : "bg-af-card text-af-muted border border-af-border"
                     }`}
                   >

@@ -8,6 +8,7 @@ import NotificationsMenu from "./NotificationsMenu";
 import type { PlanId } from "@/lib/plans";
 import MobileNav from "./MobileNav";
 import { useT } from "@/components/i18n/LanguageProvider";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { LOCALES } from "@/lib/i18n/config";
 import { supabase } from "@/lib/supabase";
 
@@ -107,6 +108,10 @@ export default function TopBar({
 
         <div className="hidden sm:block flex-1" />
 
+        {/* Appearance. Not hidden on small screens the way the language chip
+            is — the phone is where this app gets read after dark. */}
+        <ThemeToggle className="mr-1" />
+
         {/* Language */}
         <div className="relative hidden sm:block" ref={langRef}>
           <button
@@ -145,7 +150,7 @@ export default function TopBar({
             onClick={() => setProfileOpen((o) => !o)}
             className="inline-flex items-center gap-2.5 rounded-[12px] border border-af-border bg-af-card pl-1.5 pr-3 py-1.5 hover:border-af-primary/30 transition"
           >
-            <span className="w-8 h-8 rounded-full bg-af-primary text-white flex items-center justify-center text-xs font-semibold">
+            <span className="w-8 h-8 rounded-full bg-af-primary text-af-on-primary flex items-center justify-center text-xs font-semibold">
               {initials || "AF"}
             </span>
             <span className="hidden sm:block text-sm font-semibold text-af-ink max-w-[120px] truncate">

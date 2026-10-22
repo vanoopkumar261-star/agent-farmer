@@ -10,7 +10,7 @@ type Size = "sm" | "md";
  * bold was shouting, and hierarchy now comes from surface, not weight.
  */
 const variants: Record<Variant, string> = {
-  primary: "bg-af-primary hover:bg-af-primary-deep text-white",
+  primary: "bg-af-primary hover:bg-af-primary-deep text-af-on-primary",
   secondary: "bg-af-card hover:bg-af-bg text-af-ink border border-af-border hover:border-af-primary/30",
   ghost: "bg-transparent hover:bg-af-sage text-af-ink-2 hover:text-af-ink",
   danger: "bg-af-danger/10 hover:bg-af-danger/15 text-af-danger",

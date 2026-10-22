@@ -26,7 +26,7 @@ export default async function CropsPage() {
             title={<T k="crops.empty.title" />}
             body={<T k="crops.empty.body" />}
             action={
-              <Link href="/onboarding" className="inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold">
+              <Link href="/onboarding" className="inline-flex rounded-[14px] bg-af-primary text-af-on-primary px-6 py-3 text-sm font-semibold">
                 <T k="dashboard.home.startOnboarding" />
               </Link>
             }

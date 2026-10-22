@@ -1,6 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
+import { MAP } from "@/lib/chartTheme";
 import L from "leaflet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Circle, MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
@@ -295,7 +296,7 @@ export default function MapSelector({ value, onChange }: Props) {
         type="button"
         onClick={handleLocate}
         disabled={locating}
-        className="w-full inline-flex items-center justify-center gap-2.5 rounded-[16px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-4 text-[15px] font-semibold transition active:scale-[0.99] shadow-af-sm disabled:opacity-60"
+        className="w-full inline-flex items-center justify-center gap-2.5 rounded-[16px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-5 py-4 text-[15px] font-semibold transition active:scale-[0.99] shadow-af-sm disabled:opacity-60"
       >
         {locating ? (
           <>
@@ -344,7 +345,7 @@ export default function MapSelector({ value, onChange }: Props) {
                   type="button"
                   onClick={() => void handlePin()}
                   disabled={pin.length !== 6 || pinBusy}
-                  className="rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 text-sm font-semibold transition disabled:opacity-50"
+                  className="rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-5 text-sm font-semibold transition disabled:opacity-50"
                 >
                   {pinBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Find"}
                 </button>
@@ -421,7 +422,7 @@ export default function MapSelector({ value, onChange }: Props) {
             <Circle
               center={markerPos}
               radius={accuracyM}
-              pathOptions={{ color: "#284D35", weight: 1.5, fillColor: "#284D35", fillOpacity: 0.12 }}
+              pathOptions={{ color: MAP.radius, weight: 1.5, fillColor: MAP.radius, fillOpacity: 0.12 }}
             />
           )}
 

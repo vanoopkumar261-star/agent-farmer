@@ -17,7 +17,7 @@ export default async function SettingsPage() {
       <div className="max-w-md mx-auto mt-20 text-center rounded-2xl bg-af-card border border-af-border shadow-af-sm p-10">
         <h2 className="text-[19px] font-semibold tracking-[-0.02em] text-af-ink"><T k="settings.noProfileTitle" /></h2>
         <p className="mt-2 text-sm text-af-ink-2"><T k="settings.noProfileBody" /></p>
-        <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-white px-6 py-3 text-sm font-semibold">
+        <Link href="/onboarding" className="mt-6 inline-flex rounded-[14px] bg-af-primary text-af-on-primary px-6 py-3 text-sm font-semibold">
           <T k="dashboard.home.startOnboarding" />
         </Link>
       </div>
@@ -33,16 +33,18 @@ export default async function SettingsPage() {
       />
 
       {/*
-        Above the profile form: a farmer who came here to change their plan
-        should not have to scroll past their phone number to find it. The
-        field count comes from the data this page already loaded, and is what
-        stops a downgrade being offered that would strand existing fields.
+        Order on this page: who you are, then what you are on, then the
+        controls. The membership card inside SettingsPanel already names the
+        tier in its metal, so the plan panel follows it rather than opening
+        the page — but it still sits above language and notifications,
+        because a farmer who came here to change plan should not have to
+        scroll past nine toggles to find it. The field count comes from the
+        data this page already loaded, and is what stops a downgrade being
+        offered that would strand existing fields.
       */}
-      <div className="mb-5">
-        <PlanPanel initialPlan={planOf(farmer.plan)} fieldCount={farms?.length ?? 0} />
-      </div>
-
       <SettingsPanel
+        plan={planOf(farmer.plan)}
+        planPanel={<PlanPanel initialPlan={planOf(farmer.plan)} fieldCount={farms?.length ?? 0} />}
         profile={{
           id: farmer.id,
           name: farmer.name,

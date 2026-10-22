@@ -49,6 +49,12 @@ const en: Dict = {
   "nav.openMenu": "Open menu",
   "nav.closeMenu": "Close menu",
   "nav.language": "Language",
+  "theme.switchToDark": "Switch to dark mode",
+  "theme.switchToLight": "Switch to light mode",
+  "theme.title": "Appearance",
+  "theme.sub": "How the app looks on your screen",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
   "topbar.search": "Search farms, crops, insights…",
   "greeting.morning": "Good morning",
   "greeting.afternoon": "Good afternoon",
@@ -120,6 +126,12 @@ const hi: Dict = {
   "nav.openMenu": "मेनू खोलें",
   "nav.closeMenu": "मेनू बंद करें",
   "nav.language": "भाषा",
+  "theme.switchToDark": "डार्क मोड पर जाएँ",
+  "theme.switchToLight": "लाइट मोड पर जाएँ",
+  "theme.title": "दिखावट",
+  "theme.sub": "ऐप आपकी स्क्रीन पर कैसा दिखे",
+  "theme.light": "लाइट",
+  "theme.dark": "डार्क",
 };
 
 const kn: Dict = {
@@ -173,6 +185,12 @@ const kn: Dict = {
   "nav.openMenu": "Åpne meny",
   "nav.closeMenu": "Close menu",
   "nav.language": "Vil du være oversetter?",
+  "theme.switchToDark": "ಡಾರ್ಕ್ ಮೋಡ್‌ಗೆ ಬದಲಿಸಿ",
+  "theme.switchToLight": "ಲೈಟ್ ಮೋಡ್‌ಗೆ ಬದಲಿಸಿ",
+  "theme.title": "ಗೋಚರಿಕೆ",
+  "theme.sub": "ಪರದೆಯ ಮೇಲೆ ಆ್ಯಪ್ ಹೇಗೆ ಕಾಣಬೇಕು",
+  "theme.light": "ಲೈಟ್",
+  "theme.dark": "ಡಾರ್ಕ್",
 };
 
 const ta: Dict = {
@@ -226,6 +244,12 @@ const ta: Dict = {
   "nav.openMenu": "Åpne meny",
   "nav.closeMenu": "Close menu",
   "nav.language": "Vil du være oversetter?",
+  "theme.switchToDark": "இருண்ட பயன்முறைக்கு மாறு",
+  "theme.switchToLight": "ஒளி பயன்முறைக்கு மாறு",
+  "theme.title": "தோற்றம்",
+  "theme.sub": "திரையில் ஆப் எப்படித் தெரிய வேண்டும்",
+  "theme.light": "ஒளி",
+  "theme.dark": "இருள்",
 };
 
 const te: Dict = {
@@ -279,6 +303,12 @@ const te: Dict = {
   "nav.openMenu": "Åpne meny",
   "nav.closeMenu": "Close menu",
   "nav.language": "Vil du være oversetter?",
+  "theme.switchToDark": "డార్క్ మోడ్‌కు మారండి",
+  "theme.switchToLight": "లైట్ మోడ్‌కు మారండి",
+  "theme.title": "రూపం",
+  "theme.sub": "స్క్రీన్‌పై యాప్ ఎలా కనిపించాలి",
+  "theme.light": "లైట్",
+  "theme.dark": "డార్క్",
 };
 
 const ml: Dict = {
@@ -332,6 +362,12 @@ const ml: Dict = {
   "nav.openMenu": "Åpne meny",
   "nav.closeMenu": "Zatvorte menu",
   "nav.language": "Vil du være oversetter?",
+  "theme.switchToDark": "ഡാർക്ക് മോഡിലേക്ക് മാറുക",
+  "theme.switchToLight": "ലൈറ്റ് മോഡിലേക്ക് മാറുക",
+  "theme.title": "കാഴ്ച",
+  "theme.sub": "സ്ക്രീനിൽ ആപ്പ് എങ്ങനെ കാണണം",
+  "theme.light": "ലൈറ്റ്",
+  "theme.dark": "ഡാർക്ക്",
 };
 
 const mr: Dict = {
@@ -385,6 +421,12 @@ const mr: Dict = {
   "nav.openMenu": "Åpne meny",
   "nav.closeMenu": "Close menu",
   "nav.language": "Vil du være oversetter?",
+  "theme.switchToDark": "डार्क मोडवर जा",
+  "theme.switchToLight": "लाइट मोडवर जा",
+  "theme.title": "दिसणे",
+  "theme.sub": "अ‍ॅप तुमच्या स्क्रीनवर कसे दिसावे",
+  "theme.light": "लाइट",
+  "theme.dark": "डार्क",
 };
 
 const bn: Dict = {
@@ -438,6 +480,12 @@ const bn: Dict = {
   "nav.openMenu": "Åpne meny",
   "nav.closeMenu": "Close menu",
   "nav.language": "Vil du være oversetter?",
+  "theme.switchToDark": "ডার্ক মোডে যান",
+  "theme.switchToLight": "লাইট মোডে যান",
+  "theme.title": "চেহারা",
+  "theme.sub": "স্ক্রিনে অ্যাপ কেমন দেখাবে",
+  "theme.light": "লাইট",
+  "theme.dark": "ডার্ক",
 };
 
 const pa: Dict = {
@@ -491,6 +539,12 @@ const pa: Dict = {
   "nav.openMenu": "Åpne meny",
   "nav.closeMenu": "Close menu",
   "nav.language": "Vil du være oversetter?",
+  "theme.switchToDark": "ਡਾਰਕ ਮੋਡ ਉੱਤੇ ਜਾਓ",
+  "theme.switchToLight": "ਲਾਈਟ ਮੋਡ ਉੱਤੇ ਜਾਓ",
+  "theme.title": "ਦਿੱਖ",
+  "theme.sub": "ਸਕਰੀਨ ਉੱਤੇ ਐਪ ਕਿਵੇਂ ਦਿਖੇ",
+  "theme.light": "ਲਾਈਟ",
+  "theme.dark": "ਡਾਰਕ",
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = {

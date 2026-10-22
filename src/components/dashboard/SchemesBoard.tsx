@@ -293,7 +293,7 @@ export default function SchemesBoard({
             key={c}
             onClick={() => setCat(c)}
             className={`rounded-full px-3.5 py-1.5 text-meta font-semibold transition ${
-              cat === c ? "bg-af-primary text-white shadow-af-sm" : "bg-af-card border border-af-border text-af-ink-2 hover:text-af-ink"
+              cat === c ? "bg-af-primary text-af-on-primary shadow-af-sm" : "bg-af-card border border-af-border text-af-ink-2 hover:text-af-ink"
             }`}
           >
             {t(catLabelKey[c])}
@@ -401,7 +401,7 @@ export default function SchemesBoard({
                   href={s.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-[10px] bg-af-primary hover:bg-af-primary-deep text-white px-3.5 py-2 text-meta font-semibold transition"
+                  className="inline-flex items-center gap-1.5 rounded-[10px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-3.5 py-2 text-meta font-semibold transition"
                 >
                   {t("schemesBoard.apply")} <ExternalLink className="w-3.5 h-3.5" />
                 </a>

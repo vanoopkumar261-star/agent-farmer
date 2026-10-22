@@ -91,7 +91,7 @@ export default function FindUs() {
   };
 
   return (
-    <section className="bg-forest-ink">
+    <section className="bg-arva-band">
       <div className="mx-auto max-w-[1200px] px-6 py-[80px]">
         <div className="grid grid-cols-1 gap-14 lg:grid-cols-2 lg:gap-10">
           {/* ── Feedback form ───────────────────────────────────────────── */}
@@ -181,7 +181,7 @@ export default function FindUs() {
                 <button
                   onClick={submit}
                   disabled={!canSubmit}
-                  className="mt-2 inline-flex items-center justify-center gap-2 rounded-arva-btn bg-white px-9 py-3.5 font-sans text-[14px] font-semibold uppercase tracking-[0.06em] text-charcoal transition hover:bg-bone disabled:cursor-not-allowed disabled:opacity-45"
+                  className="mt-2 inline-flex items-center justify-center gap-2 rounded-arva-btn bg-pure-white px-9 py-3.5 font-sans text-[14px] font-semibold uppercase tracking-[0.06em] text-charcoal transition hover:bg-bone disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {status === "sending" ? (
                     <>

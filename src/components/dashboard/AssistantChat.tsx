@@ -339,7 +339,7 @@ export default function AssistantChat({
             type="submit"
             disabled={!input.trim() || streaming}
             aria-label={t("assistant.sendAria")}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-af-secondary hover:bg-af-primary-deep text-white shrink-0 transition active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-af-secondary hover:bg-af-primary-deep text-af-on-primary shrink-0 transition active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-af-primary/45 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none"
           >
             {streaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>

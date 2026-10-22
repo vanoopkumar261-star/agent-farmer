@@ -43,6 +43,10 @@ export async function getExpensesData(farmerId: string): Promise<ExpensesData> {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, v]) => ({
       month: new Date(month + "-01").toLocaleDateString("en-US", { month: "short" }),
+      // The same month as a date. `month` above is a display label and cannot
+      // be ordered or scaled; a chart on a real time axis needs the value the
+      // key already holds, so it is carried rather than re-parsed downstream.
+      monthISO: `${month}-01`,
       income: v.income,
       expense: v.expense,
     }));

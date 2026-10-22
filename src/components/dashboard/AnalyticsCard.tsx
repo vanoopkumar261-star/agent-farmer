@@ -20,7 +20,13 @@ import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
 import Badge from "@/components/ui/Badge";
 import { BarChart3 } from "lucide-react";
-import { SERIES, STATUS, GRID, AXIS, LEGEND_INK, tooltipStyle } from "@/lib/chartTheme";
+import { useChartTheme } from "@/components/theme/useChartTheme";
+import { AreaChart } from "@/components/charts/area-chart";
+import { Area } from "@/components/charts/area";
+import { Grid } from "@/components/charts/grid";
+import { XAxis as BklitXAxis } from "@/components/charts/x-axis";
+import { YAxis as BklitYAxis } from "@/components/charts/y-axis";
+import { ChartTooltip } from "@/components/charts/tooltip";
 import { useT } from "@/components/i18n/LanguageProvider";
 
 /**
@@ -43,7 +49,7 @@ import { useT } from "@/components/i18n/LanguageProvider";
  * invented; today's real spread already lives on the Market page.
  */
 
-export type CashPoint = { m: string; income: number; expense: number };
+export type CashPoint = { m: string; date: Date; income: number; expense: number };
 
 /** One day of the real forecast, trimmed to what the chart needs. */
 export type WeatherPoint = { day: string; tMax: number; tMin: number; rain: number };
@@ -59,7 +65,13 @@ export type SeasonPoint = {
   daysLeft: number;
 };
 
-const inkLegend = (value: string) => <span style={{ color: LEGEND_INK }}>{value}</span>;
+/** Recharts tints legend text with the series colour, which puts mustard at
+ *  2.2:1. The dot carries identity; the text stays ink. Curried so the ink can
+ *  come from the active theme rather than a module constant. */
+const inkLegend = (ink: string) =>
+  function LegendLabel(value: string) {
+    return <span style={{ color: ink }}>{value}</span>;
+  };
 
 export default function AnalyticsCard({
   cash,
@@ -75,10 +87,18 @@ export default function AnalyticsCard({
   season?: SeasonPoint[];
   heatThreshold?: number;
 }) {
+  const { SERIES, STATUS, GRID, AXIS, LEGEND_INK, tooltipStyle, CURSOR_FILL } =
+    useChartTheme();
   const { t, term } = useT();
   // Crop and stage arrive in English from the server; localize them for display.
   season = season.map((s) => ({ ...s, name: `${term(s.crop)} · F${s.farm}`, stage: term(s.stage) }));
   const hasCash = Boolean(cash && cash.length > 0);
+  /*
+    An area chart needs a span to be an area. With a single month it draws
+    literally nothing — the first farmer to log one month of expenses would
+    have opened this tab to an empty card. Below two points the bars stay.
+  */
+  const cashAsTrend = Boolean(cash && cash.length > 1);
   const hasWeather = weather.length > 0;
   const hasSeason = season.length > 0;
 
@@ -180,7 +200,7 @@ export default function AnalyticsCard({
                 />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                  cursor={{ fill: CURSOR_FILL }}
                   formatter={(v: number, _n: string, p: any) => [
                     t("analyticsCard.tipSeason", { v, stage: p.payload.stage, days: p.payload.daysLeft }),
                     t("analyticsCard.seriesProgress"),
@@ -212,7 +232,7 @@ export default function AnalyticsCard({
                     name,
                   ]}
                 />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={inkLegend} />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={inkLegend(LEGEND_INK)} />
                 {/* The crop's own tolerance — what makes this chart theirs. */}
                 {heatThreshold ? (
                   <ReferenceLine
@@ -242,7 +262,56 @@ export default function AnalyticsCard({
           ) : (
             <Empty text={t("analyticsCard.emptyWeather")} />
           )
+        ) : cashAsTrend ? (
+          /*
+            Bklit area chart, on a real time axis.
+ 
+            Income and expense were grouped bars, which answered "how much in
+            March" but not "is the gap closing" — and the gap is the only
+            question this tab is really asked. Two filled areas stack that
+            answer into the space between them, and the crosshair still gives
+            the per-month numbers the bars gave.
+          */
+          <AreaChart
+            data={cash ?? []}
+            xDataKey="date"
+            style={{ height: "100%" }}
+            margin={{ top: 12, right: 12, bottom: 26, left: 8 }}
+          >
+            <Grid horizontal stroke={GRID} />
+            <BklitYAxis formatValue={(v) => `₹${Math.round(v / 1000)}k`} />
+            <Area
+              dataKey="income"
+              fill={SERIES.income}
+              fillOpacity={0.32}
+              fadeEdges
+            />
+            <Area
+              dataKey="expense"
+              fill={SERIES.expense}
+              fillOpacity={0.28}
+              fadeEdges
+            />
+            <BklitXAxis />
+            <ChartTooltip
+              indicatorColor={SERIES.income}
+              rows={(point) => [
+                {
+                  label: t("analyticsCard.seriesIncome"),
+                  value: rupee(Number(point.income ?? 0)),
+                  color: SERIES.income,
+                },
+                {
+                  label: t("analyticsCard.seriesExpense"),
+                  value: rupee(Number(point.expense ?? 0)),
+                  color: SERIES.expense,
+                },
+              ]}
+            />
+          </AreaChart>
         ) : hasCash ? (
+          /* One month only: a bar still answers "how much", which is all a
+             single period can honestly say. */
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={cash} margin={{ top: 6, right: 8, bottom: 0, left: -8 }} barGap={4}>
               <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
@@ -255,10 +324,10 @@ export default function AnalyticsCard({
               />
               <Tooltip
                 contentStyle={tooltipStyle}
-                cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                cursor={{ fill: CURSOR_FILL }}
                 formatter={(v: number) => rupee(v)}
               />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={inkLegend} />
+              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={inkLegend(LEGEND_INK)} />
               <Bar dataKey="income" name={t("analyticsCard.seriesIncome")} fill={SERIES.income} radius={[4, 4, 0, 0]} />
               <Bar dataKey="expense" name={t("analyticsCard.seriesExpense")} fill={SERIES.expense} radius={[4, 4, 0, 0]} />
             </BarChart>

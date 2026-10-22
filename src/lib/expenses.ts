@@ -31,6 +31,6 @@ export type ExpensesData = {
   totalExpense: number;
   profit: number;
   byCategory: { category: string; amount: number }[];
-  byMonth: { month: string; income: number; expense: number }[];
+  byMonth: { month: string; monthISO: string; income: number; expense: number }[];
 };
 

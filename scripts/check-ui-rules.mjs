@@ -51,6 +51,11 @@ const EXCLUDE = [
   /\/chartTheme\.ts$/,
   // The shimmer gradient is the component's whole purpose.
   /\/ui\/Skeleton\.tsx$/,
+  // Vendored from reactbits.dev and kept verbatim so it can be re-pulled; its
+  // two theme objects and default statusColor are the library's, not ours.
+  // Every call site passes colours from chartTheme, which is what the rule is
+  // actually protecting.
+  /\/ReflectiveCard\.jsx$/,
 ];
 
 const RULES = [

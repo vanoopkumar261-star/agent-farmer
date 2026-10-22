@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, Plus, Check, Globe } from "lucide-react";
 import { useT } from "@/components/i18n/LanguageProvider";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { LOCALES } from "@/lib/i18n/config";
 import AddFarmButton from "./AddFarmButton";
 import NavList from "./NavList";
@@ -106,11 +107,22 @@ export default function MobileNav({ plan = "free" }: { plan?: PlanId }) {
             <div className="mt-auto flex flex-col gap-4 pt-2">
               <AddFarmButton
                 variant="custom"
-                className="w-full flex items-center justify-center gap-2 bg-af-primary hover:bg-af-primary-deep text-white py-2.5 rounded-[12px] text-sm font-semibold tracking-[-0.01em] transition-all duration-150 active:scale-[0.99] shadow-af-sm"
+                className="w-full flex items-center justify-center gap-2 bg-af-primary hover:bg-af-primary-deep text-af-on-primary py-2.5 rounded-[12px] text-sm font-semibold tracking-[-0.01em] transition-all duration-150 active:scale-[0.99] shadow-af-sm"
               >
                 <Plus className="w-4 h-4" />
                 {t("nav.newFarm")}
               </AddFarmButton>
+
+              <div aria-hidden="true" className="af-rule-warm h-px w-full" />
+
+              {/* Appearance. Sits with language because both are "how the app
+                  presents itself to me", not farm data. */}
+              <div className="flex items-center justify-between px-1">
+                <span className="font-mono text-[10px] font-semibold tracking-[0.16em] uppercase text-af-muted">
+                  {t("theme.title")}
+                </span>
+                <ThemeToggle />
+              </div>
 
               <div aria-hidden="true" className="af-rule-warm h-px w-full" />
 

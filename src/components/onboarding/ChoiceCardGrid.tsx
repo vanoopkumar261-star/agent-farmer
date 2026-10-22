@@ -98,7 +98,7 @@ export default function ChoiceCardGrid({
                 </span>
 
                 {selected && (
-                  <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-af-primary text-white shadow-af-sm">
+                  <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-af-primary text-af-on-primary shadow-af-sm">
                     <BadgeCheck className="h-3.5 w-3.5" />
                   </span>
                 )}

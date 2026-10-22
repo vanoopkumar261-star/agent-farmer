@@ -74,7 +74,7 @@ export function TermsModal({ onClose }: { onClose: () => void }) {
         </div>
         <div className="shrink-0 flex items-center justify-end gap-3 px-7 py-5 border-t border-af-border bg-af-bg/50">
           <button onClick={onClose} className="inline-flex items-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-5 py-2.5 text-sm font-semibold text-af-ink transition active:scale-[0.98]"><X className="w-4 h-4" />Close</button>
-          <button onClick={onClose} className="inline-flex items-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md"><Check className="w-4 h-4" />Got it</button>
+          <button onClick={onClose} className="inline-flex items-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md"><Check className="w-4 h-4" />Got it</button>
         </div>
       </div>
     </div>
@@ -138,7 +138,7 @@ export function PrivacyModal({ onClose }: { onClose: () => void }) {
         </div>
         <div className="shrink-0 flex items-center justify-end gap-3 px-7 py-5 border-t border-af-border bg-af-bg/50">
           <button onClick={onClose} className="inline-flex items-center gap-2 rounded-[14px] bg-af-card hover:bg-af-bg border border-af-border px-5 py-2.5 text-sm font-semibold text-af-ink transition active:scale-[0.98]"><X className="w-4 h-4" />Close</button>
-          <button onClick={onClose} className="inline-flex items-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md"><Check className="w-4 h-4" />Got it</button>
+          <button onClick={onClose} className="inline-flex items-center gap-2 rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-md"><Check className="w-4 h-4" />Got it</button>
         </div>
       </div>
     </div>

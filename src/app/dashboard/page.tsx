@@ -65,7 +65,7 @@ export default async function DashboardPage() {
         <p className="mt-2 text-sm text-af-ink-2"><T k="dashboard.home.noFarmSubtitle" /></p>
         <Link
           href="/onboarding"
-          className="mt-6 inline-flex items-center justify-center rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-white px-6 py-3 text-sm font-semibold transition"
+          className="mt-6 inline-flex items-center justify-center rounded-[14px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-6 py-3 text-sm font-semibold transition"
         >
           <T k="dashboard.home.startOnboarding" />
         </Link>
@@ -81,7 +81,12 @@ export default async function DashboardPage() {
   const place = (farmer.house_address ?? "Your farm").split(",").slice(0, 2).join(",");
 
   const expenses = await getExpensesData(farmer.id);
-  const cashPoints = expenses.byMonth.map((m) => ({ m: m.month, income: m.income, expense: m.expense }));
+  const cashPoints = expenses.byMonth.map((m) => ({
+    m: m.month,
+    date: new Date(m.monthISO),
+    income: m.income,
+    expense: m.expense,
+  }));
 
   // Real mandi prices for the ticker, scoped to the farmer's region.
   // The market library now takes (state, apiKey) rather than a parsed region

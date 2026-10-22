@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import type { CropMarket, MandiRow } from "@/lib/market";
 import { useT, Term } from "@/components/i18n/LanguageProvider";
-import { GRID, AXIS, STATUS, tooltipStyle } from "@/lib/chartTheme";
+import { useChartTheme } from "@/components/theme/useChartTheme";
 import { rupee, rupeePaise } from "@/lib/format";
 
 /*
@@ -80,7 +80,7 @@ function MandiItem({
           <span
             className={`flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-semibold shrink-0 ${
               isBest
-                ? "bg-af-primary text-white"
+                ? "bg-af-primary text-af-on-primary"
                 : "bg-af-card text-af-muted border border-af-border"
             }`}
           >
@@ -208,7 +208,7 @@ function MandiItem({
                 e.stopPropagation();
                 setShowTransport(true);
               }}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-primary hover:bg-af-primary-deep text-white px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-[12px] bg-af-primary hover:bg-af-primary-deep text-af-on-primary px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] shadow-af-sm"
             >
               <Truck className="w-4 h-4" />
               {t("marketBoard.selectPlanTransport")}
@@ -285,6 +285,7 @@ export default function MarketBoard({
       : firstAvailable
   );
 
+  const { GRID, AXIS, STATUS, tooltipStyle } = useChartTheme();
   const active = crops.find((c) => c.name === selected) ?? crops[0];
   const mandis = mandisByFocus[active.name] ?? [];
   const up = active.change >= 0;

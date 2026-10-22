@@ -416,7 +416,7 @@ export default function NewsCard({
           </p>
           <button
             onClick={() => fetchNews(true)}
-            className="mt-4 inline-flex items-center gap-2 rounded-[12px] bg-af-primary text-white px-4 py-2 text-sm font-semibold"
+            className="mt-4 inline-flex items-center gap-2 rounded-[12px] bg-af-primary text-af-on-primary px-4 py-2 text-sm font-semibold"
           >
             <RefreshCw className="w-4 h-4" />
             {t("newsCard.tryAgain")}
