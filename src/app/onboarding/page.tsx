@@ -49,6 +49,7 @@ import ReviewStep from "@/components/onboarding/ReviewStep";
 import PlanChooser from "@/components/plans/PlanChooser";
 import { fieldLimit, PLANS, priceFor, type Cycle, type PlanId } from "@/lib/plans";
 import CropGuideModal from "@/components/onboarding/CropGuideModal";
+import CropFeasibilityField from "@/components/crops/CropFeasibilityField";
 import { TermsModal, PrivacyModal } from "@/components/legal/LegalModals";
 import {
   normalizeEmail,
@@ -283,6 +284,14 @@ function OnboardingContent() {
   const [loadingAI, setLoadingAI] = useState(false);
   const [saving, setSaving] = useState(false);
   const [aiRecs, setAiRecs] = useState<CropRec[][] | null>(null);
+  /**
+   * Which plots have a freehand crop that cannot grow there, by farm index.
+   *
+   * Held here rather than inside each field because the Continue guard has to
+   * see every plot at once — a wizard that let the farmer past step 3 and then
+   * refused at review would be worse than not checking at all.
+   */
+  const [cropBlocked, setCropBlocked] = useState<Record<number, boolean>>({});
 
   const [selections, setSelections] = useState<Selection[]>([makeSelection()]);
 
@@ -616,9 +625,13 @@ function OnboardingContent() {
       if (!sel.seedingDate) return false;
       // Harvest date must be after seeding when the farmer has set one.
       if (sel.estimatedHarvestDate && sel.estimatedHarvestDate <= sel.seedingDate) return false;
+      // A freehand crop the agronomy engine has ruled out for this plot's soil,
+      // pH, climate or water. Everything the dashboard later computes is built
+      // on this choice, so it is refused here rather than planned around.
+      if (cropBlocked[i]) return false;
     }
     return true;
-  }, [aiRecs, termsAccepted, selections, form.numFarms]);
+  }, [aiRecs, termsAccepted, selections, form.numFarms, cropBlocked]);
 
   /**
    * What the review screen reads back. Built here rather than in the component
@@ -1268,6 +1281,22 @@ function OnboardingContent() {
                                   <div className="text-[11px] text-af-muted">
                                     {t("onboarding.customCropOverrideNote")}
                                   </div>
+                                  <CropFeasibilityField
+                                    cropName={sel?.customCrop ?? ""}
+                                    conditions={{
+                                      soilType: f.soilType,
+                                      irrigation: farmIrrigationLabel(f),
+                                    }}
+                                    enabled={(sel?.customCrop ?? "").trim().length > 1}
+                                    onVerdict={(blocked) =>
+                                      setCropBlocked((prev) =>
+                                        prev[idx] === blocked ? prev : { ...prev, [idx]: blocked }
+                                      )
+                                    }
+                                    onPickAlternative={(crop) =>
+                                      updateSelection(idx, { chosenCrop: crop, customCrop: "" })
+                                    }
+                                  />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

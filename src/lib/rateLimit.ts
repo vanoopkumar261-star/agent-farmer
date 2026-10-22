@@ -82,6 +82,10 @@ export const LIMITS = {
   geocode: { limit: 30, windowSec: 60 },
   img: { limit: 120, windowSec: 60 },
   "soil-reading": { limit: 10, windowSec: 60 },
+  // Fires as the farmer types a crop name, so it must absorb an edit at a
+  // human pace. Only the names the local table does not recognise reach Groq —
+  // the 25 it knows are judged in the browser and never arrive here at all.
+  cropFeasibility: { limit: 30, windowSec: 60 },
   // Mostly a database read, but a stale store makes it pull the SACHET feed
   // inline. Generous enough that a worried farmer can re-check during a storm,
   // tight enough that a loop can't turn us into a scraper against a government

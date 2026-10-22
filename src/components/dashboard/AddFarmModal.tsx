@@ -17,6 +17,8 @@ import TerraSelect from "@/components/TerraSelect";
 import CropRecCard, { CropRec } from "@/components/onboarding/CropRecCard";
 import CropGuideModal from "@/components/onboarding/CropGuideModal";
 import { createFarms, createCropCycles } from "@/lib/db";
+import { useCropFeasibility } from "@/components/crops/useCropFeasibility";
+import CropFeasibilityNotice from "@/components/crops/CropFeasibilityNotice";
 import { fieldLimit, planOf, PLANS } from "@/lib/plans";
 import Link from "next/link";
 import { suggestHarvestDate } from "@/lib/agronomy";
@@ -219,12 +221,30 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
     }
   };
 
+  /**
+   * Is the chosen crop agronomically possible on this plot?
+   *
+   * Only the freehand box is judged. A crop the recommender itself suggested
+   * was produced from these same conditions, so re-testing it would be the app
+   * arguing with itself in front of the farmer.
+   */
+  const feasibility = useCropFeasibility(
+    customCrop,
+    { soilType, irrigation },
+    customCrop.trim().length > 1
+  );
+
   const canApply =
     Boolean(profile) &&
     !validateArea(area, "Farm area") &&
     Boolean(effectiveCrop) &&
     Boolean(seedingDate) &&
     (!harvestDate || harvestDate > seedingDate) &&
+    // A crop that cannot grow here is refused at the button. Everything
+    // downstream — irrigation schedules, harvest dates, yield, health — is
+    // arithmetic built on this choice, so letting it through produces a
+    // confidently wrong plan rather than an empty one.
+    !feasibility.blocked &&
     !saving;
 
   const handleApply = async () => {
@@ -440,6 +460,13 @@ export default function AddFarmModal({ onClose }: { onClose: () => void }) {
                 <div className="text-[11px] text-af-muted">
                   {t("addFarmModal.customCropHint")}
                 </div>
+                <CropFeasibilityNotice
+                  state={feasibility}
+                  onPickAlternative={(crop) => {
+                    setCustomCrop("");
+                    setChosenCrop(crop);
+                  }}
+                />
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
