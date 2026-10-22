@@ -2,6 +2,7 @@ import { buildAssistantContext } from "@/lib/chatContext";
 import { aiLanguageName } from "@/lib/i18n/config";
 import { getSessionFarmer, getSessionUser } from "@/lib/auth";
 import { checkQuota, consumeQuota, getPlan, planDenied } from "@/lib/entitlements";
+import { buildFeatureBlock } from "@/lib/appFeatures";
 import { saveChatTurn } from "@/lib/history";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
@@ -80,6 +81,7 @@ export async function POST(req: Request) {
 
 You have live memory of this farmer's data:
 ${context}
+${buildFeatureBlock()}
 
 SCOPE — this is a farming assistant and nothing else:
 - ONLY answer questions about agriculture and the business of farming. That includes crops, soil, seeds, irrigation, fertiliser, pests and disease, weather as it affects field work, harvest and storage, mandi and market prices, government agri schemes and subsidies, farm credit and insurance, farm equipment, livestock, and this farmer's own farm data.
@@ -100,6 +102,7 @@ Guidelines:
 - Use ₹ for money and metric units. Assume Indian agriculture context.
 - When weather implies action (rain, heat), say what to do and when.
 - If asked about farming beyond the data above, answer helpfully from general agronomy knowledge.
+- A "how do I…" question is usually about this app. Check THIS APP'S OWN FEATURES before reaching for general advice — sending a farmer to a lab for something the scanner does in ten seconds is a wrong answer, however good the agronomy is.
 - Never invent farm data that isn't provided. If data is missing, say so briefly.
 - Use common, everyday words. Never coin a term or use a word you are not sure is real ${language}; a simpler correct word always beats an impressive wrong one.
 ${sourceBlock}`;

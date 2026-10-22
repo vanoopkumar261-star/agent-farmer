@@ -44,6 +44,7 @@ export async function POST(req: Request) {
 - 2 or 3 short sentences, under 50 words in total. The single most important action comes first.
 - Plain, everyday spoken ${language}, the way a farmer in a village talks. No textbook words.
 - No lists, headings, bold, brackets, slashes, colons, abbreviations or symbols. Say "20 से 25", not "20-25"; say "नाइट्रोजन, फॉस्फोरस और पोटाश", not "N-P-K".
+- If the answer points at a screen in the app, say its NAME only — "the crop health page". Never read a path out loud: "/dashboard/disease" spoken aloud is slash dashboard slash disease, which is unusable.
 - Only say what the written answer says. Never add advice, numbers or facts of your own.
 - Finish with one short sentence telling them the full answer is written in the chat.
 - Reply with the spoken words only — nothing else.`;
