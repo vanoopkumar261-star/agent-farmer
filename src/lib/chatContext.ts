@@ -6,6 +6,7 @@ import { getRecentDiagnoses, getLatestSoilReading } from "./history";
 import { phBand } from "./soilPh";
 import { npkContextLineEn } from "./npk";
 import { districtFromAddress } from "./hazards/match";
+import { getExpensesData } from "./expenses-server";
 
 /**
  * Builds the "memory" the AI assistant is given on every turn — farmer profile,
@@ -91,6 +92,39 @@ export async function buildAssistantContext(): Promise<string> {
    * message a farmer sent. Dropping them costs nothing in answer quality and
    * is the cheapest privacy win available: data you do not send cannot leak.
    */
+  /**
+   * The ledger, summarised — not itemised.
+   *
+   * The assistant could already be *told* about an expense ("log two thousand
+   * for urea") and had no way to be *asked* about one, so "how much have I
+   * spent on fertilizer?" was the one money question it could not answer.
+   *
+   * Only the totals and the top few categories travel. The full transaction
+   * list is both unbounded and the farmer's business: sending every row to a
+   * third-party model on every turn to answer the occasional money question
+   * is the kind of thing the location lines above were trimmed for.
+   */
+  const money = await (async () => {
+    try {
+      const e = await getExpensesData(farmer.id);
+      if (!e.txns.length) return "No income or expenses recorded yet.";
+      const top = e.byCategory
+        .slice(0, 4)
+        .map((c) => `${c.category} ₹${c.amount.toLocaleString("en-IN")}`)
+        .join(", ");
+      const rupees = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+      return (
+        `Ledger (all time): spent ${rupees(e.totalExpense)}, earned ${rupees(e.totalIncome)}, ` +
+        `${e.profit >= 0 ? "profit" : "loss"} ${rupees(Math.abs(e.profit))}` +
+        (top ? `. Biggest expense categories: ${top}.` : ".")
+      );
+    } catch {
+      // The ledger is an extra, not a prerequisite — a farmer with no
+      // expenses table yet should still get weather and crop advice.
+      return "";
+    }
+  })();
+
   const place = districtFromAddress(farmer.house_address);
   const locationLine = place
     ? `Location: ${place.district} district, ${place.state}.`
@@ -111,6 +145,7 @@ export async function buildAssistantContext(): Promise<string> {
     // and it says so in its own text — the system prompt forbids inventing farm
     // data, so the provenance has to travel with the numbers.
     npkContextLineEn(),
+    ...(money ? [money] : []),
     ...diagnosisLines,
   ].join("\n");
 }

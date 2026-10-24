@@ -83,7 +83,106 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "navigate",
+      description:
+        "Open a screen of the app, when the farmer asks to see something rather than asking a question. " +
+        "The app already routes literal phrases like 'open the market' on its own without the model, so only " +
+        "call this for a request that names no screen outright — 'I want to check my leaf for disease' (scan), " +
+        "'where can I buy urea' (stores), 'what am I owed from the government' (schemes).",
+      parameters: {
+        type: "object",
+        properties: {
+          screen: {
+            type: "string",
+            // Exactly the set agent-farmer-mobile VoiceAgent.tsx SCREENS accepts.
+            // A name outside it is discarded by the client, so the two lists
+            // must not drift.
+            enum: [
+              "hub",
+              "today",
+              "crops",
+              "market",
+              "money",
+              "scan",
+              "soil",
+              "stores",
+              "news",
+              "learn",
+              "schemes",
+              "alerts",
+              "settings",
+              "language",
+            ],
+            description:
+              "today = the day's tasks and weather; crops = the farmer's fields; money = the expense ledger; " +
+              "scan = photograph a leaf for disease; soil = pH and nutrients; stores = nearby input shops; " +
+              "learn = the reading library; schemes = government schemes; alerts = hazard warnings.",
+          },
+        },
+        required: ["screen"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "go_back",
+      description: "Return to the previous screen, when the farmer says to go back or close what they are looking at.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "sleep",
+      description:
+        "Stop listening, when the farmer says they are done — 'that's all', 'bye', 'stop listening'. " +
+        "Never call this merely because the farmer's question has been answered; the assistant stays in " +
+        "conversation until it is dismissed or falls quiet on its own.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "scan_leaf",
+      description:
+        "Open the camera to photograph a leaf for disease diagnosis. Call this when the farmer describes a " +
+        "symptom they can see — spots, yellowing, wilting, holes — rather than asking a general question " +
+        "about a disease. Looking at the leaf beats guessing from a description.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "mark_task_done",
+      description:
+        "Tick one of today's tasks off the list. ONLY call this when the farmer is looking at the Today " +
+        "screen AND its numbered task list appears in the context above — the number is an index into that " +
+        "exact list, so without it in view there is nothing to count. If the farmer asks to complete a task " +
+        "from elsewhere in the app, call navigate with screen 'today' instead and let them ask again there.",
+      parameters: {
+        type: "object",
+        properties: {
+          task_number: {
+            type: "integer",
+            description:
+              "The task's position in the numbered list shown in the context, starting at 1. Never guess a " +
+              "number that is not in that list.",
+          },
+        },
+        required: ["task_number"],
+      },
+    },
+  },
 ] as const;
+
+/** Tool names the mobile client has a handler for — see VoiceAgent.tsx and lib/agent/tools.ts. */
+const TOOL_NAMES: ReadonlySet<string> = new Set<string>(TOOLS.map((t) => t.function.name));
 
 export async function POST(req: Request) {
   const rl = await checkRateLimit(req, "agent");
@@ -100,7 +199,14 @@ export async function POST(req: Request) {
   try {
     const body = await readJsonBounded(req, 48_000);
     locale = typeof body?.locale === "string" ? body.locale : "en";
-    screenSummary = typeof body?.screenSummary === "string" ? body.screenSummary.slice(0, 200) : "";
+    // 200 was enough for a one-line caption and far too short for what the
+    // screens actually send: the Today describer emits a weather line plus a
+    // numbered task list, and mark_task_done's argument is an index into that
+    // list. Truncated at 200 the list arrived cut off mid-item, so the model
+    // could neither answer "which tasks are left" nor count to the right one.
+    // 1200 holds a full screen's description and is still a fraction of the
+    // farm context already in the prompt.
+    screenSummary = typeof body?.screenSummary === "string" ? body.screenSummary.slice(0, 1200) : "";
     messages = (body?.messages ?? [])
       .filter((m: any) => (m?.role === "user" || m?.role === "assistant") && typeof m?.content === "string")
       .map((m: any) => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
@@ -133,7 +239,11 @@ ${context}
 
 ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : ""}Guidelines:
 - If the farmer clearly stated money spent or earned on the farm, call log_expense. Do not narrate the call in text — just call it.
+- If they asked to see or open part of the app, call navigate. If they described a leaf symptom they can see, call scan_leaf. If they said they are finished, call sleep.
+- Never call a tool and also describe it in words: the app speaks its own confirmation. One tool call per turn.
+- Prefer answering from the data above over opening a screen. "How many farms do I have?" is a sentence, not a navigation.
 - Otherwise, reply in ${language} exactly as the regular farming assistant would: concise (1-3 short sentences), practical, grounded only in the data above. Never invent farm data.
+- A weather forecast, a sensor reading and a recommendation are three different things. Say which one you are giving, and never turn a single temperature or humidity number into an irrigation instruction on its own.
 - Only farming topics. If asked about anything else, say briefly that you only help with farming.`;
 
   let groqRes: Response;
@@ -173,14 +283,24 @@ ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : "
   const message = json?.choices?.[0]?.message;
   const rawCall = message?.tool_calls?.[0];
 
-  if (rawCall?.function?.name === "log_expense") {
+  // Any tool this route declares is forwarded; the client has a handler for
+  // each one and re-validates every argument before acting. A name the model
+  // invented is not in TOOL_NAMES and falls through to the text reply below,
+  // which is the same outcome as the model simply having answered.
+  const calledName = rawCall?.function?.name;
+  if (typeof calledName === "string" && TOOL_NAMES.has(calledName)) {
     let args: Record<string, unknown> = {};
     try {
       args = JSON.parse(rawCall.function.arguments ?? "{}");
     } catch {
-      return Response.json({ reply: "I heard an amount but couldn't quite parse it — please try again." });
+      // Only the tools that carry arguments can fail here; the parameterless
+      // ones (go_back, sleep, scan_leaf) are unaffected by a bad payload.
+      if (calledName === "log_expense") {
+        return Response.json({ reply: "I heard an amount but couldn't quite parse it — please try again." });
+      }
+      args = {};
     }
-    return Response.json({ toolCall: { name: "log_expense", args } });
+    return Response.json({ toolCall: { name: calledName, args } });
   }
 
   const reply = typeof message?.content === "string" && message.content.trim() ? message.content.trim() : "";
