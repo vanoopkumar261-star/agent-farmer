@@ -52,6 +52,37 @@ export const GROQ_TEXT_MODEL = process.env.GROQ_TEXT_MODEL || "openai/gpt-oss-12
 const RETRY_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
 
 /**
+ * What to say when Groq returns 429 — which is two completely different
+ * situations wearing one status code.
+ *
+ * "Please wait a moment and try again" was the only answer, and on a
+ * tokens-per-DAY exhaustion it is simply false: the on-demand tier allows
+ * 200,000 tokens a day for a model, the window is rolling, and Groq's own
+ * reply says how long — typically ten to fifteen minutes before enough old
+ * tokens age out, not "a moment". A farmer told to try again immediately does,
+ * gets refused again, and concludes the app is broken.
+ *
+ * So the upstream detail is read rather than discarded. Groq phrases it as
+ * "on tokens per day (TPD): Limit 200000, Used 198115 ... Please try again in
+ * 12m38.16s", and both the kind of limit and the wait are worth repeating
+ * back verbatim-ish: they are the difference between "retry now" and "this is
+ * done until the budget recovers".
+ */
+export function rateLimitMessage(detail: string): string {
+  const perDay = /tokens per day|\bTPD\b/i.test(detail);
+  const wait = detail.match(/try again in (\d+)m/i)?.[1];
+
+  if (perDay) {
+    return wait
+      ? `The AI engine has used up today's token budget. It should start working again in about ${wait} minutes.`
+      : "The AI engine has used up today's token budget. It will recover shortly, but heavy testing will hit this again.";
+  }
+  return wait
+    ? `The AI engine is busy. Please try again in about ${wait} minutes.`
+    : "The AI engine is rate-limited right now. Please wait a moment and try again.";
+}
+
+/**
  * Reads a Groq chat-completion response, or throws something that says why not.
  *
  * The trap this exists to close: a rejected Groq request still returns valid
@@ -80,8 +111,7 @@ export async function readGroqContent(res: Response, label: string): Promise<str
       throw new Error(
         "The AI engine rejected our credentials (401). Check GROQ_API_KEY in the deployment's environment variables."
       );
-    if (res.status === 429)
-      throw new Error("The AI engine is rate-limited right now. Please wait a moment and try again.");
+    if (res.status === 429) throw new Error(rateLimitMessage(detail));
     if (res.status === 404) throw new Error(`The AI model is unavailable (404): ${detail}`);
     throw new Error(`The AI engine returned ${res.status}: ${detail}`);
   }

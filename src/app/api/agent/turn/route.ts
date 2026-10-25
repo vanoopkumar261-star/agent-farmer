@@ -2,7 +2,7 @@ import { buildAssistantContext } from "@/lib/chatContext";
 import { aiLanguageName } from "@/lib/i18n/config";
 import { getSessionFarmer, getSessionUser } from "@/lib/auth";
 import { checkQuota, consumeQuota, getPlan, planDenied } from "@/lib/entitlements";
-import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
+import { fetchWithRetry, GROQ_TEXT_MODEL, rateLimitMessage } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { VOICE_TOOLS, VOICE_TOOL_NAMES } from "@/lib/agent/voiceTools";
 import { PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
@@ -134,9 +134,13 @@ ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : "
   if (!groqRes.ok) {
     const errText = await groqRes.text().catch(() => "");
     console.error("GROQ agent-turn error:", groqRes.status, errText);
+    // This route builds its own Groq call rather than going through
+    // readGroqContent, so it needs the same honest 429 wording — it is the
+    // one a farmer hears, and "wait a moment" is wrong by an order of
+    // magnitude when the daily token budget is what ran out.
     const msg =
       groqRes.status === 429
-        ? "The AI engine is rate-limited right now. Please wait a moment and try again."
+        ? rateLimitMessage(errText)
         : "The AI engine is busy right now. Please try again in a moment.";
     return Response.json({ reply: msg }, { status: 502 });
   }

@@ -4,7 +4,7 @@ import { getSessionFarmer, getSessionUser } from "@/lib/auth";
 import { checkQuota, consumeQuota, getPlan, planDenied } from "@/lib/entitlements";
 import { buildFeatureBlock } from "@/lib/appFeatures";
 import { saveChatTurn } from "@/lib/history";
-import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
+import { fetchWithRetry, GROQ_TEXT_MODEL, rateLimitMessage } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 import { createSupabaseServer } from "@/lib/supabase-server";
@@ -146,11 +146,15 @@ ${sourceBlock}`;
   if (!groqRes.ok || !groqRes.body) {
     const errText = await groqRes.text().catch(() => "");
     console.error("GROQ chat error:", groqRes.status, errText);
-    // 429 survives the retries when the free-tier minute budget is genuinely
-    // spent, and "busy, wait a moment" is exactly the right advice for it.
+    // 429 survives the retries when the budget is genuinely spent — and the
+    // comment that used to sit here claimed that was a per-MINUTE budget and
+    // that "wait a moment" was "exactly the right advice". Measured on
+    // 2026-10-25 it is usually the per-DAY one (200,000 tokens for
+    // gpt-oss-120b), where the real wait is ten to fifteen minutes. The
+    // upstream detail knows which; it is no longer thrown away.
     const msg =
       groqRes.status === 429
-        ? "The AI engine is rate-limited right now. Please wait a moment and try again."
+        ? rateLimitMessage(errText)
         : "The AI engine is busy right now. Please try again in a moment.";
     return new Response(msg, { status: 502 });
   }
