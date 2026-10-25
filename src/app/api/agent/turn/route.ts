@@ -4,6 +4,7 @@ import { getSessionFarmer, getSessionUser } from "@/lib/auth";
 import { checkQuota, consumeQuota, getPlan, planDenied } from "@/lib/entitlements";
 import { fetchWithRetry, GROQ_TEXT_MODEL } from "@/lib/http";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
+import { VOICE_TOOLS, VOICE_TOOL_NAMES } from "@/lib/agent/voiceTools";
 import { PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 
 export const dynamic = "force-dynamic";
@@ -36,242 +37,8 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
  * TOOLS below, new case in the mobile client's tool executor.
  */
 
-const TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "log_expense",
-      description:
-        "Record a farm expense or income the farmer just described out loud, e.g. " +
-        "'I spent two thousand rupees on fertilizer' or 'sold wheat for fifteen thousand'. " +
-        "Only call this for a CLEAR statement of money spent or earned on the farm — never " +
-        "for a vague mention of money, a question about past spending, or general advice.",
-      parameters: {
-        type: "object",
-        properties: {
-          kind: {
-            type: "string",
-            enum: ["expense", "income"],
-            description: "'expense' for money spent, 'income' for money earned (e.g. a crop sale, a subsidy).",
-          },
-          category: {
-            type: "string",
-            enum: [
-              "Seeds",
-              "Fertilizer",
-              "Pesticide",
-              "Labor",
-              "Machinery",
-              "Irrigation",
-              "Transport",
-              "Crop Sale",
-              "Subsidy",
-              "Other",
-            ],
-            description: "Nearest matching category. Use 'Other' if nothing fits well.",
-          },
-          item_name: {
-            type: "string",
-            description: "A short label, e.g. 'Fertilizer' or 'Wheat sale'. Reuse the category name if nothing more specific was said.",
-          },
-          amount: {
-            type: "number",
-            description: "The amount in rupees as a plain number, e.g. 2000 (not '₹2,000' or 'two thousand').",
-          },
-        },
-        required: ["kind", "category", "item_name", "amount"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "navigate",
-      description:
-        "Open a screen of the app, when the farmer asks to see something rather than asking a question. " +
-        "The app already routes literal phrases like 'open the market' on its own without the model, so only " +
-        "call this for a request that names no screen outright — 'where can I buy urea' (stores), " +
-        "'what am I owed from the government' (schemes), 'show me what I planted' (crops). " +
-        // The leaf example that used to sit in this list claimed a sentence
-        // scan_leaf's own description also claims, and the model split roughly
-        // 50/50 between the two across runs. navigate("scan") opens the screen
-        // with the camera shut, so the farmer still has to tap — which is the
-        // one thing a hands-free agent must not require. Anything about
-        // photographing a leaf or a meter belongs to scan_leaf and
-        // read_soil_meter; do not reintroduce an example here that overlaps them.
-        "Never use this to reach the camera: scan_leaf and read_soil_meter open it directly.",
-      parameters: {
-        type: "object",
-        properties: {
-          screen: {
-            type: "string",
-            // Exactly the set agent-farmer-mobile VoiceAgent.tsx SCREENS accepts.
-            // A name outside it is discarded by the client, so the two lists
-            // must not drift.
-            enum: [
-              "hub",
-              "today",
-              "crops",
-              "market",
-              "money",
-              "scan",
-              "soil",
-              "stores",
-              "news",
-              "learn",
-              "schemes",
-              "alerts",
-              "settings",
-              "language",
-              "irrigation",
-              "inputs",
-            ],
-            description:
-              "today = the day's tasks and weather; crops = the farmer's fields; money = the expense ledger; " +
-              "scan = photograph a leaf for disease; soil = pH and nutrients; stores = nearby input shops; " +
-              "learn = the reading library; schemes = government schemes; alerts = hazard warnings; " +
-              "irrigation = how much water each field needs and when; " +
-              "inputs = what seed, fertiliser and pesticide cost.",
-          },
-        },
-        required: ["screen"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "go_back",
-      description: "Return to the previous screen, when the farmer says to go back or close what they are looking at.",
-      parameters: { type: "object", properties: {} },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "sleep",
-      description:
-        "Stop listening, when the farmer says they are done — 'that's all', 'bye', 'stop listening'. " +
-        "Never call this merely because the farmer's question has been answered; the assistant stays in " +
-        "conversation until it is dismissed or falls quiet on its own.",
-      parameters: { type: "object", properties: {} },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "scan_leaf",
-      description:
-        "Open the camera to photograph a leaf for disease diagnosis. Call this both when the farmer " +
-        "describes a symptom they can see — spots, yellowing, wilting, holes — and when they simply ask to " +
-        "check, scan or look at a leaf ('scan this leaf', 'I want to check my leaf for disease'). Looking " +
-        "at the leaf beats guessing from a description. Do not call navigate for these.",
-      parameters: { type: "object", properties: {} },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "mark_task_done",
-      description:
-        "Tick one of today's tasks off the list. This works from anywhere in the app — the farmer does not " +
-        "have to be looking at the Today screen. Pass task_number when the numbered list appears in the " +
-        "context above and they named a position ('the first one'). Otherwise pass task, describing the " +
-        "job in their own words ('watering farm 1', 'the nitrogen one') and the app will match it.",
-      parameters: {
-        type: "object",
-        properties: {
-          task_number: {
-            type: "integer",
-            description:
-              "The task's position in the numbered list shown in the context, starting at 1. Only when " +
-              "that list is actually in the context — never guess a number that is not in it.",
-          },
-          task: {
-            type: "string",
-            description:
-              "What the farmer said they finished, in their words. Use this whenever the numbered list is " +
-              "not in the context above, or when they described the job instead of counting to it.",
-          },
-        },
-        // Neither is required on its own, but the client refuses a call with
-        // neither — stated here so the model always sends one.
-        required: [],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "read_soil_meter",
-      description:
-        "Open the camera to photograph a handheld soil pH meter, so the app can read the number off its " +
-        "display and save it. This requires the farmer to be HOLDING A METER right now: only call it when " +
-        "they say so — 'read my pH meter', 'मेरा पी-एच मीटर पढ़ो', 'I have the meter, take the reading'. " +
-        // 'check the soil' and 'मिट्टी की जाँच करो' used to be listed here as
-        // examples, and they are the ordinary way of asking to SEE the soil
-        // screen. The camera opened instead, which is why asking for the soil
-        // section appeared to do nothing useful. A request to look at soil is
-        // a navigation; only a meter in hand is this tool.
-        "A request to see or open the soil screen — 'show me the soil', 'मिट्टी वाला पेज खोलो', " +
-        "'check the soil', 'मिट्टी की जाँच करो' — is navigate with screen 'soil', NOT this. " +
-        "For a question about a pH value already on file, answer from the data above instead.",
-      parameters: { type: "object", properties: {} },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "check_price",
-      description:
-        "Say today's mandi price for ONE NAMED crop out loud, without opening a screen. Call this when the " +
-        "farmer asks what a particular crop is selling for — 'what is cotton going for', " +
-        "'कपास का भाव क्या है'. The crop must be one they actually named: if they asked to see prices in " +
-        "general, with no crop ('show me the mandi rates', 'मंडी के भाव देखने हैं'), call navigate with " +
-        "screen 'market' instead. Never ask them which crop — opening the screen shows them all of it.",
-      parameters: {
-        type: "object",
-        properties: {
-          crop: {
-            type: "string",
-            description:
-              "The crop name as the farmer said it, in English where possible ('Cotton', 'Wheat'). The app " +
-              "matches it against the crops this farmer actually grows and the mandi list for their state.",
-          },
-        },
-        required: ["crop"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "set_language",
-      description:
-        "Switch the whole app, and this assistant, to another language. Call this when the farmer asks to " +
-        "be spoken to in a different language — 'speak in Tamil', 'हिंदी में बोलो', 'ಕನ್ನಡದಲ್ಲಿ ಮಾತಾಡಿ'. " +
-        "This is a setting change, not a navigation: do not open the language screen instead.",
-      parameters: {
-        type: "object",
-        properties: {
-          locale: {
-            type: "string",
-            // Exactly LOCALES in agent-farmer-mobile src/lib/i18n/config.ts.
-            // A code outside this set is discarded by the client.
-            enum: ["en", "hi", "kn", "ta", "te", "ml", "mr", "bn", "pa"],
-            description:
-              "en English, hi Hindi, kn Kannada, ta Tamil, te Telugu, ml Malayalam, mr Marathi, " +
-              "bn Bengali, pa Punjabi.",
-          },
-        },
-        required: ["locale"],
-      },
-    },
-  },
-] as const;
 
-/** Tool names the mobile client has a handler for — see VoiceAgent.tsx and lib/agent/tools.ts. */
-const TOOL_NAMES: ReadonlySet<string> = new Set<string>(TOOLS.map((t) => t.function.name));
+
 
 export async function POST(req: Request) {
   const rl = await checkRateLimit(req, "agent");
@@ -334,6 +101,9 @@ ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : "
 - Never answer a tool-shaped request with a clarifying question. If you are missing a detail, do the thing that shows the farmer everything — open the screen — rather than making them speak twice.
 - Never call a tool and also describe it in words: the app speaks its own confirmation. One tool call per turn.
 - Prefer answering from the data above over opening a screen. "How many farms do I have?" is a sentence, not a navigation.
+- The check_* tools are for the things NOT in the data above: today's job list, the water balance, the health score, input prices, nearby shops, the scheme desk, active warnings. Use them instead of opening the screen — a farmer with their hands full asked to be told, not shown. If the data above already answers it, just answer.
+- A crop the farmer SELLS is check_price; a thing the farmer BUYS — seed, fertiliser, pesticide — is check_input_price. "Urea" is an input, "cotton" is a crop.
+- A pH number the farmer says out loud is set_soil_ph. Asking the app to read the meter is read_soil_meter. Never guess a pH they did not say.
 - Otherwise, reply in ${language} exactly as the regular farming assistant would: concise (1-3 short sentences), practical, grounded only in the data above. Never invent farm data.
 - A weather forecast, a sensor reading and a recommendation are three different things. Say which one you are giving, and never turn a single temperature or humidity number into an irrigation instruction on its own.
 - Only farming topics. If asked about anything else, say briefly that you only help with farming.`;
@@ -348,7 +118,7 @@ ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : "
         body: JSON.stringify({
           model: GROQ_TEXT_MODEL,
           messages: [{ role: "system", content: system }, ...messages],
-          tools: TOOLS,
+          tools: VOICE_TOOLS,
           tool_choice: "auto",
           temperature: 0.2,
           max_tokens: 600,
@@ -377,10 +147,10 @@ ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : "
 
   // Any tool this route declares is forwarded; the client has a handler for
   // each one and re-validates every argument before acting. A name the model
-  // invented is not in TOOL_NAMES and falls through to the text reply below,
+  // invented is not in VOICE_TOOL_NAMES and falls through to the text reply below,
   // which is the same outcome as the model simply having answered.
   const calledName = rawCall?.function?.name;
-  if (typeof calledName === "string" && TOOL_NAMES.has(calledName)) {
+  if (typeof calledName === "string" && VOICE_TOOL_NAMES.has(calledName)) {
     let args: Record<string, unknown> = {};
     try {
       args = JSON.parse(rawCall.function.arguments ?? "{}");
