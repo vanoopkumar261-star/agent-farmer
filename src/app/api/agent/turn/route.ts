@@ -206,9 +206,16 @@ const TOOLS = [
       name: "read_soil_meter",
       description:
         "Open the camera to photograph a handheld soil pH meter, so the app can read the number off its " +
-        "display and save it. Call this when the farmer wants to record or check their soil pH with a " +
-        "meter in hand — 'read my pH meter', 'check the soil', 'मिट्टी की जाँच करो'. For a question about " +
-        "a pH value already on file, answer from the data above instead.",
+        "display and save it. This requires the farmer to be HOLDING A METER right now: only call it when " +
+        "they say so — 'read my pH meter', 'मेरा पी-एच मीटर पढ़ो', 'I have the meter, take the reading'. " +
+        // 'check the soil' and 'मिट्टी की जाँच करो' used to be listed here as
+        // examples, and they are the ordinary way of asking to SEE the soil
+        // screen. The camera opened instead, which is why asking for the soil
+        // section appeared to do nothing useful. A request to look at soil is
+        // a navigation; only a meter in hand is this tool.
+        "A request to see or open the soil screen — 'show me the soil', 'मिट्टी वाला पेज खोलो', " +
+        "'check the soil', 'मिट्टी की जाँच करो' — is navigate with screen 'soil', NOT this. " +
+        "For a question about a pH value already on file, answer from the data above instead.",
       parameters: { type: "object", properties: {} },
     },
   },
@@ -322,7 +329,7 @@ ${context}
 ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : ""}Guidelines:
 - If the farmer clearly stated money spent or earned on the farm, call log_expense. Do not narrate the call in text — just call it.
 - If they asked to see or open part of the app, call navigate. If they said they are finished, call sleep.
-- Anything about looking at a leaf is scan_leaf; anything about reading a pH meter is read_soil_meter. Both open the camera themselves, so never navigate to reach it.
+- Photographing a leaf is scan_leaf; taking a reading off a pH meter the farmer is holding is read_soil_meter. Both open the camera themselves, so never navigate to reach it. But asking to SEE the soil screen, or any other screen, is still navigate — the camera tools are for a farmer with the leaf or the meter in hand, not for anyone curious about soil.
 - A price question that names a crop is check_price; a request to see prices generally is navigate to 'market'. A request to be spoken to in another language is set_language, not a navigation.
 - Never answer a tool-shaped request with a clarifying question. If you are missing a detail, do the thing that shows the farmer everything — open the screen — rather than making them speak twice.
 - Never call a tool and also describe it in words: the app speaks its own confirmation. One tool call per turn.

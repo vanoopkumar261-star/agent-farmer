@@ -10,6 +10,26 @@ export const dynamic = "force-dynamic";
 const MAX_BYTES = 10 * 1024 * 1024;
 
 /**
+ * Whisper's `language` field, as both the full name and the code it may use,
+ * mapped to the app's own locale codes.
+ *
+ * Only these nine exist in the app, so a detection outside the list is not a
+ * language the app could switch to even if it wanted — it falls back to Hindi
+ * below. Keys are lowercased before lookup.
+ */
+const SUPPORTED_SPOKEN: Record<string, string> = {
+  english: "en", en: "en",
+  hindi: "hi", hi: "hi",
+  kannada: "kn", kn: "kn",
+  tamil: "ta", ta: "ta",
+  telugu: "te", te: "te",
+  malayalam: "ml", ml: "ml",
+  marathi: "mr", mr: "mr",
+  bengali: "bn", bn: "bn",
+  punjabi: "pa", pa: "pa",
+};
+
+/**
  * Container magic bytes we accept — the declared MIME is not trusted. Returns
  * the real extension so the upstream filename matches the real container:
  * Groq's (OpenAI-compatible) transcription endpoint picks a demuxer from the
@@ -130,16 +150,30 @@ export async function POST(req: Request) {
     let spoken = locale;
     if (detect && data) {
       const heard = String(data.language ?? "").toLowerCase();
-      if (heard === "english" || heard === "en") {
-        spoken = "en";
+      const matched = SUPPORTED_SPOKEN[heard] ?? null;
+      if (matched) {
+        /*
+          Detection used to collapse to two answers: English, or else Hindi.
+          A farmer speaking Kannada into an app set to English was therefore
+          transcribed as Hindi and answered in Hindi, with no way to say so —
+          which is why the app's language could never follow the farmer's
+          voice for seven of the nine languages.
+
+          The first pass ran with no forced language, so it already
+          transcribed whatever was actually spoken; naming it here is enough
+          and costs nothing. Deliberately NOT re-transcribing with the
+          benchmarked per-locale prompt: that would be a second Groq call on
+          every non-Hindi utterance, and spoken latency is the thing this
+          loop can least afford.
+        */
+        spoken = matched;
       } else {
-        // Hindi — or what Whisper files as Urdu (same speech, Perso-Arabic
-        // script, useless to a Hindi reader) — is transcribed again as Hindi.
+        // Not one of the nine. Urdu is the case that matters: the same speech
+        // as Hindi, filed under a script a Hindi reader cannot use, so it is
+        // transcribed again as Hindi.
         spoken = "hi";
-        if (heard !== "hindi" && heard !== "hi") {
-          res = await transcribe("hi");
-          data = res.ok ? await res.json() : null;
-        }
+        res = await transcribe("hi");
+        data = res.ok ? await res.json() : null;
       }
     }
 
