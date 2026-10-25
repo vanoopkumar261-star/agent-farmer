@@ -90,8 +90,16 @@ const TOOLS = [
       description:
         "Open a screen of the app, when the farmer asks to see something rather than asking a question. " +
         "The app already routes literal phrases like 'open the market' on its own without the model, so only " +
-        "call this for a request that names no screen outright — 'I want to check my leaf for disease' (scan), " +
-        "'where can I buy urea' (stores), 'what am I owed from the government' (schemes).",
+        "call this for a request that names no screen outright — 'where can I buy urea' (stores), " +
+        "'what am I owed from the government' (schemes), 'show me what I planted' (crops). " +
+        // The leaf example that used to sit in this list claimed a sentence
+        // scan_leaf's own description also claims, and the model split roughly
+        // 50/50 between the two across runs. navigate("scan") opens the screen
+        // with the camera shut, so the farmer still has to tap — which is the
+        // one thing a hands-free agent must not require. Anything about
+        // photographing a leaf or a meter belongs to scan_leaf and
+        // read_soil_meter; do not reintroduce an example here that overlaps them.
+        "Never use this to reach the camera: scan_leaf and read_soil_meter open it directly.",
       parameters: {
         type: "object",
         properties: {
@@ -150,9 +158,10 @@ const TOOLS = [
     function: {
       name: "scan_leaf",
       description:
-        "Open the camera to photograph a leaf for disease diagnosis. Call this when the farmer describes a " +
-        "symptom they can see — spots, yellowing, wilting, holes — rather than asking a general question " +
-        "about a disease. Looking at the leaf beats guessing from a description.",
+        "Open the camera to photograph a leaf for disease diagnosis. Call this both when the farmer " +
+        "describes a symptom they can see — spots, yellowing, wilting, holes — and when they simply ask to " +
+        "check, scan or look at a leaf ('scan this leaf', 'I want to check my leaf for disease'). Looking " +
+        "at the leaf beats guessing from a description. Do not call navigate for these.",
       parameters: { type: "object", properties: {} },
     },
   },
@@ -161,21 +170,90 @@ const TOOLS = [
     function: {
       name: "mark_task_done",
       description:
-        "Tick one of today's tasks off the list. ONLY call this when the farmer is looking at the Today " +
-        "screen AND its numbered task list appears in the context above — the number is an index into that " +
-        "exact list, so without it in view there is nothing to count. If the farmer asks to complete a task " +
-        "from elsewhere in the app, call navigate with screen 'today' instead and let them ask again there.",
+        "Tick one of today's tasks off the list. This works from anywhere in the app — the farmer does not " +
+        "have to be looking at the Today screen. Pass task_number when the numbered list appears in the " +
+        "context above and they named a position ('the first one'). Otherwise pass task, describing the " +
+        "job in their own words ('watering farm 1', 'the nitrogen one') and the app will match it.",
       parameters: {
         type: "object",
         properties: {
           task_number: {
             type: "integer",
             description:
-              "The task's position in the numbered list shown in the context, starting at 1. Never guess a " +
-              "number that is not in that list.",
+              "The task's position in the numbered list shown in the context, starting at 1. Only when " +
+              "that list is actually in the context — never guess a number that is not in it.",
+          },
+          task: {
+            type: "string",
+            description:
+              "What the farmer said they finished, in their words. Use this whenever the numbered list is " +
+              "not in the context above, or when they described the job instead of counting to it.",
           },
         },
-        required: ["task_number"],
+        // Neither is required on its own, but the client refuses a call with
+        // neither — stated here so the model always sends one.
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_soil_meter",
+      description:
+        "Open the camera to photograph a handheld soil pH meter, so the app can read the number off its " +
+        "display and save it. Call this when the farmer wants to record or check their soil pH with a " +
+        "meter in hand — 'read my pH meter', 'check the soil', 'मिट्टी की जाँच करो'. For a question about " +
+        "a pH value already on file, answer from the data above instead.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "check_price",
+      description:
+        "Say today's mandi price for ONE NAMED crop out loud, without opening a screen. Call this when the " +
+        "farmer asks what a particular crop is selling for — 'what is cotton going for', " +
+        "'कपास का भाव क्या है'. The crop must be one they actually named: if they asked to see prices in " +
+        "general, with no crop ('show me the mandi rates', 'मंडी के भाव देखने हैं'), call navigate with " +
+        "screen 'market' instead. Never ask them which crop — opening the screen shows them all of it.",
+      parameters: {
+        type: "object",
+        properties: {
+          crop: {
+            type: "string",
+            description:
+              "The crop name as the farmer said it, in English where possible ('Cotton', 'Wheat'). The app " +
+              "matches it against the crops this farmer actually grows and the mandi list for their state.",
+          },
+        },
+        required: ["crop"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "set_language",
+      description:
+        "Switch the whole app, and this assistant, to another language. Call this when the farmer asks to " +
+        "be spoken to in a different language — 'speak in Tamil', 'हिंदी में बोलो', 'ಕನ್ನಡದಲ್ಲಿ ಮಾತಾಡಿ'. " +
+        "This is a setting change, not a navigation: do not open the language screen instead.",
+      parameters: {
+        type: "object",
+        properties: {
+          locale: {
+            type: "string",
+            // Exactly LOCALES in agent-farmer-mobile src/lib/i18n/config.ts.
+            // A code outside this set is discarded by the client.
+            enum: ["en", "hi", "kn", "ta", "te", "ml", "mr", "bn", "pa"],
+            description:
+              "en English, hi Hindi, kn Kannada, ta Tamil, te Telugu, ml Malayalam, mr Marathi, " +
+              "bn Bengali, pa Punjabi.",
+          },
+        },
+        required: ["locale"],
       },
     },
   },
@@ -239,7 +317,10 @@ ${context}
 
 ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : ""}Guidelines:
 - If the farmer clearly stated money spent or earned on the farm, call log_expense. Do not narrate the call in text — just call it.
-- If they asked to see or open part of the app, call navigate. If they described a leaf symptom they can see, call scan_leaf. If they said they are finished, call sleep.
+- If they asked to see or open part of the app, call navigate. If they said they are finished, call sleep.
+- Anything about looking at a leaf is scan_leaf; anything about reading a pH meter is read_soil_meter. Both open the camera themselves, so never navigate to reach it.
+- A price question that names a crop is check_price; a request to see prices generally is navigate to 'market'. A request to be spoken to in another language is set_language, not a navigation.
+- Never answer a tool-shaped request with a clarifying question. If you are missing a detail, do the thing that shows the farmer everything — open the screen — rather than making them speak twice.
 - Never call a tool and also describe it in words: the app speaks its own confirmation. One tool call per turn.
 - Prefer answering from the data above over opening a screen. "How many farms do I have?" is a sentence, not a navigation.
 - Otherwise, reply in ${language} exactly as the regular farming assistant would: concise (1-3 short sentences), practical, grounded only in the data above. Never invent farm data.
