@@ -123,11 +123,15 @@ const TOOLS = [
               "alerts",
               "settings",
               "language",
+              "irrigation",
+              "inputs",
             ],
             description:
               "today = the day's tasks and weather; crops = the farmer's fields; money = the expense ledger; " +
               "scan = photograph a leaf for disease; soil = pH and nutrients; stores = nearby input shops; " +
-              "learn = the reading library; schemes = government schemes; alerts = hazard warnings.",
+              "learn = the reading library; schemes = government schemes; alerts = hazard warnings; " +
+              "irrigation = how much water each field needs and when; " +
+              "inputs = what seed, fertiliser and pesticide cost.",
           },
         },
         required: ["screen"],
