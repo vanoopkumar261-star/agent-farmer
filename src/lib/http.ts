@@ -1,3 +1,5 @@
+import { groqKeyPool } from "./groqKeys";
+
 /**
  * fetch with a bounded retry, for calls to third-party APIs.
  *
@@ -132,12 +134,18 @@ export type RetryOptions = {
   backoffMs?: number;
   /** Label for the log line, so a flaky endpoint is identifiable. */
   label?: string;
+  /**
+   * Which statuses to retry on THIS key. Defaults to RETRY_STATUS. groqFetch
+   * passes a set WITHOUT 429/401 so those bubble up at once and it can fail
+   * over to the next key instead of burning retries on a spent one.
+   */
+  retryStatus?: Set<number>;
 };
 
 export async function fetchWithRetry(
   input: string,
   init?: RequestInit,
-  { retries = 2, backoffMs = 400, label = "upstream" }: RetryOptions = {}
+  { retries = 2, backoffMs = 400, label = "upstream", retryStatus = RETRY_STATUS }: RetryOptions = {}
 ): Promise<Response> {
   let lastError: unknown;
 
@@ -150,7 +158,7 @@ export async function fetchWithRetry(
     try {
       const res = await fetch(input, init);
 
-      if (!RETRY_STATUS.has(res.status) || attempt === retries) return res;
+      if (!retryStatus.has(res.status) || attempt === retries) return res;
 
       console.warn(`${label}: HTTP ${res.status}, retrying (attempt ${attempt + 1}/${retries + 1})`);
       // The body is never read on a retried response; dropping it lets the
@@ -172,4 +180,63 @@ export async function fetchWithRetry(
   }
 
   throw lastError;
+}
+
+/** Statuses groqFetch retries on the SAME key (TLS/5xx), i.e. not 429/401 — those
+ *  fail over to the next key instead. */
+const GROQ_SAME_KEY_RETRY = new Set([408, 425, 500, 502, 503, 504]);
+
+function withAuthKey(init: RequestInit | undefined, key: string): RequestInit {
+  const headers = new Headers(init?.headers);
+  headers.set("Authorization", `Bearer ${key}`);
+  return { ...init, headers };
+}
+
+/**
+ * fetchWithRetry for Groq, with KEY-POOL failover.
+ *
+ * The caller no longer sets the Authorization header: groqFetch supplies it from
+ * the key pool (src/lib/groqKeys.ts). Transient failures (TLS blip, 5xx) are
+ * retried on the same key by fetchWithRetry; a 429 (rate limited) or 401 (bad
+ * key) instead fails the request straight over to the NEXT key, so a spent org
+ * budget no longer reaches the farmer while another key still has headroom.
+ * When every key is spent it returns the last 429 so the caller's own 429
+ * handling (rateLimitMessage) still runs.
+ *
+ * With a single key configured it behaves exactly like fetchWithRetry (same
+ * retries, same 429 handling), so nothing regresses on a one-key deployment.
+ */
+export async function groqFetch(
+  input: string,
+  init?: RequestInit,
+  opts: RetryOptions = {}
+): Promise<Response> {
+  const keys = groqKeyPool();
+  const label = opts.label ?? "groq";
+
+  if (keys.length <= 1) {
+    const only = keys[0];
+    return fetchWithRetry(input, only ? withAuthKey(init, only) : init, opts);
+  }
+
+  let lastRes: Response | null = null;
+  let lastErr: unknown;
+  for (let i = 0; i < keys.length; i++) {
+    try {
+      const res = await fetchWithRetry(input, withAuthKey(init, keys[i]), {
+        ...opts,
+        label: `${label} (key ${i + 1}/${keys.length})`,
+        retryStatus: GROQ_SAME_KEY_RETRY,
+      });
+      if (res.status !== 429 && res.status !== 401) return res;
+      await res.body?.cancel().catch(() => {});
+      lastRes = res;
+      console.warn(`${label}: key ${i + 1}/${keys.length} returned ${res.status}; failing over`);
+    } catch (e) {
+      lastErr = e;
+      console.warn(`${label}: key ${i + 1}/${keys.length} threw; failing over`);
+    }
+  }
+  if (lastRes) return lastRes;
+  throw lastErr;
 }

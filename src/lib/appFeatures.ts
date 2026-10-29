@@ -119,20 +119,33 @@ export const APP_FEATURES: AppFeature[] = [
  * Deliberately phrased as a capability the assistant HAS rather than a list of
  * links, because the failure mode being fixed is the assistant not realising
  * these are its own hands.
+ *
+ * `withPaths` is the one thing that differs by surface. The web chat (default,
+ * true) names a route the farmer can type or click — "/dashboard/disease".
+ * The VOICE assistant runs inside the mobile app, where those web paths do not
+ * exist and a URL is meaningless spoken aloud, so it passes `withPaths: false`:
+ * the farmer is told the page by NAME and reaches it by asking, and the model
+ * is told not to read a path out. The names are the same on both surfaces; only
+ * the routing hint is web-only.
  */
-export function buildFeatureBlock(): string {
+export function buildFeatureBlock({ withPaths = true }: { withPaths?: boolean } = {}): string {
   const lines = APP_FEATURES.map(
-    (f) => `- ${f.name} (${f.path}) — ${f.does}${f.steps ? `. To use it: ${f.steps}` : ""}`
+    (f) =>
+      `- ${f.name}${withPaths ? ` (${f.path})` : ""} — ${f.does}${f.steps ? `. To use it: ${f.steps}` : ""}`
   ).join("\n");
+
+  const pathLine = withPaths
+    ? `- Name the page as the farmer sees it, in their language, and give the path in brackets once, e.g. "Crop Health (/dashboard/disease)".`
+    : `- Name the page as the farmer sees it, in their language. Do NOT read a URL or path out loud — the farmer reaches the page by asking you to open it.`;
 
   return `
 THIS APP'S OWN FEATURES — you are built into the Agent Farmer app, and these are the tools the farmer already has:
 ${lines}
 
 USING THEM IN YOUR ANSWERS:
-- When the farmer asks how to do something this app already does, your FIRST sentence names the page and what to tap there. Only then add any field advice.
+- When the farmer asks how to do something this app already does, your FIRST sentence names the page and what to do there. Only then add any field advice.
 - This matters most for disease. If they ask about checking, identifying or diagnosing a crop disease, tell them to open Crop Health and photograph the leaf. Do NOT tell them to send samples to a lab or visit a Krishi Vigyan Kendra as the first step — the app diagnoses it in seconds. Mention an agriculture officer or KVK only to confirm a diagnosis before spending money on chemicals, which is the honest caveat, never the starting point.
-- Name the page as the farmer sees it, in their language, and give the path in brackets once, e.g. "Crop Health (/dashboard/disease)".
+${pathLine}
 - Describe what to DO in plain words — "take a photo of the leaf and start the scan". Do not quote exact button text in quotation marks: the interface runs in nine languages and the farmer will not see the English label you invented.
 - Never invent a page, a button or a feature that is not in the list above. If the app cannot do what they are asking, say so plainly and give the field advice instead.
 - Keep it to the steps that matter. Two or three is almost always enough.`;

@@ -203,11 +203,12 @@ export const VOICE_TOOLS = [
     function: {
       name: "check_price",
       description:
-        "Say today's mandi price for ONE NAMED crop out loud, without opening a screen. Call this when the " +
-        "farmer asks what a particular crop is selling for — 'what is cotton going for', " +
-        "'कपास का भाव क्या है'. The crop must be one they actually named: if they asked to see prices in " +
-        "general, with no crop ('show me the mandi rates', 'मंडी के भाव देखने हैं'), call navigate with " +
-        "screen 'market' instead. Never ask them which crop — opening the screen shows them all of it.",
+        "Say today's mandi prices out loud, without opening a screen. TWO ways to call it: " +
+        "(1) with a crop, when the farmer names ONE — 'what is cotton going for', 'कपास का भाव क्या है' — " +
+        "says just that crop's price; (2) with NO crop, when they ask for prices in general with no crop named — " +
+        "'what are today's mandi rates', 'show me the prices', 'मंडी के भाव बताओ', 'all prices' — reads out " +
+        "EVERY available crop's price. Prefer this over navigate for a general prices request: the farmer asked " +
+        "to be told, not shown. Never ask them which crop — if they named none, leave crop out and it reads them all.",
       parameters: {
         type: "object",
         properties: {
@@ -215,10 +216,11 @@ export const VOICE_TOOLS = [
             type: "string",
             description:
               "The crop name as the farmer said it, in English where possible ('Cotton', 'Wheat'). The app " +
-              "matches it against the crops this farmer actually grows and the mandi list for their state.",
+              "matches it against the crops this farmer actually grows and the mandi list for their state. " +
+              "OMIT this entirely for a general 'what are the prices' request — that reads out every crop.",
           },
         },
-        required: ["crop"],
+        required: [],
       },
     },
   },
@@ -227,9 +229,11 @@ export const VOICE_TOOLS = [
     function: {
       name: "set_language",
       description:
-        "Switch the whole app, and this assistant, to another language. Call this when the farmer asks to " +
-        "be spoken to in a different language — 'speak in Tamil', 'हिंदी में बोलो', 'ಕನ್ನಡದಲ್ಲಿ ಮಾತಾಡಿ'. " +
-        "This is a setting change, not a navigation: do not open the language screen instead.",
+        "Switch the whole app, and this assistant, to another language. Call this whenever the farmer names " +
+        "a language they want — full requests ('speak in Tamil', 'हिंदी में बोलो', 'ಕನ್ನಡದಲ್ಲಿ ಮಾತಾಡಿ') AND " +
+        "terse ones ('only hindi', 'hindi', 'in english', 'Tamil please', 'अंग्रेज़ी', 'english only'). A bare " +
+        "language name is a switch request, never off-topic: switch, never answer it with a disclaimer or a " +
+        "clarifying question. This is a setting change, not a navigation: do not open the language screen instead.",
       parameters: {
         type: "object",
         properties: {

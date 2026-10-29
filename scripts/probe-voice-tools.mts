@@ -16,6 +16,8 @@
  */
 import { readFileSync } from "node:fs";
 import { VOICE_TOOLS } from "../src/lib/agent/voiceTools.ts";
+import { conversationStyle } from "../src/lib/agent/conversationStyle.ts";
+import { buildFeatureBlock } from "../src/lib/appFeatures.ts";
 
 type Case = { said: string; expect: string | null; why?: string };
 
@@ -32,8 +34,11 @@ const CASES: Case[] = [
   { said: "read my pH meter", expect: "read_soil_meter" },
   { said: "what is cotton going for", expect: "check_price" },
   { said: "कपास का भाव क्या है", expect: "check_price" },
-  { said: "मंडी के भाव देखने हैं", expect: "navigate", why: "general prices = the screen" },
+  { said: "मंडी के भाव देखने हैं", expect: "check_price", why: "general prices now READ ALL via check_price (no crop), not navigate" },
+  { said: "what are today's mandi prices", expect: "check_price", why: "general prices, no crop -> reads them all" },
   { said: "speak to me in Tamil", expect: "set_language" },
+  { said: "only hindi", expect: "set_language", why: "terse language request still switches" },
+  { said: "अंग्रेज़ी में बोलो", expect: "set_language" },
 
   // ── the soil fix: seeing the screen is NOT the camera ────────────────────
   { said: "show me the soil", expect: "navigate" },
@@ -85,8 +90,10 @@ Recent disease scans:
 Ledger (all time): spent ₹48,000, earned ₹1,20,000, profit ₹72,000. Biggest expense categories: Fertilizer ₹18,000, Seed ₹12,000, Labour ₹10,000.`;
 
 function systemPrompt(): string {
-  // The guideline block, copied from the route. Kept here rather than imported
-  // because it is built inline from `language`/`context` in the handler.
+  // Built the same way src/app/api/agent/turn/route.ts builds it, so the probe
+  // tests the SHIPPED prompt rather than a copy that drifts: the inline
+  // routing guidelines, then the feature block, then the conversation-style
+  // playbook — the last two imported from the same modules the route uses.
   return `You are the Agent Farmer voice assistant, operating hands-free for an Indian farmer who just spoke a command or question aloud.
 
 You have live memory of this farmer's data:
@@ -96,16 +103,20 @@ Guidelines:
 - If the farmer clearly stated money spent or earned on the farm, call log_expense. Do not narrate the call in text — just call it.
 - If they asked to see or open part of the app, call navigate. If they said they are finished, call sleep.
 - Photographing a leaf is scan_leaf; taking a reading off a pH meter the farmer is holding is read_soil_meter. Both open the camera themselves, so never navigate to reach it. But asking to SEE the soil screen, or any other screen, is still navigate — the camera tools are for a farmer with the leaf or the meter in hand, not for anyone curious about soil.
-- A price question that names a crop is check_price; a request to see prices generally is navigate to 'market'. A request to be spoken to in another language is set_language, not a navigation.
+- A price question that names a crop is check_price WITH that crop. A general prices request that names no crop — 'mandi prices', "today's rates", 'all prices', 'भाव बताओ', 'मंडी के भाव' — is check_price with NO crop, which reads out every crop's price; do NOT navigate to 'market' for it. A request to be spoken to in another language is set_language, not a navigation.
 - Never answer a tool-shaped request with a clarifying question. If you are missing a detail, do the thing that shows the farmer everything — open the screen — rather than making them speak twice.
 - Never call a tool and also describe it in words: the app speaks its own confirmation. One tool call per turn.
 - Prefer answering from the data above over opening a screen. "How many farms do I have?" is a sentence, not a navigation.
 - The check_* tools are for the things NOT in the data above: today's job list, the water balance, the health score, input prices, nearby shops, the scheme desk, active warnings. Use them instead of opening the screen — a farmer with their hands full asked to be told, not shown. If the data above already answers it, just answer.
 - A crop the farmer SELLS is check_price; a thing the farmer BUYS — seed, fertiliser, pesticide — is check_input_price. "Urea" is an input, "cotton" is a crop.
 - A pH number the farmer says out loud is set_soil_ph. Asking the app to read the meter is read_soil_meter. Never guess a pH they did not say.
-- Otherwise, reply in English exactly as the regular farming assistant would: concise (1-3 short sentences), practical, grounded only in the data above. Never invent farm data.
+- Otherwise, reply grounded only in the data above — never invent farm data. (Length and tone are governed by HOW TO TALK below.)
 - A weather forecast, a sensor reading and a recommendation are three different things. Say which one you are giving, and never turn a single temperature or humidity number into an irrigation instruction on its own.
-- Only farming topics. If asked about anything else, say briefly that you only help with farming.`;
+- Your remit is farming and running the farm — crops, soil, water, weather, mandi prices, inputs, schemes, money, and using this app. A clearly off-topic line is handled by HOW TO TALK below (one short pivot, no disclaimer), not here.
+
+${buildFeatureBlock({ withPaths: false })}
+
+${conversationStyle({ surface: "voice", language: "English" })}`;
 }
 
 function groqKey(): string {

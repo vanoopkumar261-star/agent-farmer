@@ -2,9 +2,12 @@ import { buildAssistantContext } from "@/lib/chatContext";
 import { aiLanguageName } from "@/lib/i18n/config";
 import { getSessionFarmer, getSessionUser } from "@/lib/auth";
 import { checkQuota, consumeQuota, getPlan, planDenied } from "@/lib/entitlements";
-import { fetchWithRetry, GROQ_TEXT_MODEL, rateLimitMessage } from "@/lib/http";
+import { groqFetch, GROQ_TEXT_MODEL, rateLimitMessage } from "@/lib/http";
+import { groqKeyPool } from "@/lib/groqKeys";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { VOICE_TOOLS, VOICE_TOOL_NAMES } from "@/lib/agent/voiceTools";
+import { conversationStyle } from "@/lib/agent/conversationStyle";
+import { buildFeatureBlock } from "@/lib/appFeatures";
 import { PayloadTooLargeError, readJsonBounded } from "@/lib/apiInput";
 
 export const dynamic = "force-dynamic";
@@ -44,8 +47,7 @@ export async function POST(req: Request) {
   const rl = await checkRateLimit(req, "agent");
   if (!rl.ok) return rateLimited(rl);
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
+  if (groqKeyPool().length === 0) {
     return Response.json({ reply: "The AI assistant is not configured (missing API key)." }, { status: 500 });
   }
 
@@ -97,24 +99,28 @@ ${screenSummary ? `The farmer is currently looking at: ${screenSummary}\n\n` : "
 - If the farmer clearly stated money spent or earned on the farm, call log_expense. Do not narrate the call in text — just call it.
 - If they asked to see or open part of the app, call navigate. If they said they are finished, call sleep.
 - Photographing a leaf is scan_leaf; taking a reading off a pH meter the farmer is holding is read_soil_meter. Both open the camera themselves, so never navigate to reach it. But asking to SEE the soil screen, or any other screen, is still navigate — the camera tools are for a farmer with the leaf or the meter in hand, not for anyone curious about soil.
-- A price question that names a crop is check_price; a request to see prices generally is navigate to 'market'. A request to be spoken to in another language is set_language, not a navigation.
+- A price question that names a crop is check_price WITH that crop. A general prices request that names no crop — 'mandi prices', "today's rates", 'all prices', 'भाव बताओ', 'मंडी के भाव' — is check_price with NO crop, which reads out every crop's price; do NOT navigate to 'market' for it. A request to be spoken to in another language is set_language, not a navigation.
 - Never answer a tool-shaped request with a clarifying question. If you are missing a detail, do the thing that shows the farmer everything — open the screen — rather than making them speak twice.
 - Never call a tool and also describe it in words: the app speaks its own confirmation. One tool call per turn.
 - Prefer answering from the data above over opening a screen. "How many farms do I have?" is a sentence, not a navigation.
 - The check_* tools are for the things NOT in the data above: today's job list, the water balance, the health score, input prices, nearby shops, the scheme desk, active warnings. Use them instead of opening the screen — a farmer with their hands full asked to be told, not shown. If the data above already answers it, just answer.
 - A crop the farmer SELLS is check_price; a thing the farmer BUYS — seed, fertiliser, pesticide — is check_input_price. "Urea" is an input, "cotton" is a crop.
 - A pH number the farmer says out loud is set_soil_ph. Asking the app to read the meter is read_soil_meter. Never guess a pH they did not say.
-- Otherwise, reply in ${language} exactly as the regular farming assistant would: concise (1-3 short sentences), practical, grounded only in the data above. Never invent farm data.
+- Otherwise, reply grounded only in the data above — never invent farm data. (Length and tone are governed by HOW TO TALK below, so follow that for how much to say.)
 - A weather forecast, a sensor reading and a recommendation are three different things. Say which one you are giving, and never turn a single temperature or humidity number into an irrigation instruction on its own.
-- Only farming topics. If asked about anything else, say briefly that you only help with farming.`;
+- Your remit is farming and running the farm — crops, soil, water, weather, mandi prices, inputs, schemes, money, and using this app. A clearly off-topic line is handled by HOW TO TALK below (one short pivot, no disclaimer), not here.
+
+${buildFeatureBlock({ withPaths: false })}
+
+${conversationStyle({ surface: "voice", language })}`;
 
   let groqRes: Response;
   try {
-    groqRes = await fetchWithRetry(
+    groqRes = await groqFetch(
       "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: GROQ_TEXT_MODEL,
           messages: [{ role: "system", content: system }, ...messages],

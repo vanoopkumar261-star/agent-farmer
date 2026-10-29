@@ -1,6 +1,7 @@
 import { getSessionFarmer } from "@/lib/auth";
 import { iso639 } from "@/lib/speech";
-import { fetchWithRetry } from "@/lib/http";
+import { groqFetch } from "@/lib/http";
+import { groqKeyPool } from "@/lib/groqKeys";
 import { checkRateLimit, rateLimited } from "@/lib/rateLimit";
 import { transcribePromptFor } from "@/lib/transcribePrompts";
 
@@ -77,8 +78,7 @@ export async function POST(req: Request) {
   const rl = await checkRateLimit(req, "transcribe");
   if (!rl.ok) return rateLimited(rl);
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
+  if (groqKeyPool().length === 0) {
     return Response.json({ error: "Voice input is not configured." }, { status: 500 });
   }
 
@@ -136,9 +136,8 @@ export async function POST(req: Request) {
     // detection on, no prompt: an English hint would tilt the guess to English.
     const prompt = detect ? undefined : transcribePromptFor(locale);
     if (prompt) upstream.append("prompt", prompt);
-    return fetchWithRetry("https://api.groq.com/openai/v1/audio/transcriptions", {
+    return groqFetch("https://api.groq.com/openai/v1/audio/transcriptions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}` },
       body: upstream,
     }, { label: "groq/transcribe" });
   };
