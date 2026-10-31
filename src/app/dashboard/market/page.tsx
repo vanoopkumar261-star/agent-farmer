@@ -31,6 +31,9 @@ export default async function MarketPage() {
   // series on any API failure, so keying the badge off apiKey && state alone
   // labelled demo numbers "Live · <state> · Agmarknet".
   const isRealData = crops.some((c) => c.isReal);
+  // Real data, but from the national fallback (the farmer's state reported nothing
+  // today) — must be labelled as such, never as "Live · <state>".
+  const isNational = crops.some((c) => c.national);
 
   const farmerCropNames = Array.from(
     new Set(farms.map((f) => f.crop?.chosen_crop).filter(Boolean) as string[])
@@ -83,7 +86,11 @@ export default async function MarketPage() {
             {isRealData ? (
               <>
                 <Wifi className="w-3.5 h-3.5" />
-                <T k="market.live" params={{ state: state ?? "" }} />
+                {isNational ? (
+                  <T k="market.national" />
+                ) : (
+                  <T k="market.live" params={{ state: state ?? "" }} />
+                )}
               </>
             ) : (
               <>
@@ -104,7 +111,11 @@ export default async function MarketPage() {
       {isRealData && state && (
         <div className="mb-4 flex items-center gap-2 rounded-[14px] bg-af-primary/6 border border-af-primary/15 px-4 py-2.5">
           <span className="text-[13px] text-af-primary-deep font-semibold">
-            <T k="market.showingFor" params={{ state }} />
+            {isNational ? (
+              <T k="market.showingNational" params={{ state }} />
+            ) : (
+              <T k="market.showingFor" params={{ state }} />
+            )}
           </span>
         </div>
       )}

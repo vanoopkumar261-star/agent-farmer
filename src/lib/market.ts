@@ -15,6 +15,12 @@ export type CropMarket = {
   isReal: boolean;
   notAvailable?: boolean;
   /**
+   * True when this price came from the NATIONAL fallback — the farmer's own state
+   * reported no arrivals today, so a real all-India price is shown (clearly
+   * labelled) instead of fabricated demo numbers. A ballpark, not a local quote.
+   */
+  national?: boolean;
+  /**
    * The mandi arrival date these prices were reported for, as returned by
    * Agmarknet. Surfaced in the UI because "Live" is a claim — a date is
    * evidence. Undefined for demo data, which must never look dated.
@@ -253,14 +259,16 @@ async function fetchAllStateRecords(
     url.searchParams.set("format", "json");
     url.searchParams.set("limit", String(limit));
     url.searchParams.set("offset", String(off));
-    url.searchParams.set("filters[state.keyword]", state);
+    // No state → a national pull, used as the fallback when a state reports
+    // nothing today (getMarket). Otherwise scope to the farmer's state.
+    if (state) url.searchParams.set("filters[state.keyword]", state);
     return url.toString();
   };
 
   console.log(`🌾 Fetching mandi data for ${state}...`);
 
   const firstRes = await fetch(buildUrl(0), {
-    next: { revalidate: 21600 },
+    next: { revalidate: 3600 },
   });
   if (!firstRes.ok) throw new Error(`API error: ${firstRes.status}`);
   const firstJson = await firstRes.json();
@@ -274,7 +282,7 @@ async function fetchAllStateRecords(
   let page = 1;
   while (offset < total && page < maxPages) {
     const res = await fetch(buildUrl(offset), {
-      next: { revalidate: 21600 },
+      next: { revalidate: 3600 },
     });
     if (!res.ok) break;
     const json = await res.json();
@@ -430,7 +438,18 @@ export async function getMarket(
     const allRecords = await fetchAllStateRecords(state, apiKey);
 
     if (allRecords.length === 0) {
-      console.log("⚠️ No records from API — using demo data");
+      // The farmer's state reported no arrivals today (common early in the day,
+      // or always for states AGMARKNET barely covers). Rather than fabricate demo
+      // numbers, fall back to REAL national prices, clearly flagged `national`.
+      console.log(`⚠️ No records for ${state} — falling back to national prices`);
+      const national = await fetchAllStateRecords("", apiKey);
+      if (national.length > 0) {
+        return CROPS.map((c) => {
+          const records = filterByCommodity(national, c.agmarkNames);
+          return { ...recordsToCropMarket(c.name, records, c.base), national: true };
+        });
+      }
+      console.log("⚠️ No records nationally either — using demo data");
       return CROPS.map((c) => buildMockSeries(c.name, c.base));
     }
 

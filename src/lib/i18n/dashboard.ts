@@ -287,6 +287,8 @@ const en: Dict = {
   "market.demoNoState": "Demo mode · State not detected",
   "market.demoNoAgmarknet": "Demo mode · Agmarknet unavailable for {state}",
   "market.showingFor": "📍 Showing mandi prices for {state} from AGMARKNET (data.gov.in)",
+  "market.national": "National prices · no local arrivals today",
+  "market.showingNational": "📍 No mandi arrivals in {state} today — showing national prices from AGMARKNET",
 
   // disease/page.tsx
   "disease.subtitle": "Upload a leaf — our AI model identifies the issue and suggests treatment.",
@@ -804,7 +806,8 @@ const en: Dict = {
   "marketBoard.today": "today",
   "marketBoard.pricesFrom": "Prices from AGMARKNET · data.gov.in{reportedOn} · refreshed every 6 hrs",
   "marketBoard.reportedOn": " · reported {date}",
-  "marketBoard.demoPrices": "Demo prices · Add DATA_GOV_API_KEY for live data",
+  "marketBoard.demoPrices": "Sample prices · no mandi arrivals reported right now",
+  "marketBoard.nationalPrices": "National prices (all-India) · no local arrivals in your state today",
   "marketBoard.nearbyMandis": "Nearby Mandis",
   "marketBoard.clickForBreakdown": "{crop} · click to see fee breakdown",
   "marketBoard.noMandiData": "No mandi data for {crop} in {region} today.",

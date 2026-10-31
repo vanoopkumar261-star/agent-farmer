@@ -464,11 +464,13 @@ export default function MarketBoard({
                 when we don't. */}
             <div className="mt-3 flex items-center gap-1.5 text-[11px] text-af-muted">
               <RefreshCw className="w-3 h-3" />
-              {active.isReal
-                ? t("marketBoard.pricesFrom", {
-                    reportedOn: active.reportedOn ? t("marketBoard.reportedOn", { date: active.reportedOn }) : "",
-                  })
-                : t("marketBoard.demoPrices")}
+              {active.national
+                ? t("marketBoard.nationalPrices")
+                : active.isReal
+                  ? t("marketBoard.pricesFrom", {
+                      reportedOn: active.reportedOn ? t("marketBoard.reportedOn", { date: active.reportedOn }) : "",
+                    })
+                  : t("marketBoard.demoPrices")}
             </div>
           </Card>
 
