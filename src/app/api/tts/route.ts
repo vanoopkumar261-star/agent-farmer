@@ -28,6 +28,21 @@ const NVIDIA_LANGUAGE: Record<string, { code: string; voiceTag: string }> = {
 /** Speaker name; "Aria" exists in both the EN-US and HI-IN voice sets. */
 const NVIDIA_SPEAKER = process.env.NVIDIA_TTS_VOICE?.trim() || "Aria";
 
+/**
+ * The "dampened relaxation" voice: a slightly slower, lower-pitched delivery so
+ * the assistant sounds calm and warm to a farmer rather than brisk and robotic.
+ * Magpie honours SSML <prosody> but only a percentage `rate` and an Hz (or named)
+ * `pitch` — not semitones, not a percentage pitch (confirmed against the live
+ * endpoint). Tunable without a deploy via NVIDIA_TTS_RATE / NVIDIA_TTS_PITCH.
+ */
+const NVIDIA_RATE = process.env.NVIDIA_TTS_RATE?.trim() || "88%";
+const NVIDIA_PITCH = process.env.NVIDIA_TTS_PITCH?.trim() || "-25Hz";
+
+function calmSsml(text: string): string {
+  const esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `<speak><prosody rate="${NVIDIA_RATE}" pitch="${NVIDIA_PITCH}">${esc}</prosody></speak>`;
+}
+
 /** The self-hosted Chatterbox server, or null when it is absent or fails. */
 async function chatterbox(baseUrl: string, text: string, locale: string): Promise<ArrayBuffer | null> {
   try {
@@ -57,28 +72,33 @@ async function nvidiaSpeech(text: string, locale: string): Promise<ArrayBuffer |
   const lang = NVIDIA_LANGUAGE[locale];
   if (!key || !lang) return null;
 
-  const form = new FormData();
-  form.set("text", text);
-  form.set("language", lang.code);
-  form.set("voice", `Magpie-Multilingual.${lang.voiceTag}.${NVIDIA_SPEAKER}`);
-  form.set("encoding", "LINEAR_PCM");
-  form.set("sample_rate_hz", "22050");
+  const call = (body: string) => {
+    const form = new FormData();
+    form.set("text", body);
+    form.set("language", lang.code);
+    form.set("voice", `Magpie-Multilingual.${lang.voiceTag}.${NVIDIA_SPEAKER}`);
+    form.set("encoding", "LINEAR_PCM");
+    form.set("sample_rate_hz", "22050");
+    return fetch(NVIDIA_TTS_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+      signal: AbortSignal.timeout(30_000),
+    });
+  };
 
   try {
-    const call = () =>
-      fetch(NVIDIA_TTS_URL, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}` },
-        body: form,
-        signal: AbortSignal.timeout(30_000),
-      });
-    let res = await call();
+    // Speak it calm (SSML prosody). If the endpoint ever rejects the SSML, fall
+    // straight back to the plain text so a reply is never lost over styling.
+    let res = await call(calmSsml(text));
+    if (res.status === 400) res = await call(text);
     // The free tier allows ~40 requests a minute, and one long reply is
     // several chunks. One short wait beats a reply that falls silent midway.
     if (res.status === 429) {
       const wait = Math.min(3, Number(res.headers.get("retry-after")) || 1.5);
       await new Promise((r) => setTimeout(r, wait * 1000));
-      res = await call();
+      res = await call(calmSsml(text));
+      if (res.status === 400) res = await call(text);
     }
     if (!res.ok) {
       console.error("NVIDIA TTS error:", res.status, (await res.text().catch(() => "")).slice(0, 200));
