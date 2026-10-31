@@ -101,7 +101,7 @@ function MandiItem({
             <div className="flex items-center gap-3 mt-0.5">
               <div className="inline-flex items-center gap-1 text-[11px] text-af-muted">
                 <MapPin className="w-3 h-3" />
-                {mandi.distanceKm} km
+                {mandi.distanceKm != null ? `${mandi.distanceKm} km` : "—"}
               </div>
               <div className="text-[11px] text-af-muted">
                 {t("marketBoard.net")} <span className="font-semibold text-af-primary">{rupee(mandi.netPrice)}</span>

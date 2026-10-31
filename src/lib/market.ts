@@ -3,6 +3,8 @@
  * Real mandi prices from data.gov.in Agmarknet API.
  */
 
+import { attachRoadDistances, type LatLng } from "./mandi/distance";
+
 export type CropMarket = {
   name: string;
   unit: string;
@@ -22,8 +24,9 @@ export type CropMarket = {
 
 export type MandiRow = {
   mandi: string;
+  district?: string;    // from AGMARKNET, used to geocode the mandi for distance
   price: number;        // modal/quoted price
-  distanceKm: number;
+  distanceKm: number | null; // real road distance from the farmer; null if not located yet
   // Fee breakdown
   fees: {
     marketFee: number;
@@ -382,24 +385,27 @@ export function recordsToMandiRows(records: AgmarkRecord[]): MandiRow[] {
   // Keeps the best quote per market, and now remembers which variety produced
   // it so callers can reject a premium variety the feed mislabelled. Same
   // max-per-market semantics as before.
-  const map = new Map<string, { price: number; variety?: string }>();
+  const map = new Map<string, { price: number; variety?: string; district?: string }>();
   for (const r of records) {
     const p = Number(r.modal_price);
     if (!isNaN(p) && p > 0) {
       const prev = map.get(r.market);
       if (!prev || prev.price < p) {
-        map.set(r.market, { price: p, variety: r.variety || undefined });
+        map.set(r.market, { price: p, variety: r.variety || undefined, district: r.district || undefined });
       }
     }
   }
 
   return Array.from(map.entries())
-    .map(([mandi, { price, variety }], i) => {
+    .map(([mandi, { price, variety, district }]) => {
       const { fees, totalDeductions, netPrice } = calculateFees(price);
       return {
         mandi,
+        district,
         price,
-        distanceKm: 8 + i * 12,
+        // Real road distance is attached later by getMandiRows (needs the farmer's
+        // location + geocoding). Null until then — never the old fabricated 8+i*12.
+        distanceKm: null as number | null,
         fees,
         totalDeductions,
         netPrice,
@@ -447,7 +453,8 @@ export async function getMarket(
 export async function getMandiRows(
   cropName: string,
   state?: string | null,
-  apiKey?: string | null
+  apiKey?: string | null,
+  origin?: LatLng | null
 ): Promise<MandiRow[]> {
   const crop = CROPS.find((c) => c.name === cropName);
   if (!crop) return [];
@@ -468,6 +475,9 @@ export async function getMandiRows(
     const rows = recordsToMandiRows(records).filter(
       (r) => !isForeignVariety(crop.name, r.variety)
     );
+    // Attach the real road distance from the farmer to each mandi (cache-first).
+    // With no origin, distances stay null and the UI shows "distance unavailable".
+    await attachRoadDistances(origin ?? null, state, rows);
     return rows.length > 0 ? rows : [];
   } catch (err) {
     console.error(`Mandi lookup failed for ${cropName} in ${state}:`, err);

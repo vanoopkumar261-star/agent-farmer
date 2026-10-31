@@ -20,6 +20,11 @@ export async function GET(req: Request) {
 
   const state = extractStateFromAddress(address);
 
-  const mandis = await getMandiRowsForState(crop, state);
+  // Optional farmer location for real road distances; omitted → distances null.
+  const lat = parseFloat(url.searchParams.get("lat") ?? "");
+  const lon = parseFloat(url.searchParams.get("lon") ?? "");
+  const origin = Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+
+  const mandis = await getMandiRowsForState(crop, state, origin);
   return Response.json({ mandis });
 }

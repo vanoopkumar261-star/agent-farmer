@@ -19,9 +19,10 @@ export function getMarketForState(state: string | null): Promise<CropMarket[]> {
 
 export function getMandiRowsForState(
   cropName: string,
-  state: string | null
+  state: string | null,
+  origin?: { lat: number; lon: number } | null
 ): Promise<MandiRow[]> {
-  return getMandiRows(cropName, state, key());
+  return getMandiRows(cropName, state, key(), origin);
 }
 
 /** Whether live Agmarknet data is configured — for the "demo mode" badge. */

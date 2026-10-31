@@ -81,9 +81,16 @@ export default function TransportPlanner({
   const [weight, setWeight] = useState(50);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
 
-  // Calculate costs for all vehicles
+  // Real road distance, or null when the mandi could not be located yet. Transport
+  // cost can only be estimated with a real distance — we never invent one.
+  const distanceKm = mandi.distanceKm;
+  const hasDistance = distanceKm != null;
+
+  // Calculate costs for all vehicles (only meaningful with a real distance).
   const vehiclesWithCost = VEHICLES.map((v) => {
-    const { tripsNeeded, totalCost } = calcVehicleCost(v, mandi.distanceKm, weight);
+    const { tripsNeeded, totalCost } = hasDistance
+      ? calcVehicleCost(v, distanceKm, weight)
+      : { tripsNeeded: Math.ceil(weight / v.capacity), totalCost: 0 };
     return { ...v, tripsNeeded, totalCost };
   });
 
@@ -96,7 +103,9 @@ export default function TransportPlanner({
   const activeVehicle = vehiclesWithCost.find((v) => v.id === activeVehicleId)!;
 
   const grossRevenue = Math.round(mandi.netPrice * weight);
-  const finalEarnings = Math.max(0, grossRevenue - activeVehicle.totalCost);
+  const finalEarnings = hasDistance
+    ? Math.max(0, grossRevenue - activeVehicle.totalCost)
+    : grossRevenue;
 
   // Close on Escape
   useEffect(() => {
@@ -150,7 +159,9 @@ export default function TransportPlanner({
             <div>
               <div className="text-sm font-semibold text-af-ink">{mandi.mandi}</div>
               <div className="text-[12px] text-af-muted mt-0.5">
-                {t("transportPlanner.distanceVerified", { km: mandi.distanceKm })}
+                {hasDistance
+                  ? t("transportPlanner.distanceByRoad", { km: distanceKm })
+                  : t("transportPlanner.distanceUnavailable")}
               </div>
             </div>
             <div className="text-right">
@@ -283,15 +294,24 @@ export default function TransportPlanner({
                 label={t("transportPlanner.grossRevenue", { qty: weight, price: rupee(mandi.netPrice) })}
                 value={rupee(grossRevenue)}
               />
-              <InvoiceRow
-                label={t("transportPlanner.distanceToMandi")}
-                value={`${mandi.distanceKm} km${IS_ROUND_TRIP ? t("transportPlanner.roundTripSuffix") : ""}`}
-              />
-              <InvoiceRow
-                label={t("transportPlanner.transportRow", { vehicle: activeVehicle.name, trips: activeVehicle.tripsNeeded })}
-                value={`-${rupee(activeVehicle.totalCost)}`}
-                danger
-              />
+              {hasDistance ? (
+                <>
+                  <InvoiceRow
+                    label={t("transportPlanner.distanceToMandi")}
+                    value={`${distanceKm} km${IS_ROUND_TRIP ? t("transportPlanner.roundTripSuffix") : ""}`}
+                  />
+                  <InvoiceRow
+                    label={t("transportPlanner.transportRow", { vehicle: activeVehicle.name, trips: activeVehicle.tripsNeeded })}
+                    value={`-${rupee(activeVehicle.totalCost)}`}
+                    danger
+                  />
+                </>
+              ) : (
+                <InvoiceRow
+                  label={t("transportPlanner.distanceUnavailable")}
+                  value="—"
+                />
+              )}
 
               {/* Divider */}
               <div className="h-px bg-af-border" />

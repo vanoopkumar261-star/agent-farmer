@@ -17,6 +17,12 @@ export default async function MarketPage() {
   const { farmer, farms } = await getDashboardData();
 
   const state = extractStateFromAddress(farmer?.house_address ?? "");
+  // The farmer's saved location, for real mandi road distances. Null → the board
+  // shows "distance unavailable" rather than a fabricated number.
+  const origin =
+    farmer?.house_lat != null && farmer?.house_lng != null
+      ? { lat: farmer.house_lat, lon: farmer.house_lng }
+      : null;
   const marketKeyConfigured = hasMarketKey();
 
   const crops = await getMarketForState(state);
@@ -47,7 +53,7 @@ export default async function MarketPage() {
         mandisByFocus[c.name] = [];
         return;
       }
-      mandisByFocus[c.name] = await getMandiRowsForState(c.name, state);
+      mandisByFocus[c.name] = await getMandiRowsForState(c.name, state, origin);
     })
   );
 

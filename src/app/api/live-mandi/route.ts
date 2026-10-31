@@ -184,11 +184,13 @@ async function datagovShape(crop: string, state: string): Promise<LiveMandiOk | 
     // A missing date is honest; a fabricated one is not.
   }
 
-  const rows = await getMandiRowsForState(canonical, state);
+  // No origin passed: this card ranks mandis by price only and ignores distance,
+  // so there is no need to geocode here (that work happens on the market board).
+  const rows = await getMandiRowsForState(canonical, state, null);
   if (!rows.length) return null;
 
-  // `distanceKm` on these rows is deliberately ignored: it is `8 + i * 12`, a
-  // position, not a distance (src/lib/market.ts).
+  // `distanceKm` is deliberately ignored here (price-only ranking). It is now a
+  // real road distance on the market board; this card just doesn't use it.
   const sorted = rows
     .map((r) => ({ name: r.mandi, price_per_quintal: Math.round(r.price), date: reportedOn }))
     .sort((a, b) => b.price_per_quintal - a.price_per_quintal)

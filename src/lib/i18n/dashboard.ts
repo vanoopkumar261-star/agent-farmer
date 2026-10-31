@@ -750,6 +750,8 @@ const en: Dict = {
   // TransportPlanner.tsx
   "transportPlanner.title": "Transport Logistics Planner",
   "transportPlanner.distanceVerified": "{km} km away · AGMARKNET verified",
+  "transportPlanner.distanceByRoad": "{km} km away · by road",
+  "transportPlanner.distanceUnavailable": "Distance unavailable — still locating this mandi",
   "transportPlanner.netAtGate": "Net at Gate",
   "transportPlanner.harvestQty": "Harvest Quantity",
   "transportPlanner.quintals": "Quintals",
