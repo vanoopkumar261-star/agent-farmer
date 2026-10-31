@@ -1,0 +1,29 @@
+name: Warm mandi geocache
+
+# Pre-geocode the day's AGMARKNET mandis into mandi_geocache so the market board
+# reads real road distances from the DB instead of geocoding inline (Nominatim's
+# 1 req/s limit + Vercel's 10s timeout make inline geocoding of many mandis
+# unsafe). Runs in the afternoon IST, when the feed is populated.
+
+on:
+  schedule:
+    - cron: "30 8 * * *"   # 08:30 UTC = 14:00 IST
+  workflow_dispatch: {}     # allow manual runs from the Actions tab
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Warm the geocache
+        run: npx -y tsx scripts/warm-mandi-geocache.mts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATA_GOV_API_KEY: ${{ secrets.DATA_GOV_API_KEY }}

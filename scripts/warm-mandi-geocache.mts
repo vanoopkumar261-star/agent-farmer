@@ -16,12 +16,16 @@
  */
 import fs from "fs";
 
-for (const line of fs.readFileSync(".env.local", "utf8").split("\n")) {
-  const i = line.indexOf("=");
-  if (i < 0 || line.startsWith("#")) continue;
-  const k = line.slice(0, i).trim();
-  const v = line.slice(i + 1).trim().replace(/^["']|["']$/g, "");
-  if (k && !process.env[k]) process.env[k] = v;
+// Local runs read .env.local; CI (the daily GitHub Action) sets these as env
+// from repo secrets, so the file is optional.
+if (fs.existsSync(".env.local")) {
+  for (const line of fs.readFileSync(".env.local", "utf8").split("\n")) {
+    const i = line.indexOf("=");
+    if (i < 0 || line.startsWith("#")) continue;
+    const k = line.slice(0, i).trim();
+    const v = line.slice(i + 1).trim().replace(/^["']|["']$/g, "");
+    if (k && !process.env[k]) process.env[k] = v;
+  }
 }
 
 const { mandiCoords } = await import("../src/lib/mandi/distance");
